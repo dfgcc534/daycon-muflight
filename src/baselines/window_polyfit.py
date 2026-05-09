@@ -55,3 +55,32 @@ def predict_per_axis(
         pred_axis = predict(single_axis, w, d, t_target, timesteps)
         out[:, axis] = pred_axis[:, 0]
     return out
+
+
+def tune_per_axis(
+    X: np.ndarray,
+    y: np.ndarray,
+    grid: list[tuple[int, int]],
+    t_target: int = T_TARGET_MS,
+    timesteps: np.ndarray = TIMESTEPS_MS,
+) -> tuple[list[tuple[int, int]], dict]:
+    """For each axis, pick (window, degree) in grid that minimizes axis MAE on (X, y).
+
+    Returns (chosen_per_axis, errors) where chosen_per_axis is a list of 3
+    (w, d) tuples and errors[axis][(w, d)] = MAE for that combination.
+    """
+    n_axes = y.shape[1]
+    errors: dict[int, dict[tuple[int, int], float]] = {a: {} for a in range(n_axes)}
+    for (w, d) in grid:
+        if w <= d or w > timesteps.size:
+            continue
+        pred = predict(X, w, d, t_target=t_target, timesteps=timesteps)
+        mae_axis = np.abs(pred - y).mean(axis=0)
+        for axis in range(n_axes):
+            errors[axis][(int(w), int(d))] = float(mae_axis[axis])
+    chosen = []
+    for axis in range(n_axes):
+        if not errors[axis]:
+            raise ValueError(f"axis {axis}: no valid grid entries (after filtering)")
+        chosen.append(min(errors[axis].items(), key=lambda kv: kv[1])[0])
+    return chosen, errors

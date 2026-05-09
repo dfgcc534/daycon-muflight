@@ -21,7 +21,7 @@ from pathlib import Path
 import numpy as np
 import yaml
 
-from src.baselines.window_polyfit import predict, predict_per_axis
+from src.baselines.window_polyfit import predict, predict_per_axis, tune_per_axis
 from src.eval import summarize
 from src.io import TIMESTEPS_MS, kfold_split, load_all_samples, load_labels
 
@@ -42,7 +42,7 @@ def now_kst() -> str:
 def predict_for_config(X: np.ndarray, cfg: dict) -> np.ndarray:
     pa = cfg.get("per_axis")
     t_target = int(cfg.get("t_target", 80))
-    if pa:
+    if pa and pa != "tune":
         configs = [tuple(c) for c in pa]
         return predict_per_axis(X, configs, t_target=t_target, timesteps=TIMESTEPS_MS)
     return predict(X, int(cfg["window"]), int(cfg["degree"]),
@@ -85,13 +85,28 @@ def run_baseline(config_path: Path, X=None, y=None, ids=None) -> dict:
     log(f"n_train={len(ids)}")
 
     folds = kfold_split(ids, k=int(cfg.get("k", 5)), seed=int(cfg.get("seed", 42)))
+    is_tune = cfg.get("per_axis") == "tune"
+    grid = [tuple(c) for c in cfg.get("grid", [])] if is_tune else None
+    t_target = int(cfg.get("t_target", 80))
+
     fold_metrics: list[dict] = []
+    fold_chosen: list[list[tuple[int, int]]] = []
     oof_preds = np.empty_like(y)
-    for fi, (_tr, va) in enumerate(folds):
-        pred = predict_for_config(X[va], cfg)
+    for fi, (tr, va) in enumerate(folds):
+        if is_tune:
+            chosen, _err = tune_per_axis(X[tr], y[tr], grid, t_target=t_target,
+                                         timesteps=TIMESTEPS_MS)
+            fold_chosen.append(chosen)
+            pred = predict_per_axis(X[va], chosen, t_target=t_target,
+                                    timesteps=TIMESTEPS_MS)
+            log(f"fold {fi}: chosen per-axis (w,d)={chosen}")
+        else:
+            pred = predict_for_config(X[va], cfg)
         oof_preds[va] = pred
         s = summarize(pred, y[va])
         s["fold"] = fi
+        if is_tune:
+            s["chosen_per_axis"] = [list(c) for c in fold_chosen[-1]]
         fold_metrics.append(s)
         log(f"fold {fi}: mean_eucl={s['mean_eucl']:.5f} "
             f"per_axis_mae={[round(v, 4) for v in s['per_axis_mae']]}")
@@ -127,6 +142,16 @@ def run_baseline(config_path: Path, X=None, y=None, ids=None) -> dict:
         "fold_metrics": fold_metrics,
         "config": cfg,
     }
+    if is_tune:
+        final_chosen, final_errors = tune_per_axis(X, y, grid, t_target=t_target,
+                                                   timesteps=TIMESTEPS_MS)
+        summary["final_chosen_per_axis"] = [list(c) for c in final_chosen]
+        summary["fold_chosen_per_axis"] = [[list(c) for c in cfgs] for cfgs in fold_chosen]
+        summary["full_train_grid_errors"] = {
+            str(axis): {f"w{w}d{d}": e for (w, d), e in errs.items()}
+            for axis, errs in final_errors.items()
+        }
+        log(f"final tune over full train: chosen per-axis (w,d)={final_chosen}")
     (run_dir / "summary.json").write_text(json.dumps(summary, indent=2))
     (run_dir / "history.json").write_text(json.dumps(fold_metrics, indent=2))
     (run_dir / "config.snapshot.yaml").write_text(yaml.safe_dump(cfg, sort_keys=False))
