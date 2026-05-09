@@ -32,10 +32,10 @@ exp_ids:
 ### G-gates
 
 - G0: STAGE 0 인프라 commit chain 완료                    [DONE @ 5c85edc]
-- G1: STAGE 1 B001 (linear-2pt) 결과 확보 + EDA 재현        [TODO]
-- G2: STAGE 2 B002, B003 결과 확보                          [TODO]
-- G3: STAGE 3 B004 per-axis grid 결과 확보                  [TODO]
-- G_final: submission.csv + plan-001 results.md 작성       [TODO]
+- G1: STAGE 1 B001 (linear-2pt) 결과 확보 + EDA 재현        [DONE @ 548048b — cv_mean_eucl 0.01294]
+- G2: STAGE 2 B002, B003 결과 확보                          [DONE — B002 0.01576, B003 0.02017]
+- G3: STAGE 3 B004 per-axis grid 결과 확보                  [DONE — B004 0.01294, ties B001 (all axes chose w2d1)]
+- G_final: submission.csv + plan-001 results.md 작성       [DONE]
 
 ### Commit chain (next-up)
 
@@ -46,17 +46,17 @@ exp_ids:
 | c3 | code | `src/baselines/window_polyfit.py` — `predict(X, window, degree, t_target=80)` vectorized. spec @ §5 | [DONE @ 54b96d1] |
 | c4 | test | `tests/test_io.py` + `tests/test_eval.py` + `tests/test_window_polyfit.py` (synthetic). spec @ §4, §3.3, §5 | [DONE @ 5c85edc] |
 | G0 | gate | `pytest tests/` green, `src.eval.mean_eucl` 와 `src.baselines.window_polyfit.predict` import OK | [DONE @ 5c85edc] |
-| c5 | exp B001 | `configs/baseline/B001_linear-2pt.yaml` + run (5-fold) + `runs/baseline/B001_linear-2pt/{summary,history,run.log,config.snapshot}` + registry. spec @ §6 | [TODO] |
+| c5 | exp B001 | `configs/baseline/B001_linear-2pt.yaml` + run (5-fold) + `runs/baseline/B001_linear-2pt/{summary,history,run.log,config.snapshot}` + registry. spec @ §6 | [DONE @ 548048b] |
 | G1 | gate | B001 mean_eucl ∈ [0.010, 0.020]; 벗어나면 severe `eda_mismatch` | [TODO] |
-| c6 | exp B002 | `configs/baseline/B002_linear-3pt.yaml` + run + registry. spec @ §6 | [TODO] |
-| c7 | exp B003 | `configs/baseline/B003_quad-3pt.yaml` + run + registry. spec @ §6 | [TODO] |
+| c6 | exp B002 | `configs/baseline/B002_linear-3pt.yaml` + run + registry. spec @ §6 | [DONE — cv 0.01576] |
+| c7 | exp B003 | `configs/baseline/B003_quad-3pt.yaml` + run + registry. spec @ §6 | [DONE — cv 0.02017] |
 | G2 | gate | B002/B003 결과 기록 완료 | [TODO] |
-| c8 | code | `src/baselines/window_polyfit.py` 에 `tune_per_axis(X, y, grid, k=5)` 추가. spec @ §6.4 | [TODO] |
-| c9 | exp B004 | `configs/baseline/B004_per-axis-grid.yaml` + run + registry. spec @ §6 | [TODO] |
+| c8 | code | `src/baselines/window_polyfit.py` 에 `tune_per_axis(X, y, grid, k=5)` 추가. spec @ §6.4 | [DONE @ 166d41d] |
+| c9 | exp B004 | `configs/baseline/B004_per-axis-grid.yaml` + run + registry. spec @ §6 | [DONE — cv 0.01294] |
 | G3 | gate | B004 결과 기록 완료, best of {B001..B004} mean_eucl ≤ 0.013 | [TODO] |
-| c10 | sub | best exp_id 자동 결정 (registry mean_eucl argmin) → 전체 train 사용 (closed-form: 추가 fit 불필요) → test 10k 예측 → `runs/baseline/{best}/submission.csv`. 스키마 검증. spec @ §7 | [TODO] |
-| c11 | docs | `analysis/plan-001/results.md` + `plans/plan-001-polyfit-baseline.results.md`. spec @ §N+2 | [TODO] |
-| G_final | gate | 위 모두 완료 + §0.5 [TODO]→[DONE] sync (이게 §12.6 blacklist 의 유일한 예외) | [TODO] |
+| c10 | sub | best exp_id 자동 결정 (registry mean_eucl argmin) → 전체 train 사용 (closed-form: 추가 fit 불필요) → test 10k 예측 → `runs/baseline/{best}/submission.csv`. 스키마 검증. spec @ §7 | [DONE @ 19ec733 — best=B001] |
+| c11 | docs | `analysis/plan-001/results.md` + `plans/plan-001-polyfit-baseline.results.md`. spec @ §N+2 | [DONE] |
+| G_final | gate | 위 모두 완료 + §0.5 [TODO]→[DONE] sync (이게 §12.6 blacklist 의 유일한 예외) | [DONE] |
 
 ### Plan-specific severe (WORKFLOW.md §12.3 default 위 추가분)
 
