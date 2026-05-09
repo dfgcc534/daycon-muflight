@@ -1,0 +1,9 @@
+[2026-05-10T01:04:37+09:00] start exp_id=B002_linear-3pt, config=/workspace/daycon-muflight/configs/baseline/B002_linear-3pt.yaml
+[2026-05-10T01:04:37+09:00] load train + labels
+[2026-05-10T01:04:38+09:00] n_train=10000
+[2026-05-10T01:04:38+09:00] fold 0: mean_eucl=0.01659 per_axis_mae=[0.0089, 0.0091, 0.0065]
+[2026-05-10T01:04:38+09:00] fold 1: mean_eucl=0.01474 per_axis_mae=[0.0085, 0.0081, 0.0051]
+[2026-05-10T01:04:38+09:00] fold 2: mean_eucl=0.01540 per_axis_mae=[0.0084, 0.0085, 0.0061]
+[2026-05-10T01:04:38+09:00] fold 3: mean_eucl=0.01613 per_axis_mae=[0.0091, 0.0088, 0.0061]
+[2026-05-10T01:04:38+09:00] fold 4: mean_eucl=0.01596 per_axis_mae=[0.0087, 0.009, 0.0059]
+[2026-05-10T01:04:38+09:00] CV mean_eucl=0.01576 ± 0.00064 | OOF mean_eucl=0.01576
