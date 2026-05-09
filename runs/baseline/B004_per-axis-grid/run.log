@@ -1,0 +1,15 @@
+[2026-05-10T01:06:30+09:00] start exp_id=B004_per-axis-grid, config=/workspace/daycon-muflight/configs/baseline/B004_per-axis-grid.yaml
+[2026-05-10T01:06:30+09:00] load train + labels
+[2026-05-10T01:06:31+09:00] n_train=10000
+[2026-05-10T01:06:31+09:00] fold 0: chosen per-axis (w,d)=[(2, 1), (2, 1), (2, 1)]
+[2026-05-10T01:06:31+09:00] fold 0: mean_eucl=0.01371 per_axis_mae=[0.0072, 0.0077, 0.0054]
+[2026-05-10T01:06:32+09:00] fold 1: chosen per-axis (w,d)=[(2, 1), (2, 1), (2, 1)]
+[2026-05-10T01:06:32+09:00] fold 1: mean_eucl=0.01201 per_axis_mae=[0.0068, 0.0066, 0.0044]
+[2026-05-10T01:06:33+09:00] fold 2: chosen per-axis (w,d)=[(2, 1), (2, 1), (2, 1)]
+[2026-05-10T01:06:33+09:00] fold 2: mean_eucl=0.01259 per_axis_mae=[0.0069, 0.0068, 0.005]
+[2026-05-10T01:06:33+09:00] fold 3: chosen per-axis (w,d)=[(2, 1), (2, 1), (2, 1)]
+[2026-05-10T01:06:33+09:00] fold 3: mean_eucl=0.01313 per_axis_mae=[0.0073, 0.007, 0.0051]
+[2026-05-10T01:06:34+09:00] fold 4: chosen per-axis (w,d)=[(2, 1), (2, 1), (2, 1)]
+[2026-05-10T01:06:34+09:00] fold 4: mean_eucl=0.01326 per_axis_mae=[0.007, 0.0075, 0.0052]
+[2026-05-10T01:06:34+09:00] CV mean_eucl=0.01294 ± 0.00058 | OOF mean_eucl=0.01294
+[2026-05-10T01:06:34+09:00] final tune over full train: chosen per-axis (w,d)=[(2, 1), (2, 1), (2, 1)]

@@ -1,0 +1,21 @@
+exp_id: B004_per-axis-grid
+plan_id: "001"
+type: baseline
+baseline_id: B001_linear-2pt
+per_axis: tune
+grid:
+  - [2, 1]
+  - [3, 1]
+  - [3, 2]
+  - [5, 1]
+  - [5, 2]
+  - [5, 3]
+  - [7, 1]
+  - [7, 2]
+  - [7, 3]
+  - [11, 1]
+  - [11, 2]
+  - [11, 3]
+t_target: 80
+k: 5
+seed: 42
