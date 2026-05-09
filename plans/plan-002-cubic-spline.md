@@ -48,13 +48,13 @@ exp_ids:
 | c2 | code | `src/run.py` 확장 — cfg `method` 키 도입 (default `polyfit` ← 후방호환), `cspline` / `smoothing_spline` 분기. spec @ §4.4 | [DONE] b92df74 |
 | c3 | test | `tests/test_cubic_spline.py` — synthetic linear/quadratic 정확 외삽, NaN/Inf 부재, B001-동등 input 에서 finite output. spec @ §4.5 | [DONE] d3a7579 |
 | G0 | gate | `pytest -q tests/` exit 0; `python -c "from src.baselines.cubic_spline import predict_cspline; print('ok')"` 성공; 기존 B001~B004 backward-compat smoke (configs 그대로 재실행 1회 → registry 동일 cv_mean_eucl) | [DONE] d3a7579 (smoke: B001~B004 cv_mean diff < 1e-4) |
-| c4 | exp S001 | `configs/baseline/S001_cspline-natural-full.yaml` + run + `runs/baseline/S001_cspline-natural-full/{summary,history,run.log,config.snapshot}` + registry append. spec @ §5 | [TODO] |
-| c5 | exp S002 | `configs/baseline/S002_cspline-notaknot-full.yaml` + run + registry. spec @ §5 | [TODO] |
-| G1 | gate | S001, S002 summary.json + registry 행 존재; cv_mean_eucl 유한 (NaN/Inf 0); 두 exp 모두 mean_eucl 기록 | [TODO] |
-| c6 | exp S003 | `configs/baseline/S003_cspline-window-grid.yaml` + run + registry. spec @ §6 | [TODO] |
-| G2 | gate | S003 summary 에 `final_chosen_per_axis` (axis × (window, bc_type)) 기록, registry 행 존재 | [TODO] |
-| c7 | exp S004 | `configs/baseline/S004_smoothing-spline-tuned.yaml` + run + registry. spec @ §7 | [TODO] |
-| G3 | gate | S004 summary 에 `final_chosen_s_per_axis` 기록, registry 행 존재 | [TODO] |
+| c4 | exp S001 | `configs/baseline/S001_cspline-natural-full.yaml` + run + `runs/baseline/S001_cspline-natural-full/{summary,history,run.log,config.snapshot}` + registry append. spec @ §5 | [DONE] 3b25f12 (cv=0.01742) |
+| c5 | exp S002 | `configs/baseline/S002_cspline-notaknot-full.yaml` + run + registry. spec @ §5 | [DONE] 9b3a693 (cv=0.05370) |
+| G1 | gate | S001, S002 summary.json + registry 행 존재; cv_mean_eucl 유한 (NaN/Inf 0); 두 exp 모두 mean_eucl 기록 | [DONE] 9b3a693 |
+| c6 | exp S003 | `configs/baseline/S003_cspline-window-grid.yaml` + run + registry. spec @ §6 | [DONE] 0aa1bcf (cv=0.01740, chosen=[(5,nat),(5,nat),(4,nat)]) |
+| G2 | gate | S003 summary 에 `final_chosen_per_axis` (axis × (window, bc_type)) 기록, registry 행 존재 | [DONE] 0aa1bcf |
+| c7 | exp S004 | `configs/baseline/S004_smoothing-spline-tuned.yaml` + run + registry. spec @ §7 | [DONE] 39a6089 (cv=0.03322, s=[1e-4,1e-4,1e-4]) |
+| G3 | gate | S004 summary 에 `final_chosen_s_per_axis` 기록, registry 행 존재 | [DONE] 39a6089 |
 | c8 | sub-gen | `src/submit.py` 확장 (cspline / smoothing_spline method 분기 추가, polyfit 후방호환 보존) + S001~S004 4 exp 의 test 10k 예측 → `runs/baseline/{S00x}/submission.csv` 4개 (sample_submission 스키마 동일). c8 commit 에 4 csv 모두 포함. **스키마 검증 fail 시 `submission_schema_fail` severe**. spec @ §8.1 | [TODO] |
 | c8b | sub-lb | **`dacon-submit` skill 사용해 dacon public LB 에 4 회 제출 (의무)** — 1일 5/일 budget 내 S004 → S003 → S001 → S002 순으로 `Skill(skill="dacon-submit", args="<runs/baseline/{S00x}/submission.csv> <exp_id>")` 4회 호출. 각 호출 응답으로 LB 점수 회수해 `analysis/plan-002/lb_log.md` 의 4 행에 (exp_id, submitted_at KST, lb_score, filename) 기록. skill 부재 시 `dacon_submit_skill_missing` severe → 사용자에게 skill 설치 escalate. **점수 4개 모두 회수될 때까지 G_final 진입 불가**. spec @ §8.2 | [TODO] |
 | c9 | docs | `analysis/plan-002/results.md` + `plans/plan-002-cubic-spline.results.md` (frontmatter 에 4 LB 점수 dict 포함). spec @ §N+2 | [TODO] |
