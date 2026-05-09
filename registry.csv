@@ -1,1 +1,2 @@
 id,plan_id,type,status,started_at,finished_at,duration_sec,run_dir,config_path,baseline_id,corrects,notes
+B001_linear-2pt,001,baseline,complete,2026-05-10T01:04:09+09:00,2026-05-10T01:04:09+09:00,0.795,runs/baseline/B001_linear-2pt,configs/baseline/B001_linear-2pt.yaml,,,cv_mean_eucl=0.01294±0.00058
