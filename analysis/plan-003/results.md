@@ -1,6 +1,6 @@
 # plan-003 results — Residual GRU Lean Baseline + Component Ablation Grid + Winning-Components Combined
 
-작성: 2026-05-11 (KST). status: **partial** (carry-over: lb_score 회수 대기).
+작성: 2026-05-11 (KST). status: **all_complete** (lb_score = 0.5688 회수 완료, 2026-05-11).
 
 ## §1. 종합 표
 
@@ -13,7 +13,7 @@
 | R003_ema-extrapolate | gru-residual | baseline_type=ema (α=0.5) | 0.014038 ± 0.000976 | 0.00759, 0.00770, 0.00561 | 0.9595 | 0.9936 | (미제출) | 80.8 |
 | R004_wingbeat-oscillation | gru-residual | + wingbeat FFT (n_bins=3) input_dim=12 | 0.013476 ± 0.000684 | 0.00733, 0.00740, 0.00529 | 0.9593 | 0.9936 | (미제출) | 34.5 |
 | R005_loss-mse | gru-residual | loss_type=mse | 0.013388 ± 0.000580 | 0.00740, 0.00736, 0.00514 | 0.9604 | 0.9934 | (미제출) | 27.7 |
-| **R006_combined-winners** | gru-residual | winning=0 → R001 비트 동일 사본 | 0.013383 ± 0.000718 | 0.00738, 0.00734, 0.00516 | 0.9602 | 0.9935 | **carry-over pending** | 34.3 (R001 학습 재사용, 추가 0) |
+| **R006_combined-winners** | gru-residual | winning=0 → R001 비트 동일 사본 | 0.013383 ± 0.000718 | 0.00738, 0.00734, 0.00516 | 0.9602 | 0.9935 | **0.5688** | 34.3 (R001 학습 재사용, 추가 0) |
 
 (hit@0.20, hit@0.50 모두 = 1.0000, 표 단순화 위해 생략. submission.csv 의 dacon API 응답 = `{isSubmitted: True, detail: Success}`.)
 
@@ -121,13 +121,15 @@ winning = {R002: F, R003: F, R004: F, R005: F}, count = 0
 - **H4 (loss MSE / Huber prior 약함)** — *Huber prior 기각*. paired Δ +0.000005 (사실상 동등). PyTorch δ=1.0 default 가 본 데이터의 mm-단위 잔차 영역에서 quadratic 영역에 머물러 효과 없음 (caveat #7).
 - **H5 (combined-additive)** — *trivial 분기 (winning=0)*. R006 = R001 비트 동일이라 interaction 측정 불가. caveat #14 + #15 + #16 박제 — 본 plan 의 strict winning 기준이 marginal R004/R005 를 false-non-winning 으로 처리한 것이 H5 검증 차단.
 
-## §6. lb_exp_id 위치 (carry-over pending)
+## §6. lb_exp_id 위치 (회수 완료)
 
 - lb_exp_id = R006_combined-winners (= R001 비트 동일).
-- API 응답 (2026-05-11T00:08 KST): `{isSubmitted: True, detail: Success}`. score 회수는 dacon.io 페이지 수동 확인 (DACON API 가 get_score 미지원).
+- API 응답 (2026-05-11T00:08 KST): `{isSubmitted: True, detail: Success}`. score 회수: dacon.io 페이지 수동 (2026-05-11).
+- **lb_score = 0.5688**.
 - **CV 위치**: R006 CV 0.013383 vs B001 CV 0.012941 (Δ = +0.000442) — neural model 이 closed-form floor 를 *넘지 못함*.
-- **LB 비교 prior**: B001 LB = 0.60, S001 LB = 0.4932. CV ↔ LB ρ = +0.90 (plan-002 분석). R006 LB 가 0.60 보다 작으면 *neural 모델 자체가 closed-form floor 미달* 증거 (CV-LB 일관성 가정).
-- **expected LB (CV-LB extrapolation)**: B001 (CV=0.0129, LB=0.60) 대비 R006 CV=0.0134 → 단순 비례로 LB ≈ 0.55~0.59 영역 추정. 단 plan-002 의 S001~S004 가 이 비례를 벗어난 사례 (smoothing spline S004: CV=0.033, LB=0.22 — 격차 큼) 가 있어 *LB 회수 후 비교 필수*.
+- **LB 위치**: R006 LB 0.5688 vs B001 LB 0.60 (Δ = -0.0312) — **CV 부호와 일치, neural model 이 closed-form floor 미달 확정**.
+- **CV-LB 일관성**: plan-002 ρ=+0.90 prior 와 부호 일치 (CV ↑ → LB ↓). expected LB 0.55~0.59 영역 안 (실제 0.5688) → CV-LB extrapolation 검증 통과.
+- **순위 prior 강화**: B001 (LB 0.60) > R006 (0.5688) > S001/S003 (~0.493) > S004 (0.218) > S002 (0.120). 모든 baseline 류 중 **closed-form linear B001 이 LB top**.
 
 ## §7. 학습 안정성
 
@@ -145,7 +147,7 @@ winning = {R002: F, R003: F, R004: F, R005: F}, count = 0
 - `runs/baseline/R006_combined-winners/submission.csv` (10000 rows, schema OK, R001 과 비트 동일 — winning=0 cp 분기).
 - DACON 자율 제출 1회: `dacon-submit` skill via Skill tool, fallback path 미사용.
 - API 응답: `{isSubmitted: True, detail: Success}`.
-- LB 점수: **carry-over pending** (사용자가 dacon.io 페이지에서 회수 후 별도 commit 으로 박제).
+- LB 점수: **0.5688** (2026-05-11 dacon.io 수동 회수 완료).
 
 ## §9. 다음 plan 후보 (enumeration only)
 
@@ -174,4 +176,4 @@ local 의사결정 권한. server 가 우선순위 정하지 않음:
 - caveat #15: 본 plan winning 기준 (Δ < 0 strict) 의 보수성 — *별도 plan strict mode* 가 필요한 가장 직접적 결론.
 - caveat #16: combined fallback false (R006 = R001) 자체가 informative — *interaction 검증 필수성* 의 강한 신호.
 
-본 plan 의 *주요 정보 산출*: (a) closed-form B001 이 paired-floor 라는 강한 신호 (5/5 fold 모두 GRU > B001), (b) marginal winning 기준의 false-non-winning 영역 발견 (R004 fold-σ의 13%, R005 0.7%), (c) physics/EMA 의 clear non-winning (별도 plan 의 normalize / α-sweep 가 의미 있음), (d) Huber prior 의 *데이터별 검증 결과* (default δ 영역에선 무효).
+본 plan 의 *주요 정보 산출*: (a) closed-form B001 이 paired-floor 라는 강한 신호 (5/5 fold 모두 GRU > B001) — **LB 0.5688 < 0.60 으로 외부 검증 완료**, (b) marginal winning 기준의 false-non-winning 영역 발견 (R004 fold-σ의 13%, R005 0.7%), (c) physics/EMA 의 clear non-winning (별도 plan 의 normalize / α-sweep 가 의미 있음), (d) Huber prior 의 *데이터별 검증 결과* (default δ 영역에선 무효), (e) CV-LB ρ=+0.90 prior 의 *부호 일치 검증* (CV +0.000442 ↔ LB -0.0312 동방향).

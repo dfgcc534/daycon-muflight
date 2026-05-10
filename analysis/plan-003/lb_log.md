@@ -6,7 +6,7 @@
 
 | order | exp_id | submitted_at (KST) | submission_filename | api_response | combined_fallback | winning_trace_summary | lb_score |
 |---|---|---|---|---|---|---|---|
-| 1 | R006_combined-winners | 2026-05-11T00:08 | runs/baseline/R006_combined-winners/submission.csv | `{isSubmitted: True, detail: Success}` | False | winning=0 → R006 = R001 (0.013383) 비트 동일 사본 | (carry-over pending) |
+| 1 | R006_combined-winners | 2026-05-11T00:08 | runs/baseline/R006_combined-winners/submission.csv | `{isSubmitted: True, detail: Success}` | False | winning=0 → R006 = R001 (0.013383) 비트 동일 사본 | **0.5688** |
 
 ## 자율 제출 사유 (decision-note)
 
@@ -37,6 +37,13 @@ DACON API 는 `post_submission_file` 만 제공 → LB 점수 자동 회수 불�
 - analysis/plan-003/results.md 의 종합 표
 
 회수 전: `status: partial`. 회수 후: `status: all_complete`.
+
+### 회수 결과 (2026-05-11)
+
+- **lb_score = 0.5688** (R006_combined-winners = R001 비트 동일).
+- B001 LB = 0.60 대비 Δ = -0.0312 → **neural model (residual-GRU lean) 이 closed-form B001 floor 미달 확정**.
+- CV-LB 일관성: B001 (CV=0.01294, LB=0.60), R006 (CV=0.01338, LB=0.5688) — CV 악화 (Δ=+0.000442) 와 LB 악화 (Δ=-0.0312) 부호 일치, plan-002 ρ=+0.90 prior 와 일관.
+- §6 의 expected LB 0.55~0.59 영역 안 (0.5688) — extrapolation 검증 완료.
 
 ## Budget 운영
 

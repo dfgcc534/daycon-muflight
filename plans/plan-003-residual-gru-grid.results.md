@@ -1,7 +1,7 @@
 ---
 plan_id: 003
 finished_at: 2026-05-11T00:15+09:00
-status: partial   # carry-over: lb_score 회수 대기
+status: all_complete   # lb_score 회수 완료 (2026-05-11)
 exp_ids_completed:
   - R001_baseline-residual-gru
   - R002_physics-features
@@ -14,7 +14,7 @@ best_exp_id_cv_ablation: R001_baseline-residual-gru   # cv argmin among R001..R0
 combined_winning_components: []                       # winning = {R002:F, R003:F, R004:F, R005:F}
 combined_fallback: false                              # R006.cv == R001.cv ≤ R001.cv + 0.001
 lb_exp_id: R006_combined-winners
-lb_score: null                                        # carry-over pending — 사용자가 dacon.io 회수 후 박제
+lb_score: 0.5688                                      # carry-over 회수 완료 (2026-05-11)
 lb_submission_path: runs/baseline/R006_combined-winners/submission.csv
 lb_metric: hit_rate_at_1cm
 lb_submitted_at: 2026-05-11T00:08+09:00
@@ -39,7 +39,7 @@ total_train_time_sec: 268.7   # R001~R005 합산 (R006 = R001 cp, 추가 학습 
 | R005_loss-mse | complete | 31.0 | 0.013388 ± 0.000580 | 0.9934 | runs/baseline/R005_loss-mse |
 | R006_combined-winners | complete | 0 (cp) | 0.013383 ± 0.000718 | 0.9935 | runs/baseline/R006_combined-winners |
 
-**lb_score** 는 lb_exp_id 한 행 (R006_combined-winners) 만 박제 대상. 현재 carry-over pending (dacon.io 페이지 수동 회수 필요).
+**lb_score** 는 lb_exp_id 한 행 (R006_combined-winners) 만 박제 대상. 회수 완료: **LB = 0.5688** (2026-05-11 dacon.io 수동 회수).
 
 ## §2. baseline diff (config diff vs B001 + vs R001)
 
