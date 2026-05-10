@@ -1,0 +1,23 @@
+exp_id: R002_physics-features
+type: baseline
+plan_id: "003"
+baseline_id: R001_baseline-residual-gru
+method: gru-residual
+feature_components: [relative, physics]
+baseline_type: linear
+loss_type: huber
+t_target: 80
+k: 5
+seed: 42
+model:
+  hidden: 64
+  layers: 2
+  dropout: 0.1
+  input_dim: 13
+training:
+  lr: 1.0e-3
+  weight_decay: 1.0e-4
+  batch: 64
+  epochs: 100
+  early_stop_patience: 10
+  seed: 42

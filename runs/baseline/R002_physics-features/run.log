@@ -1,0 +1,14 @@
+[2026-05-10T23:57:21+09:00] start exp_id=R002_physics-features, config=/workspace/daycon-muflight/configs/baseline/R002_physics-features.yaml
+[2026-05-10T23:57:21+09:00] load train + labels
+[2026-05-10T23:57:22+09:00] n_train=10000
+[2026-05-10T23:57:39+09:00] fold 0: gru-residual best_val_mean_eucl=0.01562 @epoch 24, ckpt=fold0.pt
+[2026-05-10T23:57:39+09:00] fold 0: mean_eucl=0.01562 per_axis_mae=[0.008, 0.0084, 0.0069]
+[2026-05-10T23:57:52+09:00] fold 1: gru-residual best_val_mean_eucl=0.01425 @epoch 16, ckpt=fold1.pt
+[2026-05-10T23:57:52+09:00] fold 1: mean_eucl=0.01425 per_axis_mae=[0.0076, 0.0076, 0.006]
+[2026-05-10T23:58:03+09:00] fold 2: gru-residual best_val_mean_eucl=0.01501 @epoch 14, ckpt=fold2.pt
+[2026-05-10T23:58:03+09:00] fold 2: mean_eucl=0.01501 per_axis_mae=[0.0083, 0.0077, 0.0064]
+[2026-05-10T23:58:12+09:00] fold 3: gru-residual best_val_mean_eucl=0.01538 @epoch 16, ckpt=fold3.pt
+[2026-05-10T23:58:12+09:00] fold 3: mean_eucl=0.01538 per_axis_mae=[0.0089, 0.0078, 0.0063]
+[2026-05-10T23:58:22+09:00] fold 4: gru-residual best_val_mean_eucl=0.01552 @epoch 17, ckpt=fold4.pt
+[2026-05-10T23:58:22+09:00] fold 4: mean_eucl=0.01552 per_axis_mae=[0.008, 0.0089, 0.0062]
+[2026-05-10T23:58:22+09:00] CV mean_eucl=0.01516 ± 0.00050 | OOF mean_eucl=0.01516
