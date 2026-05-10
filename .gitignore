@@ -16,6 +16,9 @@ dist/
 # Run binary artifacts — text metadata (summary/history/log/snapshot) is tracked
 runs/**/artifacts/
 
+# plan-003 residual-GRU checkpoints (per fold .pt) — heavy binary, recoverable from configs
+runs/baseline/*/ckpt/
+
 # Notebooks
 .ipynb_checkpoints/
 
