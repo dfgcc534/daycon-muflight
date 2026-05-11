@@ -52,20 +52,20 @@ lb_score: null   # diagnostic plan — LB 제출 X
 |---|---|---|---|
 | c1 | docs | `plans/plan-005-pb-0-6822-diagnostic.md` 작성 (본 파일) | [DONE 271ac9f] |
 | c2 | code | `analysis/plan-005/diagnostic.py` 인프라 + plan-004 산출 로드 helper | [DONE f88e784] |
-| c3 | code | corrector full-fit 재실행 + intermediate artifact 박제 (`corrected_oof.npz`, `corrected_test.npz`) spec @ §4 | [DONE TBD] |
+| c3 | code | corrector full-fit 재실행 + intermediate artifact 박제 (`corrected_oof.npz`, `corrected_test.npz`) spec @ §4 | [DONE d23542c] |
 | G0 | gate | plan-004 산출 4종 로드 OK + corrected_*.npz finite + shape OK | [DONE — corrected (10000,27,3) finite, seed_drift RMSE 0.000814 < 0.001 ok] |
-| c4 | analysis | STAGE 1 oracle 4종 (`analysis/plan-005/oracle_summary.{json,md}`) spec @ §5 | [DONE TBD] |
+| c4 | analysis | STAGE 1 oracle 4종 (`analysis/plan-005/oracle_summary.{json,md}`) spec @ §5 | [DONE 54ced99] |
 | G1 | gate | 4 oracle 모두 박제 + finite | [DONE — raw=0.7188 post-corr=0.7111 ⚠️ corrector_hurts_oracle (gain=-0.0077, plan-006 anchor)] |
-| c5 | analysis | STAGE 2 selector decomposition (`selector_decomp.{json,md}`) spec @ §6 | [DONE TBD] |
+| c5 | analysis | STAGE 2 selector decomposition (`selector_decomp.{json,md}`) spec @ §6 | [DONE 54ced99] |
 | G2 | gate | per-regime hit / top-K / confidence / family selection rate 모두 박제 | [DONE — argmax=0.6595 soft=0.6599 top1/3/5=0.126/0.218/0.282 (selector best-cand identification 약함)] |
-| c6 | analysis | STAGE 3 corrector decomposition (`corrector_decomp.{json,md}`) spec @ §7 | [DONE TBD] |
+| c6 | analysis | STAGE 3 corrector decomposition (`corrector_decomp.{json,md}`) spec @ §7 | [DONE 54ced99] |
 | G3 | gate | cap saturation + direction + error histogram 모두 박제 | [DONE — cap_sat=3.6% par/perp/binormal=0.045/0.021/0.006 (binormal 6.4× 작음 → 2-D effective 우세)] |
-| c7a | exp retrain | **Variant A retrain** — selector 재학습 (`--regime-prior-strength 0.0`). 산출: `analysis/plan-005/variant_A_no_regime/oof_selector_scores.npz`. spec @ §8.2 | [DONE TBD] |
-| c7b | analysis | **Variant B free 계산 + 3-way 비교 + per-sample intervention** (`component_contribution.{json,md}`). spec @ §8.3~§8.5 | [DONE TBD] |
+| c7a | exp retrain | **Variant A retrain** — selector 재학습 (`--regime-prior-strength 0.0`). 산출: `analysis/plan-005/variant_A_no_regime/oof_selector_scores.npz`. spec @ §8.2 | [DONE fe7149e] |
+| c7b | analysis | **Variant B free 계산 + 3-way 비교 + per-sample intervention** (`component_contribution.{json,md}`). spec @ §8.3~§8.5 | [DONE fe7149e] |
 | G4 | gate | 3 variant hit (full/A/B) + marginal contribution + 2 intervention 분해 (B↔full, A↔full) + family-change 모두 박제 | [DONE — full=0.660, A=0.657, B=0.655. marginal: gru=+0.005, regime=+0.003 (둘 다 ±0.005 noise floor 근방, ★ selector 단순화 anchor)] |
-| c8 | analysis | STAGE 5 failure analysis + B001 비교 (`failure_b001.{json,md}`) spec @ §9 | [DONE TBD] |
+| c8 | analysis | STAGE 5 failure analysis + B001 비교 (`failure_b001.{json,md}`) spec @ §9 | [DONE d39d168] |
 | G5 | gate | top-K worst sample + B001 win/loss decomposition 박제 | [DONE — worst-100 (regime 13: 19 / regime 14: 11 집중) + PB win 965 / loss 153 / PB hit 0.660 vs B001 0.579] |
-| c9 | synthesis | `analysis/plan-005/results.md` + `next_plan_candidates.md` (≥3 후보) spec @ §10 | [DONE TBD] |
+| c9 | synthesis | `analysis/plan-005/results.md` + `next_plan_candidates.md` (≥3 후보) spec @ §10 | [DONE caa9177] |
 | G_final | gate | results.md + next_plan_candidates.md ≥ 3 후보 박제 | [DONE — 4 후보 도출 (selector simplify / corrector loss / high-speed regime / bias re-tuning), 각 후보 4 항목 박제] |
 
 ### Plan-specific severe (WORKFLOW.md §12.3 default 위 추가분)
