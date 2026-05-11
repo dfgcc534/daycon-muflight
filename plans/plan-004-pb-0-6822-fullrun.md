@@ -2,7 +2,7 @@
 plan_id: 004
 version: 3
 date: 2026-05-11 (Asia/Seoul)
-status: draft
+status: complete
 based_on:
   - 001
   - 002
@@ -60,18 +60,18 @@ lb_score: 0.6806
 | c4 | test | `tests/test_pb_0_6822_smoke.py` — 모듈 import + `CANDIDATES len==27` + `TinyCorrectionNet` 인스턴스화. spec @ §4.3 | [DONE 0f82129] |
 | G0 | gate | `pytest tests/test_pb_0_6822_smoke.py` + 기존 tests green (backward-compat) — 63 tests pass | [DONE] |
 | c5 | code | `src/pb_0_6822/run_full.py` orchestrator + `configs/baseline/P001_pb-0-6822-fullrun.yaml` + `.gitignore` 1줄. spec @ §4.4 | [DONE 4023272] |
-| c5.1 | fix | `src/pb_0_6822/selector.py` L1215 — for-epoch 루프 시작 시 `model.train()` 추가 (cudnn RNN backward eval-mode 버그 fix; smoke 1 epoch 통과지만 full 10 epoch 에서 epoch 2 backward 크래시 → 1라인 fix). decision-note: runtime-fix. | [TODO this commit] |
+| c5.1 | fix | `src/pb_0_6822/selector.py` L1215 — for-epoch 루프 시작 시 `model.train()` 추가 (cudnn RNN backward eval-mode 버그 fix; smoke 1 epoch 통과지만 full 10 epoch 에서 epoch 2 backward 크래시 → 1라인 fix). decision-note: runtime-fix. | [DONE f8a0034] |
 | c6 | exp smoke | 1-fold smoke (`run_full.py --smoke`) → `runs/baseline/P001_pb-0-6822-fullrun/smoke/`. spec @ §5 | [DONE b35307c re-verified] |
 | G1 | gate | smoke summary finite, no extraction drift — selector_soft_hit=0.6441 boundary_soft_hit=0.6609 cuda:1 | [DONE] |
-| c7 | exp selector | Full 5-fold selector (`--fold-limit 5`, no `--skip-full`, pre=10 fine=8 freeze=3 patience=4 epoch_plus=5). spec @ §6 | [DONE this commit] |
+| c7 | exp selector | Full 5-fold selector (`--fold-limit 5`, no `--skip-full`, pre=10 fine=8 freeze=3 patience=4 epoch_plus=5). spec @ §6 | [DONE f8a0034] |
 | G2 | gate | `oof_selector_scores.npz` + `test_selector_scores.npz` finite + shape OK — (10000,27) both | [DONE] |
-| c8 | exp corrector | Full boundary corrector (`--make-test`, `--test-score-bank`, epochs=12 fine=8 patience=4). spec @ §7 | [DONE this commit] |
+| c8 | exp corrector | Full boundary corrector (`--make-test`, `--test-score-bank`, epochs=12 fine=8 patience=4). spec @ §7 | [DONE f8a0034] |
 | G3 | gate | 2 csv 생성, finite, shape == sample_submission.csv — boundary OOF soft=0.6718 > selector baseline 0.6624 (corrector_no_convergence 미발생) | [DONE] |
-| c9 | analysis | `analysis/plan-004/regime_distribution.py` → `regime_distribution.{json,md}`. spec @ §8 | [DONE this commit] |
+| c9 | analysis | `analysis/plan-004/regime_distribution.py` → `regime_distribution.{json,md}`. spec @ §8 | [DONE d52b6df] |
 | G3.5 | gate | 18 regime histogram + 18×27 hit table + degenerate flag + hyper-specialized cell 모두 박제 — degenerate=0, hyper_specialized=19 | [DONE] |
-| c10 | sub-gen | `runs/baseline/P001_pb-0-6822-fullrun/submission.csv` = soft csv 사본 + schema 100% 일치 검증. spec @ §9 | [DONE this commit] |
-| c11 | sub-lb | **`dacon-submit` skill 자율 호출** + `analysis/plan-004/lb_log.md` 박제 + **3 파일 frontmatter `lb_score` 동시 갱신** (`plans/plan-004-pb-0-6822-fullrun.md` top-level + `plans/plan-004-pb-0-6822-fullrun.results.md` + `analysis/plan-004/results.md`). spec @ §10 + §0.5 L42 AND 조건. | [DONE 416bf0e partial → c11.1 closed lb=0.6806] |
-| c11.1 | sub-lb close | LB 점수 carry-over close — 3 파일 frontmatter `lb_score: TBD` → `0.6806` + status `partial` → `all_complete` 동시 갱신, lb_log.md / registry.csv 갱신. plan-003 R006 패턴 답습. | [DONE this commit] |
+| c10 | sub-gen | `runs/baseline/P001_pb-0-6822-fullrun/submission.csv` = soft csv 사본 + schema 100% 일치 검증. spec @ §9 | [DONE 416bf0e] |
+| c11 | sub-lb | **`dacon-submit` skill 자율 호출** + `analysis/plan-004/lb_log.md` 박제 + **3 파일 frontmatter `lb_score` 동시 갱신** (`plans/plan-004-pb-0-6822-fullrun.md` top-level + `plans/plan-004-pb-0-6822-fullrun.results.md` + `analysis/plan-004/results.md`). spec @ §10 + §0.5 L42 AND 조건. | [DONE 416bf0e partial → 3aa4eb7 closed lb=0.6806] |
+| c11.1 | sub-lb close | LB 점수 carry-over close — 3 파일 frontmatter `lb_score: TBD` → `0.6806` + status `partial` → `all_complete` 동시 갱신, lb_log.md / registry.csv 갱신. plan-003 R006 패턴 답습. | [DONE 3aa4eb7] |
 | G_final | gate | LB 점수 회수 + 모든 G-gate [DONE] + §0.5 sync — **lb=0.6806** | [DONE] |
 
 ### Plan-specific severe (WORKFLOW.md §12.3 default 위 추가분)
