@@ -1,0 +1,81 @@
+# P001_pb-0-6822-fullrun — frozen hyperparam snapshot (plan-004 c5)
+#
+# Single source of truth = argparse defaults in src/pb_0_6822/run_full.py:run_full().
+# This yaml is documentation only (4-way token + audit trail).
+
+exp_id: P001_pb-0-6822-fullrun
+plan_id: 004
+type: baseline
+method: pb-0-6822-fullfit
+based_on:
+  - notes/PB_0.6822 코드공유.ipynb
+  - 001 (B001_linear-2pt floor LB 0.60)
+  - 003 (R006_combined-winners LB 0.5688)
+
+# Data
+root: data/
+folds: 5
+seed_selector: 20260506
+seed_boundary: 20260606
+
+# Selector (Attn-GRU, 27 candidates, 18 regime bias)
+selector:
+  models: [attn_gru]
+  fold_limit: 5            # full 5-fold (smoke: 1)
+  pre_epochs: 10           # notebook default 14
+  fine_epochs: 8           # notebook default 10
+  freeze_fine_epochs: 3    # notebook default 3
+  epoch_plus: 5            # notebook default 10
+  min_epochs: 5
+  patience: 4              # notebook default 8
+  hidden: 48
+  batch: 4096
+  lr: 0.001
+  fine_lr_scale: 0.12
+  prior_strength: 0.65            # physics_bias weight
+  regime_prior_strength: 0.45     # 18×27 regime bias weight
+  pairwise_loss_weight: 0.25
+  pairwise_margin: 0.12
+  pairwise_min_label_gap: 0.04
+  fine_distill_weight: 0.55
+  fine_distill_temp: 0.07
+  reverse_pretrain: true
+  norm_real_only: true
+  skip_full: false         # → test_selector_scores.npz 자동 생성
+
+# Boundary corrector (Tiny MLP, Frenet local frame)
+boundary:
+  fold: 0                  # OOF report fold (--make-test trains separate full-data model)
+  epochs: 12               # notebook default 50
+  fine_epochs: 8           # notebook default 20
+  min_epochs: 5
+  patience: 4              # notebook default 8
+  hidden: 64
+  batch: 8192
+  lr: 0.001
+  fine_lr_scale: 0.18
+  cap: 0.006               # ±0.6cm tiny correction
+  apply_scale: 1.0
+  low: 0.007               # boundary weighting lower edge
+  high: 0.017              # boundary weighting upper edge
+  far_weight: 0.04         # far samples downweight
+  prior_strength: 0.65
+  regime_prior_strength: 0.45
+  make_test: true          # → submission CSV
+  save_val_pred: true
+
+# Output
+out_dir: runs/baseline/P001_pb-0-6822-fullrun
+submission_csv: submission_boundary_tiny_soft.csv  # canonical = submission.csv (copy)
+
+# Compute
+device: auto               # mps preferred on Mac
+wall_time_budget_min: 60   # Mac mps target
+
+# Decision notes (plan-004 §0.5 decision-note 박제)
+notes: |
+  - extraction: notebook cell 4/6 → standalone modules (papermill X)
+  - submission: soft csv (continuous probability-weighted blend)
+  - epoch budget: ~70% of notebook default for 60min mps budget
+  - regime_degenerate threshold: 50 samples
+  - smoke output isolated to runs/.../P001*/smoke/

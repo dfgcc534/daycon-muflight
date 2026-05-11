@@ -19,6 +19,11 @@ runs/**/artifacts/
 # plan-003 residual-GRU checkpoints (per fold .pt) — heavy binary, recoverable from configs
 runs/baseline/*/ckpt/
 
+# plan-004 P001 PB_0.6822 outputs — heavy intermediates (npz score banks, smoke runs)
+runs/baseline/P001_*/oof_*.npz
+runs/baseline/P001_*/test_*.npz
+runs/baseline/P001_*/smoke/
+
 # Notebooks
 .ipynb_checkpoints/
 
