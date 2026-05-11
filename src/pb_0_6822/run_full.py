@@ -71,7 +71,7 @@ def run_smoke() -> None:
         "--pairwise-loss-weight", 0.25, "--pairwise-margin", 0.12, "--pairwise-min-label-gap", 0.04,
         "--fine-distill-weight", 0.55, "--fine-distill-temp", 0.07,
         "--reverse-pretrain", "--norm-real-only",
-        "--device", "auto", "--seed", 20260506, "--log-every", 1, "--skip-full",
+        "--device", "cuda:1", "--seed", 20260506, "--log-every", 1, "--skip-full",
     ])
 
     score_bank = selector_out / "oof_selector_scores.npz"
@@ -87,7 +87,7 @@ def run_smoke() -> None:
         "--hidden", 64, "--batch", 8192,
         "--lr", 0.001, "--fine-lr-scale", 0.18,
         "--cap", 0.006, "--apply-scale", 1.0,
-        "--device", "auto", "--seed", 20260606, "--save-val-pred",
+        "--device", "cuda:1", "--seed", 20260606, "--save-val-pred",
     ])
 
     _print_summary(selector_out, boundary_out, "smoke")
@@ -96,7 +96,8 @@ def run_smoke() -> None:
 def run_full() -> None:
     """Full 5-fold selector + corrector full-fit with submission generation.
 
-    Hyperparam budget: notebook default 의 ~70% for Mac mps ~60min wall-time.
+    plan-004 v2: device = cuda:1 강제 (server agent 의 1번 GPU).
+    Hyperparam budget: notebook default 의 ~70%.
     """
     from src.pb_0_6822 import boundary, selector
 
@@ -121,7 +122,7 @@ def run_full() -> None:
         "--pairwise-loss-weight", 0.25, "--pairwise-margin", 0.12, "--pairwise-min-label-gap", 0.04,
         "--fine-distill-weight", 0.55, "--fine-distill-temp", 0.07,
         "--reverse-pretrain", "--norm-real-only",
-        "--device", "auto", "--seed", 20260506, "--log-every", 1,
+        "--device", "cuda:1", "--seed", 20260506, "--log-every", 1,
         # NO --skip-full → full-fit + test_selector_scores.npz
     ])
 
@@ -145,7 +146,7 @@ def run_full() -> None:
         "--hidden", 64, "--batch", 8192,
         "--lr", 0.001, "--fine-lr-scale", 0.18,
         "--cap", 0.006, "--apply-scale", 1.0,
-        "--device", "auto", "--seed", 20260606, "--save-val-pred",
+        "--device", "cuda:1", "--seed", 20260606, "--save-val-pred",
         "--make-test",
     ])
 

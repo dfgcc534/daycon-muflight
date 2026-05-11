@@ -68,14 +68,15 @@ boundary:
 out_dir: runs/baseline/P001_pb-0-6822-fullrun
 submission_csv: submission_boundary_tiny_soft.csv  # canonical = submission.csv (copy)
 
-# Compute
-device: auto               # mps preferred on Mac
-wall_time_budget_min: 60   # Mac mps target
+# Compute (plan-004 v2: server agent 의 1번 GPU 강제)
+device: cuda:1             # 다중 GPU 환경에서도 1번만 사용. v1 의 mps 폐기 (Mac 열 문제)
+wall_time_budget_min: 40   # server cuda:1 target (~30~40min)
 
 # Decision notes (plan-004 §0.5 decision-note 박제)
 notes: |
   - extraction: notebook cell 4/6 → standalone modules (papermill X)
   - submission: soft csv (continuous probability-weighted blend)
-  - epoch budget: ~70% of notebook default for 60min mps budget
+  - epoch budget: ~70% of notebook default (v2: server cuda:1)
   - regime_degenerate threshold: 50 samples
   - smoke output isolated to runs/.../P001*/smoke/
+  - v2: device=cuda:1 강제 (v1 Mac mps 폐기, server agent 학습 인계)

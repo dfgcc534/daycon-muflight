@@ -1,6 +1,6 @@
 ---
 plan_id: 004
-version: 1
+version: 2
 date: 2026-05-11 (Asia/Seoul)
 status: draft
 based_on:
@@ -14,11 +14,11 @@ exp_ids:
 lb_score: null
 ---
 
-# plan-004 v1 — PB_0.6822 Notebook Full-Fit + 18×27 Regime Distribution Audit
+# plan-004 v2 — PB_0.6822 Notebook Full-Fit + 18×27 Regime Distribution Audit (server `cuda:1` 강제)
 
 ## §0. 한 줄 목적
 
-> **Dacon 모기 궤적 예측 대회 공개 노트북 `notes/PB_0.6822 코드공유.ipynb` (Public LB 0.6822 달성, 27개 물리 후보 + Attn-GRU selector + 18×27 regime bias + Tiny boundary corrector 2-stage 구조) 의 cell 4/6 코드를 `src/pb_0_6822/{selector,boundary}.py` standalone 모듈로 추출 + project 데이터 (`data/`) 에 적용한 full 5-fold 학습 + corrector full-fit 으로 *우리 LB 점수 1개* 를 `dacon-submit` skill 자율 호출로 회수 (CLAUDE.md autonomous policy). 그 과정에서 `candidate_regime_bias()` 가 in-memory 로만 계산하는 18-regime × 27-candidate empirical Bayes bias 표의 train sample 분포를 `analysis/plan-004/regime_distribution.{json,md}` 로 박제 (notebook 에 *없는* 새 검증) — degenerate regime (sample < 50) 식별 및 (regime, candidate) hyper-specialized cell flagging 포함. LB 점수 회수 + regime 분포 박제 둘 다 본 plan 의 *의무 산출* 이며, 미달 시 G_final 종료 불가.**
+> **Dacon 모기 궤적 예측 대회 공개 노트북 `notes/PB_0.6822 코드공유.ipynb` (Public LB 0.6822 달성, 27개 물리 후보 + Attn-GRU selector + 18×27 regime bias + Tiny boundary corrector 2-stage 구조) 의 cell 4/6 코드를 `src/pb_0_6822/{selector,boundary}.py` standalone 모듈로 추출 + project 데이터 (`data/`) 에 적용한 full 5-fold 학습 + corrector full-fit 으로 *우리 LB 점수 1개* 를 `dacon-submit` skill 자율 호출로 회수 (CLAUDE.md autonomous policy). 그 과정에서 `candidate_regime_bias()` 가 in-memory 로만 계산하는 18-regime × 27-candidate empirical Bayes bias 표의 train sample 분포를 `analysis/plan-004/regime_distribution.{json,md}` 로 박제 (notebook 에 *없는* 새 검증) — degenerate regime (sample < 50) 식별 및 (regime, candidate) hyper-specialized cell flagging 포함. **학습 device = `cuda:1` 강제** (server agent 의 1번 GPU 사용, Mac mps 학습 v1 시도 후 폐기). LB 점수 회수 + regime 분포 박제 둘 다 본 plan 의 *의무 산출* 이며, 미달 시 G_final 종료 불가.**
 
 ---
 
@@ -96,7 +96,8 @@ lb_score: null
 - `decision-note: spec-default — extraction approach (notebook cell → .py module, papermill X) — src/* convention 정합성 + out_dir 제어 깔끔`
 - `decision-note: spec-default — exp_id=P001_pb-0-6822-fullrun (P prefix = Public-baseline reimplementation)`
 - `decision-note: spec-default — submission=soft csv 사본 (continuous probability-weighted blend, leaderboard 친화)`
-- `decision-note: spec-default — epoch budget = notebook default 의 ~70% (Mac mps ~60min wall-time target)`
+- **`decision-note: spec-default — 학습 device = cuda:1 강제 (server agent 의 1번 GPU). plan-003 의 cuda:0 강제 패턴 답습하되 GPU 번호만 1번으로 변경. CUDA_VISIBLE_DEVICES 의존 X — run_full.py 의 --device 인자에 "cuda:1" 명시. 다중 GPU 환경에서도 1번만 사용해 결과 reproducibility 보장.`**
+- `decision-note: spec-default — epoch budget = notebook default 의 ~70% (이전 v1 의 Mac mps 60min 가정에서 GPU 환경으로 갱신, 실제 wall-time 은 GPU 가속으로 더 단축 예상)`
 - `decision-note: spec-default — regime_degenerate threshold = 50 samples (empirical Bayes shrinkage 신뢰성 영역)`
 - `decision-note: spec-default — hyper_specialized threshold = (regime, cand) hit-rate 가 해당 regime mean 의 ±50% 이탈`
 - `decision-note: spec-default — 1-fold smoke 별도 dir (runs/.../P001*/smoke/) for full output 보호`
@@ -156,7 +157,8 @@ lb_score: null
 | hyperparam 튜닝 | 1차 baseline 박제만 — tuning 은 후속 plan |
 | 27 후보 수정 / regime 정의 변경 | extraction 단계 1:1 보존 — 변경은 후속 plan 의 ablation 변수 |
 | End-to-end 학습 통합 | notebook 의 2-stage sequential 구조 그대로 보존 |
-| GPU 환경 변경 | Mac mps 사용 — CUDA 환경은 후속 plan handoff |
+| GPU 번호 변경 | server `cuda:1` 강제 — `cuda:0` 사용 X (v2 갱신). 다중 GPU 환경에서도 1번 GPU 만 |
+| Mac mps 학습 | v1 시도 후 폐기 (열 문제). 본 plan v2 는 server agent 가 학습 수행 — local handoff only |
 
 ---
 
@@ -311,7 +313,7 @@ if __name__ == "__main__":
   - `runs/baseline/P001_pb-0-6822-fullrun/oof_selector_scores.npz` (OOF, shape `(N_train, 27)`)
   - `runs/baseline/P001_pb-0-6822-fullrun/test_selector_scores.npz` (full-fit test, shape `(N_test, 27)`)
 - 검증: 두 npz 모두 finite, shape 정합
-- 시간 예산: ~25~40min (mps)
+- 시간 예산: ~10~20min (server `cuda:1`)
 
 ---
 
@@ -323,7 +325,7 @@ if __name__ == "__main__":
   - `runs/baseline/P001_pb-0-6822-fullrun/submission_boundary_tiny_argmax.csv`
   - `runs/baseline/P001_pb-0-6822-fullrun/boundary_tiny_correction_report.json`
 - 검증: csv shape == sample_submission.csv shape, finite
-- 시간 예산: ~15~25min (mps)
+- 시간 예산: ~5~10min (server `cuda:1`)
 
 ---
 
@@ -445,10 +447,10 @@ if __name__ == "__main__":
 ## §11. 작업량 총 회계
 
 - 코드 추출: cell 4 (~94KB) + cell 6 (~22KB) = ~117KB 1회성 translation
-- 학습: selector ~30min + corrector ~20min = ~50min (mps)
+- 학습: selector ~10~20min + corrector ~5~10min ≈ ~15~30min (server `cuda:1`, GPU 가속)
 - 분석: ~2min
 - 제출: 1 API call
-- **총 wall-time 예산: ~60min**
+- **총 wall-time 예산: ~30~40min (server `cuda:1`)**
 
 ---
 
@@ -467,7 +469,7 @@ if __name__ == "__main__":
 ## §N+3. 통계 함정 & caveats
 
 1. **노트북 0.6822 ≠ 우리 LB**: notebook 작성자의 환경/seed/데이터 분할이 다를 수 있어 우리 점수가 0.6822 보다 낮을 수 있음. *어떤 점수든 회수하면 G_final 충족* (재현이 목표 아님).
-2. **Mac mps 정확도 차이**: 일부 op (특히 GRU 의 한국형 dtype) 가 CUDA 대비 hit-rate 1~2pp 손실 가능. 본 plan 1차 baseline 박제 후 후속 plan 에서 CUDA handoff.
+2. **Server `cuda:1` 강제** (v2): 다중 GPU 환경에서도 1번 GPU 만 사용해 결과 reproducibility 보장. plan-003 의 cuda:0 강제 패턴 답습하되 GPU 번호만 1번으로. (v1 의 Mac mps 학습 폐기 — 열 문제 + 학습 fold 4 중단 사례 후 결정)
 3. **18 regime 의 도메인 적합성**: 노트북은 모기 비행 가정으로 (speed × curvature × speed_slope) 축 선택. 우리 데이터 (동일 dacon) 가 같은 분포라면 호환, 다르면 degenerate regime 증가. **G3.5 결과가 후속 plan 의 regime 재설계 anchor**.
 4. **2-stage sequential vs end-to-end**: 본 plan 은 노트북 그대로 sequential. end-to-end 통합은 ablation 가치 있으나 후속 plan.
 5. **dacon-submit 의 lb_score 비동기**: plan-002/003 패턴 — `lb_score: TBD` + `status: partial` 마감 후 점수 도착 시 follow-up commit 으로 `all_complete` 갱신.
@@ -476,7 +478,8 @@ if __name__ == "__main__":
 
 ## §N+4. 변경 이력
 
-- v1 (2026-05-11): 초안 — plan-004 신규 작성, c1~c11 commit chain 박제, G0~G_final 7개 gate 정의.
+- v1 (2026-05-11): 초안 — plan-004 신규 작성, c1~c11 commit chain 박제, G0~G_final 7개 gate 정의. compute=Mac mps 가정.
+- v2 (2026-05-11): **compute 변경: Mac mps 학습 폐기 → server `cuda:1` 강제**. v1 c6 1-fold smoke 통과 후 c7 full 5-fold 학습 중 Mac 열 문제로 fold 4 중단. server agent 가 학습 인계받음 (local push → server pull → 학습 → results push). §0 한 줄, §2.2 out-of-scope, §0.5 decision-note, §6/§7 시간 예산, §11 작업량 회계, §N+3 caveats 갱신. `run_full.py --device cuda:1` 강제, config yaml `device: cuda:1` 명시. 모든 spec 외 sequence/G-gate/severe/commit chain 은 v1 유지.
 
 ---
 
