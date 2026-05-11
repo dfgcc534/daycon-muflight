@@ -11,7 +11,7 @@ based_on:
 scope: full-stack (notebook code extraction + project data full-fit + 18×27 regime distribution audit + autonomous LB submission)
 exp_ids:
   - P001_pb-0-6822-fullrun
-lb_score: null
+lb_score: TBD
 ---
 
 # plan-004 v3 — PB_0.6822 Notebook Full-Fit + 18×27 Regime Distribution Audit (server `cuda:1` 강제)
@@ -43,12 +43,12 @@ lb_score: null
 
 ### G-gates
 
-- G0: STAGE 0 인프라 (모듈 추출 + smoke import + 기존 tests backward-compat) [TODO]
-- G1: STAGE 1 1-fold smoke 통과 (cv hit-rate finite, no extraction drift) [TODO]
-- G2: STAGE 2 full 5-fold selector 학습 완료 (`oof_selector_scores.npz` + `test_selector_scores.npz` finite) [TODO]
-- G3: STAGE 3 full boundary corrector + `submission_boundary_tiny_{soft,argmax}.csv` 생성 [TODO]
-- G3.5: STAGE 3.5 18×27 regime distribution 분석 박제 (`analysis/plan-004/regime_distribution.{json,md}`) [TODO]
-- G_final: `submission.csv` schema 검증 + dacon-submit 자율 호출 + lb_score 박제 + results.md [TODO]
+- G0: STAGE 0 인프라 (모듈 추출 + smoke import + 기존 tests backward-compat) [DONE]
+- G1: STAGE 1 1-fold smoke 통과 (cv hit-rate finite, no extraction drift) [DONE]
+- G2: STAGE 2 full 5-fold selector 학습 완료 (`oof_selector_scores.npz` + `test_selector_scores.npz` finite) [DONE]
+- G3: STAGE 3 full boundary corrector + `submission_boundary_tiny_{soft,argmax}.csv` 생성 [DONE]
+- G3.5: STAGE 3.5 18×27 regime distribution 분석 박제 (`analysis/plan-004/regime_distribution.{json,md}`) [DONE]
+- G_final: `submission.csv` schema 검증 + dacon-submit 자율 호출 + lb_score 박제 + results.md [DONE-partial]
 
 ### Commit chain (next-up)
 
@@ -57,20 +57,21 @@ lb_score: null
 | c1 | docs | `plans/plan-004-pb-0-6822-fullrun.md` 작성 (본 파일) | [DONE e74486b] |
 | c2 | code | `src/pb_0_6822/__init__.py` + `selector.py` extract (notebook cell 4 → standalone module). argparse signature 보존. spec @ §4.1 | [DONE 7bc9cd7] |
 | c3 | code | `src/pb_0_6822/boundary.py` extract (cell 6, **유일 수정**: `import train_tcn_gru_candidate_selector as base` → `from src.pb_0_6822 import selector as base`). spec @ §4.2 | [DONE c01b7d1] |
-| c4 | test | `tests/test_pb_0_6822_smoke.py` — 모듈 import + `CANDIDATES len==27` + `TinyCorrectionNet` 인스턴스화. spec @ §4.3 | [TODO] |
-| G0 | gate | `pytest tests/test_pb_0_6822_smoke.py` + 기존 51 tests green (backward-compat) | [TODO] |
+| c4 | test | `tests/test_pb_0_6822_smoke.py` — 모듈 import + `CANDIDATES len==27` + `TinyCorrectionNet` 인스턴스화. spec @ §4.3 | [DONE 0f82129] |
+| G0 | gate | `pytest tests/test_pb_0_6822_smoke.py` + 기존 tests green (backward-compat) — 63 tests pass | [DONE] |
 | c5 | code | `src/pb_0_6822/run_full.py` orchestrator + `configs/baseline/P001_pb-0-6822-fullrun.yaml` + `.gitignore` 1줄. spec @ §4.4 | [DONE 4023272] |
-| c6 | exp smoke | 1-fold smoke (`run_full.py --smoke`) → `runs/baseline/P001_pb-0-6822-fullrun/smoke/`. spec @ §5 | [TODO] |
-| G1 | gate | smoke summary finite, no extraction drift | [TODO] |
-| c7 | exp selector | Full 5-fold selector (`--fold-limit 5`, no `--skip-full`, pre=10 fine=8 freeze=3 patience=4 epoch_plus=5). spec @ §6 | [TODO] |
-| G2 | gate | `oof_selector_scores.npz` + `test_selector_scores.npz` finite + shape OK | [TODO] |
-| c8 | exp corrector | Full boundary corrector (`--make-test`, `--test-score-bank`, epochs=12 fine=8 patience=4). spec @ §7 | [TODO] |
-| G3 | gate | 2 csv 생성, finite, shape == sample_submission.csv | [TODO] |
-| c9 | analysis | `analysis/plan-004/regime_distribution.py` → `regime_distribution.{json,md}`. spec @ §8 | [TODO] |
-| G3.5 | gate | 18 regime histogram + 18×27 hit table + degenerate flag + hyper-specialized cell 모두 박제 | [TODO] |
-| c10 | sub-gen | `runs/baseline/P001_pb-0-6822-fullrun/submission.csv` = soft csv 사본 + schema 100% 일치 검증. spec @ §9 | [TODO] |
-| c11 | sub-lb | **`dacon-submit` skill 자율 호출** + `analysis/plan-004/lb_log.md` 박제 + **3 파일 frontmatter `lb_score` 동시 갱신** (`plans/plan-004-pb-0-6822-fullrun.md` top-level + `plans/plan-004-pb-0-6822-fullrun.results.md` + `analysis/plan-004/results.md`). spec @ §10 + §0.5 L42 AND 조건. | [TODO] |
-| G_final | gate | LB 점수 회수 + 모든 G-gate [DONE] + §0.5 sync | [TODO] |
+| c5.1 | fix | `src/pb_0_6822/selector.py` L1215 — for-epoch 루프 시작 시 `model.train()` 추가 (cudnn RNN backward eval-mode 버그 fix; smoke 1 epoch 통과지만 full 10 epoch 에서 epoch 2 backward 크래시 → 1라인 fix). decision-note: runtime-fix. | [TODO this commit] |
+| c6 | exp smoke | 1-fold smoke (`run_full.py --smoke`) → `runs/baseline/P001_pb-0-6822-fullrun/smoke/`. spec @ §5 | [DONE b35307c re-verified] |
+| G1 | gate | smoke summary finite, no extraction drift — selector_soft_hit=0.6441 boundary_soft_hit=0.6609 cuda:1 | [DONE] |
+| c7 | exp selector | Full 5-fold selector (`--fold-limit 5`, no `--skip-full`, pre=10 fine=8 freeze=3 patience=4 epoch_plus=5). spec @ §6 | [DONE this commit] |
+| G2 | gate | `oof_selector_scores.npz` + `test_selector_scores.npz` finite + shape OK — (10000,27) both | [DONE] |
+| c8 | exp corrector | Full boundary corrector (`--make-test`, `--test-score-bank`, epochs=12 fine=8 patience=4). spec @ §7 | [DONE this commit] |
+| G3 | gate | 2 csv 생성, finite, shape == sample_submission.csv — boundary OOF soft=0.6718 > selector baseline 0.6624 (corrector_no_convergence 미발생) | [DONE] |
+| c9 | analysis | `analysis/plan-004/regime_distribution.py` → `regime_distribution.{json,md}`. spec @ §8 | [DONE this commit] |
+| G3.5 | gate | 18 regime histogram + 18×27 hit table + degenerate flag + hyper-specialized cell 모두 박제 — degenerate=0, hyper_specialized=19 | [DONE] |
+| c10 | sub-gen | `runs/baseline/P001_pb-0-6822-fullrun/submission.csv` = soft csv 사본 + schema 100% 일치 검증. spec @ §9 | [DONE this commit] |
+| c11 | sub-lb | **`dacon-submit` skill 자율 호출** + `analysis/plan-004/lb_log.md` 박제 + **3 파일 frontmatter `lb_score` 동시 갱신** (`plans/plan-004-pb-0-6822-fullrun.md` top-level + `plans/plan-004-pb-0-6822-fullrun.results.md` + `analysis/plan-004/results.md`). spec @ §10 + §0.5 L42 AND 조건. | [DONE-partial this commit; lb_score=TBD carry-over] |
+| G_final | gate | LB 점수 회수 + 모든 G-gate [DONE] + §0.5 sync | [DONE-partial — isSubmitted=True; lb_score=TBD carry-over follow-up commit 대기] |
 
 ### Plan-specific severe (WORKFLOW.md §12.3 default 위 추가분)
 
