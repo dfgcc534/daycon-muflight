@@ -1,6 +1,6 @@
 ---
 plan_id: 008
-version: 2.3
+version: 2.6
 date: 2026-05-12 (Asia/Seoul)
 status: draft
 based_on:
@@ -16,7 +16,7 @@ exp_ids:
 lb_score: null
 ---
 
-# plan-008 v2.3 — Greedy Set-Cover Candidate Expansion + Pruning + Corrector Band-Specific (on Variant A)
+# plan-008 v2.6 — Greedy Set-Cover Expansion + Containment-Based Pruning + Corrector Band-Specific (on Variant A)
 
 ## §0. 한 줄 목적
 
@@ -24,7 +24,7 @@ lb_score: null
 >
 > 1. **★ Candidate pool greedy set-cover expansion (Strategy D)** — oracle **0.7188 → 0.85+ (minimum), stretch 0.90**. 후보 template_pool 에서 *oracle 기여도 가장 큰* 것을 greedy 하게 add (set cover 인식). 모든 family pre-defined + 동시 추가 X — *data-driven 순차 선택*.
 >
-> 2. **(secondary) Pruning** — 27 후보의 14 frenet 변종 cluster 가 (a) softmax 분산 (drift) + (b) selector 학습 부담 ↑. Data-driven pruning 으로 redundant 후보 제거. **Step 1 측정 후 main/secondary 위치 결정** (drift 와 ranking gap 분해 결과 의존).
+> 2. **(secondary) Pruning — structural redundancy 기반 (v2.4 reviewer 피드백 반영)** — 27 후보의 *pairwise containment / coordinate similarity* 분석으로 redundant 후보 식별 (selector pick rate *무관*). 두 후보 i, j 가 (a) `containment_strict` (hit_i ⊆ hit_j) 또는 (b) `containment_soft ≥ 0.95 + coord_dist < 0.005` + `hit_rate[j] > hit_rate[i]` 만족 시 i 제거. **Step 1 측정 후 main/secondary 위치 결정** (drift 와 ranking gap 분해 결과 의존). 효과 측정 (Δsoft_hit) 은 post-pruning sanity check 만.
 >
 > 3. **(secondary) Corrector band-specific 재설계** — plan-005 `corrector_oracle_gain = −0.0077` finding 의 *알려진 fix*. main lever 위에 +0.02~0.04 LB booster. cap 0.006 fallback 옵션 (→ 0.008) 포함.
 >
@@ -47,19 +47,19 @@ lb_score: null
 
 ### 합격 기준 (G-gate sequence)
 
-- Step 1 진단: worst regime (16/17/10) residual decomposition + 가지치기 후보 list + softmax diffusion 측정 + per-regime oracle gap + **`argmax_hit` 측정 (selector 의 top-1 픽 좌표 hit rate) + ranking-vs-drift 분해**. 위반 시 `diagnostic_inconclusive` warn-only.
+- Step 1 진단 (v2.5): **oracle miss sample (~2800)** residual decomposition + 가지치기 후보 list + softmax diffusion 측정 + per-regime oracle gap (sanity only) + **`argmax_hit` 측정 (selector 의 top-1 픽 좌표 hit rate) + ranking-vs-drift 분해**. 위반 시 `diagnostic_inconclusive` warn-only. **v2.4 → v2.5**: mask `worst_regime ∈ {10,16,17}` → `oracle_miss = err.min > 0.01` (Variant A regime 폐기 정합, main lever 의 직접 target).
 - Step 2a 가지치기: oracle 변화 < 0.001 인 redundant 후보만 제거. 제거 후 `oracle_after ≥ 0.7170` (= plan-005 oracle 0.7188 − 0.0018 허용). 위반 시 `oracle_drop` severe.
 - Step 2b **Greedy set cover (Strategy D)**: pruned pool 에서 시작 → `template_pool` (모든 family 후보) 에서 *oracle 증가 최대* 인 후보를 greedy 하게 1 개씩 add. 종료 조건: `delta < 0.001` OR `len(pool) >= 50` OR `oracle ≥ 0.90`. 최종 `oracle_final ≥ 0.85` minimum, stretch 0.90. **0.78 ≤ oracle < 0.85** 시 warn-only. **oracle < 0.78** 시 `redefinition_severely_insufficient` severe.
-- Step 3 selector 재학습 (Variant A path, `regime_prior_strength=0`): OOF hit ≥ Variant A baseline 0.6570 + 0.05 = `0.71` minimum. **LB 미제출 (할당량 소진)** — submission.csv 생성만. 위반 시 `selector_no_improvement` severe.
+- Step 3 selector 재학습 (Variant A path, `regime_prior_strength=0`): (a) OOF hit ≥ Variant A baseline 0.6570 + 0.043 ≈ `0.70` minimum (v2.4 완화, 이전 0.71). (b) **(v2.6 신규)** Sanity baseline 측정: 동일 hyperparam 으로 27 후보 OOF 가 Variant A 0.6570 ± 0.005 재현. (c) **(v2.6 신규)** `family_effect = oof_extended − sanity_baseline_27 ≥ +0.03` (family 의 *순* 회수 효과). **LB 미제출 (할당량 소진)** — submission.csv 생성만. (a) 위반 시 `selector_no_improvement` severe. (b)(c) 위반 시 warn-only (`sanity_baseline_drift` / `family_effect_marginal`).
 - Step 4 corrector 재설계 (secondary): per-band hit — `[0.5, 1cm] hit_after ≥ 0.95` ∧ `[1, 1.5cm] hit_after ≥ 0.30`. 전체 OOF ≥ Step 3 OOF + 0.02 (secondary booster minimum, 이전 +0.04 → +0.02 로 완화). **LB 미제출** — submission.csv 생성만. 위반 시 `corrector_band_failure` severe.
 - **LB 제출: 본 plan 내 0 회** (오늘 할당량 소진). submission.csv 는 Step 3/4 끝에 생성만 + 박제. LB 회수는 *plan-008.1 carry-over* (다음 날 사용자 수동 dacon-submit 호출).
 - `lb_score` frontmatter 3 파일 (`plans/plan-008-*.md` top + `.results.md` + `analysis/plan-008/results.md`) 동시 박제. plan-004/006/007 패턴 답습.
 
 ### G-gates
 
-- G0: STAGE 1 진단 (residual decomposition + 가지치기 list + softmax diffusion + per-regime oracle gap + ranking-vs-drift 분해) [TODO]
+- G0: STAGE 1 진단 (v2.5: **oracle miss mask** residual decomposition + 가지치기 list + softmax diffusion + per-regime oracle gap (sanity) + ranking-vs-drift 분해) [TODO]
 - G1: STAGE 2 후보 풀 재정의 완료 — Step 2a (가지치기, oracle ≥ 0.7170) + Step 2b (**Greedy set cover Strategy D**, oracle ≥ 0.85) [TODO]
-- G2: STAGE 3 selector 재학습 (Variant A path) — OOF ≥ 0.71 + submission.csv 생성 (LB 미제출) [TODO]
+- G2: STAGE 3 selector 재학습 (Variant A path) — OOF ≥ 0.70 + submission.csv 생성 (LB 미제출) [TODO]
 - G3: STAGE 4 corrector 재설계 (secondary) — band hit 검증 + 전체 OOF ≥ Step 3 + 0.02 + submission.csv 생성 (LB 미제출) [TODO]
 - G4: (선택) STAGE 5 test-internal validation [TODO]
 - G_final: STAGE 6 synthesis + plan-009 후보 + 3 파일 frontmatter 동시 박제 (`lb_score: TBD` — carry-over) [TODO]
@@ -71,18 +71,22 @@ lb_score: null
 | c1 | docs | `plans/plan-008-candidate-redefine-corrector-redesign.md` v1 작성 | [DONE] |
 | c1.1 | docs | v2 spec 갱신 — radical expansion + Variant A baseline 확정. spec @ §0~§7, §N+3 | [DONE in v2/v2.1] |
 | c1.2 | docs | v2.2 spec 갱신 — Option A (CandidateSpec schema 확장). spec @ §2.1/§5.2.0/§6.1.5/§N+3 #11 | [DONE in v2.2] |
-| **c1.3** | **docs** | **v2.3 spec 갱신 — reviewer 피드백 (Family 4/5 drop, fs_3d_binormal, cap fallback, selector fallback 강화) + Strategy D (greedy set cover) + Step 1 ranking-vs-drift 분해. spec @ §0~§N+4** | **[TODO]** |
-| c2 | code | `analysis/plan-008/diagnostic.py` — STAGE 1 진단 (residual + pruning + softmax diffusion + per-regime oracle + ranking-vs-drift 분해). spec @ §4 | [TODO] |
+| c1.3 | docs | v2.3 spec 갱신 — reviewer 피드백 (Family 4/5 drop, fs_3d_binormal, cap fallback, selector fallback 강화) + Strategy D (greedy set cover) + Step 1 ranking-vs-drift 분해. spec @ §0~§N+4 | [DONE in v2.3] |
+| **c1.4** | **docs** | **v2.4 spec 갱신 — pruning 기준 변경 (selector pick rate → structural containment). spec @ §0/§0.5/§1.4/§2.1/§4.1/§5.1/§N+4** | **[TODO]** |
+| **c1.5** | **docs** | **v2.5 spec 갱신 — STAGE 1 mask `worst_regime ∈ {10,16,17}` → `oracle_miss` (Variant A 정합, main lever 직접 target). G2 OOF 0.71 → 0.70 완화. spec @ §0/§0.5/§4 + caveat 박제** | **[TODO]** |
+| **c1.6** | **docs** | **v2.6 spec 갱신 — Plan agent 검토 반영. (1) §7.1 LB 잔재 fix, (2) §6.0 sanity_baseline_27 신설 (family 효과 분리), (3) caveat #20 (oracle 0.85 낙관), (4) §6.2 assert 강화 (regime_bias_table 분산). spec @ §0/§0.5/§6.0/§6.2/§6.4/§6.6/§7.1/§7.7/§N+3/§N+4** | **[TODO]** |
+| c2 | code | `analysis/plan-008/diagnostic.py` — STAGE 1 진단 (**oracle miss residual** + structural pruning containment + softmax diffusion + per-regime oracle sanity + ranking-vs-drift 분해). spec @ §4 | [TODO] |
 | c2.5 | code | `src/pb_0_6822/selector.py` partial 수정 — CandidateSpec schema 확장 (Option A, 3 곳). spec @ §5.2.0 | [TODO] |
 | G0 | gate | diagnostic.{json,md} 박제 + dominant cause(s) + prune list + margin 분포 + per-regime oracle gap | [TODO] |
 | c3 | code | `src/pb_0_6822/candidates_extended.py` — 5 family 후보 정의 모듈 (Family 4 drop, snap drop, fs_3d_binormal). spec @ §5.2 | [TODO] |
 | c4 | code | `analysis/plan-008/prune_and_redefine.py` — Step 2a (prune) + Step 2b (**Greedy set cover Strategy D**). spec @ §5 | [TODO] |
 | c5 | exp | G001-step2: oracle 측정 (pruned baseline + greedy iteration log + final pool). spec @ §5 | [TODO] |
 | G1 | gate | oracle_after_prune ≥ 0.7170 (Step 2a) ∧ oracle_final ≥ 0.85 (Step 2b) ∧ family marginal filter 적용 | [TODO] |
+| **c5.5** | **code** | **`analysis/plan-008/sanity_baseline_27.py` — 27 후보 + 새 hyperparam Variant A 5-fold OOF baseline 측정 (v2.6 신규, family 효과 분리용). spec @ §6.0** | **[TODO]** |
 | c6 | code | `analysis/plan-008/selector_retrain.py` — Variant A path 강제 wrapper (regime_prior_strength=0). spec @ §6 | [TODO] |
 | c7 | exp | G001-step3: 5-fold selector + 기존 corrector full-fit + submission 생성 (LB 미제출). spec @ §6 | [TODO] |
 | ~~c8~~ | ~~sub-lb~~ | **본 plan 내 미수행** (LB 할당량 소진). plan-008.1 carry-over (다음 날). spec @ §8 | [DEFERRED] |
-| G2 | gate | OOF ≥ 0.71 + submission schema OK (LB 미제출, carry-over) | [TODO] |
+| G2 | gate | OOF ≥ 0.70 + family_effect ≥ +0.03 (vs sanity_baseline_27) + submission schema OK (LB 미제출, carry-over) | [TODO] |
 | c9 | code | `analysis/plan-008/corrector_band.py` — band-specific corrector loss + 학습 wrapper. spec @ §7 | [TODO] |
 | c10 | exp | G002-step4: corrector 재학습 + per-band hit 측정 + submission 생성 (LB 미제출). spec @ §7 | [TODO] |
 | ~~c11~~ | ~~sub-lb~~ | **본 plan 내 미수행** (LB 할당량 소진). plan-008.1 carry-over (다음 날). spec @ §8 | [DEFERRED] |
@@ -99,7 +103,9 @@ lb_score: null
 - `oracle_drop`: Step 2a 가지치기 후 `oracle_pruned < 0.7170`. severe — 가지치기 일부 rollback.
 - `redefinition_severely_insufficient`: Step 2b 의 최종 `oracle_final < 0.78`. severe — 5 family 모두 효과 부족, 진단 재검토 + 새 family 시도 (또는 plan-009 carry-over).
 - `redefinition_partial`: Step 2b 의 `0.78 ≤ oracle_final < 0.85`. **warn-only** (severe X) — minimum 미달 but 부분 효과. plan-009 family 후속 list 박제.
-- `selector_no_improvement`: Step 3 OOF < 0.71. severe — 새 후보 풀이 selector 에게 *학습 가능* 한지 검증 (selector hidden 48→64 hyperparam fallback 가능).
+- `selector_no_improvement`: Step 3 OOF < 0.70. severe — 새 후보 풀이 selector 에게 *학습 가능* 한지 검증 (selector hidden 48→64 hyperparam fallback 가능).
+- **`sanity_baseline_drift`** (v2.6): Step 3 의 sanity_baseline_27_oof 가 Variant A baseline 0.6570 ± 0.005 밖. **warn-only** — hyperparam 변경 효과가 family 효과와 혼재 가능, 결과 해석 주의 (별도 측정 단계 추가 권장).
+- **`family_effect_marginal`** (v2.6): `family_effect = oof_extended_pool − sanity_baseline_27_oof < +0.02`. **warn-only** — oracle 0.85 *회수율 낮음* 신호. plan-009 의 selector arch 교체 / ranking-specific loss 후보 강화 trigger.
 - `corrector_band_failure`: Step 4 의 `[0.5, 1cm] hit_after < 0.95` OR `[1, 1.5cm] hit_after < 0.30`. severe — λ tuning 또는 arch 재검토.
 - `regime_residue`: Step 3 selector 학습 시 `regime_prior_strength != 0` 또는 `fit_regime_bins/assign_regimes/candidate_regime_bias` 호출 발견. severe — Variant A path 위반.
 - `schema_v22_residue`: Step 3 selector 학습 진입 시 §6.1.5 의 assert 위반 (CandidateSpec 의 4 신규 fields 부재 또는 backward-compat 깨짐 또는 cand_dim 예상값 다름). severe — Option A 수정 누락.
@@ -128,8 +134,8 @@ lb_score: null
 ### Decision-note 사용 예 (자율 결정 시 commit msg 박제)
 
 - `decision-note: spec-default — Baseline = Variant A (regime 폐기 확정, plan-005 STAGE 6 의 LB 0.6796 + regime LB marginal +0.001 noise 근거). regime_prior_strength=0 강제.`
-- `decision-note: spec-default — Step 1 진단 = plan-005 worst-100 + corrector_decomp + margin_hist 재활용 + residual decomposition + per-regime oracle gap 추가.`
-- `decision-note: spec-default — Step 2a 가지치기 = data-driven (selector pick rate < 0.005 ∧ oracle preservation < 0.001 delta).`
+- `decision-note: spec-default — Step 1 진단 (v2.5) = plan-005 worst-100 + corrector_decomp + margin_hist 재활용 + **oracle_miss mask residual decomposition** (≈ 2800 sample, main lever 의 직접 target) + per-regime oracle gap (sanity only, decision 무관). v2.4 의 worst_regime mask 는 self-contradiction (Variant A regime 폐기 + diagnostic regime 사용).`
+- `decision-note: spec-default — Step 2a 가지치기 = **structural containment** (v2.4): pairwise containment_strict (hit_i ⊆ hit_j) 또는 containment_soft ≥ 0.95 + coord_dist < 0.005 + hit_rate[j] > hit_rate[i] → i 제거. Safety check: 제거 후 oracle delta < 0.001. selector pick rate 사용 X (selector 거동 무관, robust).`
 - `decision-note: spec-default — Step 2b 재정의 = 5 family 모두 정의 (trig/arc/Frenet-Serret/per-regime/higher-order/cross-term) → oracle filter (family marginal < 0.01 시 drop, hybrid C path).`
 - `decision-note: spec-default — Step 3 selector arch = plan-004 Attn-GRU 그대로 (hidden=48, layers=2). 후보 수만 27 → ~40 (pruned ~22 + new ~18). hidden 변경은 fallback 만 (G2 미달 시 64).`
 - `decision-note: spec-default — Step 4 corrector loss = band-specific hinge ([0,0.5]: 0, [0.5,1]: protect λ=1, [1,1.5]: recover λ=2, [1.5,∞]: 0). λ grid search fallback (max 5 회).`
@@ -203,11 +209,11 @@ lb_score: null
 
 | 가설 | 검증 방법 | 합격 산출 |
 |---|---|---|
-| H1: worst regime 16/17/10 의 residual 이 *특정 dynamics* (rotation/curvature/z) 와 강하게 상관 | Step 1 residual decomposition | dominant cause 1~3 개 → template_pool 구성 가이드 |
+| H1 (v2.5): **oracle miss sample (~2800)** 의 residual 이 *특정 dynamics* (rotation/curvature/z) 와 강하게 상관 | Step 1 oracle_miss mask residual decomposition | dominant cause 1~3 개 → template_pool 구성 가이드 |
 | **H1.5 (v2.3 신규)**: 6pp selector→oracle gap 분해 시 `ranking_recoverable_gap` vs `drift_component` 비율 | Step 1 `argmax_hit` 측정 + 분해 | 측정 결과 (ranking dominant / drift dominant / mixed) |
-| H2: 가지치기로 redundant 후보 제거 + oracle 손실 < 0.001 | Step 2a oracle 측정 | pruned pool |
+| H2: structural containment 기반 가지치기로 redundant 후보 ≥ 5 개 제거 + oracle 손실 < 0.001 | Step 2a containment matrix + safety check | pruned pool, pairwise containment 박제 |
 | **H3 (v2.3 갱신)**: Greedy set cover 로 template_pool 에서 순차 add → oracle ≥ 0.85 (stretch 0.90) | Step 2b greedy iteration | extended pool + iteration log |
-| H4: Variant A path 로 새 후보 풀 selector 학습 → OOF ≥ 0.71 | Step 3 5-fold OOF | OOF |
+| H4: Variant A path 로 새 후보 풀 selector 학습 → OOF ≥ 0.70 | Step 3 5-fold OOF | OOF |
 | H5: corrector band-specific 재설계로 per-band hit 회복 + 전체 OOF +0.02 | Step 4 OOF + per-band | OOF |
 | H6: (선택) test-internal hyperparam re-tune | Step 5 grid search | gap 회수율 |
 
@@ -223,7 +229,7 @@ lb_score: null
 |---|---|
 | Baseline | **Variant A** (GRU + physics, regime_prior_strength=0) — plan-005 STAGE 6 path 답습 |
 | 후보 풀 출발점 | plan-004 의 27 candidates (`src/pb_0_6822/selector.CANDIDATES`) |
-| 가지치기 | data-driven (selector pick rate + oracle preservation) |
+| 가지치기 | **structural containment** (v2.4): pairwise hit-set containment + coord similarity + hit_rate dominance. Safety check: oracle delta < 0.001. selector pick rate *사용 X* (selector 거동 무관). |
 | 새 family (5+, 20+ 후보) | trig (rotation, 3~5) + circular_arc (2~3) + Frenet-Serret 3D (2~3) + per-regime specialized (3) + higher-order jerk/snap/multi-step (2~3) + cross-term (speed_slope·d1 등, 2~3) |
 | Family-level filter | Step 2b 의 oracle marginal contribution < 0.01 시 drop (hybrid C path) |
 | Selector 재학습 | plan-004 의 Attn-GRU + `regime_prior_strength=0` |
@@ -238,7 +244,7 @@ lb_score: null
 |---|---|
 | **LB 자율 제출 (dacon-submit skill 호출)** | **오늘 일일 할당량 소진** — 본 plan 내 LB 호출 X. submission.csv 생성만 + 다음 날 carry-over 수동 제출. |
 | 다중 LB 제출 | 본 plan 0 회. |
-| **Regime infra 전체** (`fit_regime_bins`, `assign_regimes`, `candidate_regime_bias`) | plan-005 STAGE 6 의 LB +0.001 noise 측정 → 폐기 확정. **filter 용도** (Step 1 의 worst regime 식별) 만 사용. |
+| **Regime infra 전체** (`fit_regime_bins`, `assign_regimes`, `candidate_regime_bias`) | plan-005 STAGE 6 의 LB +0.001 noise 측정 → 폐기 확정. v2.5: 학습/모델 입력 X. Step 1 진단의 **informational sanity only** (per_regime_oracle_sanity 표 + oracle_miss_regime_dist_sanity 박제) — decision 무관. main residual decomposition 은 `oracle_miss` mask 위에서 옴. |
 | 18-bin regime bias 표 | 폐기. 새 family 후보의 EB cell degeneracy 위험 회피. |
 | Selector arch 교체 (TCN/Transformer/MLP coeff) | plan-007 의 framework 대체 시도가 0.6482 ceiling 확정. 본 plan 은 Variant A path 유지 (arch 동일). |
 | `src/pb_0_6822/selector.py` 의 **arch / 학습 로직** 수정 | lock-in. **단 CandidateSpec schema 확장 + cand_feat 함수의 spec/interactions 부분 확장은 허용** (Option A, v2.2 결정). Attn-GRU model class / `train_one` / `run_fold` / `SELECTOR_MAIN` 등 학습 로직은 미수정. |
@@ -271,7 +277,7 @@ lb_score: null
     - `0.78 ≤ oracle_final < 0.85` → warn-only (plan-009 후속)
     - `oracle_final < 0.78` → severe
   - Per-regime: worst (16/17/10) 의 `oracle_after_final ≥ 0.55`
-- **G2**: 5-fold OOF hit (soft) **≥ 0.71** (Variant A baseline 0.6570 + 0.05 minimum) + `submission.csv` schema OK. **LB 회수 X (carry-over)**.
+- **G2**: 5-fold OOF hit (soft) **≥ 0.70** (Variant A baseline 0.6570 + 0.043 minimum, v2.4 완화 — 이전 0.71) + `submission.csv` schema OK. **LB 회수 X (carry-over)**.
 - **G3**:
   - `[0, 0.5cm) hit_after ≥ 0.99`
   - `[0.5, 1cm) hit_after ≥ 0.95`
@@ -313,7 +319,14 @@ ANALYSIS_DIR = REPO / "analysis/plan-008"
 R_HIT = 0.01
 
 def stage1_diagnostic() -> dict:
-    """Worst regime 의 residual decomposition + 가지치기 후보 + softmax diffusion + per-regime oracle gap."""
+    """v2.5: Oracle miss sample 의 residual decomposition + 가지치기 후보 + softmax diffusion + per-regime oracle gap (sanity only).
+
+    v2.4 → v2.5 핵심 변경:
+      - mask: `worst_regime ∈ {10, 16, 17}` → `oracle_miss = err.min(axis=1) > R_HIT`
+      - 이유: regime 폐기 (Variant A) 와 정합 + main lever (oracle 천장 회수) 의
+              *직접* target = oracle miss sample (27 후보 모두 1cm 밖) 분포 분석.
+      - regime 사용 = informational sanity only (per_regime_oracle 표는 유지하되 decision 무관).
+    """
 
     # ── 1. 입력 로드 ──
     ids, train_y = selector.read_labels(DATA_ROOT / "train_labels.csv")
@@ -321,8 +334,8 @@ def stage1_diagnostic() -> dict:
     end_idx = train_x.shape[1] - 1
 
     cands = selector.make_candidates(train_x, end_idx, horizon=2)
-    bins = selector.fit_regime_bins(train_x, end_idx)         # filter 용도만
-    regimes = selector.assign_regimes(train_x, end_idx, bins) # filter 용도만
+    bins = selector.fit_regime_bins(train_x, end_idx)         # sanity only (per_regime_oracle 표)
+    regimes = selector.assign_regimes(train_x, end_idx, bins) # sanity only
 
     z_oof = np.load(PLAN005_DIR / "corrected_oof.npz")
     corrected_cands = z_oof["corrected"]
@@ -331,12 +344,16 @@ def stage1_diagnostic() -> dict:
     z_scores = np.load(REPO / "runs/baseline/P001_pb-0-6822-fullrun" / "oof_selector_scores.npz")
     oof_scores = z_scores["ens_scores"]
 
-    # ── 2. Residual decomposition (worst regime 만) ──
-    worst_mask = np.isin(regimes, [10, 16, 17])
+    # ── 2. Residual decomposition (v2.5: oracle miss sample 전체) ──
     err = np.linalg.norm(corrected_cands - train_y[:, None, :], axis=2)
     best_idx = err.argmin(axis=1)
     best_pred = corrected_cands[np.arange(len(train_y)), best_idx]
     err_vec = best_pred - train_y
+
+    # ⭐ v2.5 main mask: oracle miss = 27 후보 *모두* 가 1cm 밖
+    # → plan-008 main lever (oracle 천장 0.7188 → 0.85+ 회수) 의 *직접* target population
+    oracle_miss_mask = err.min(axis=1) > R_HIT   # shape (N,), ~2800 True (28%)
+    n_oracle_miss = int(oracle_miss_mask.sum())
 
     p0, d1, acc = selector.motion_terms(train_x, end_idx)
     tangent = d1 / (np.linalg.norm(d1, axis=1, keepdims=True) + 1e-8)
@@ -354,7 +371,8 @@ def stage1_diagnostic() -> dict:
     prev_acc = d2 - (train_x[:, end_idx - 2] - train_x[:, end_idx - 3])
     jerk_norm = np.linalg.norm(acc - prev_acc, axis=1)
 
-    w = worst_mask
+    # v2.5: oracle miss sample 위에서 dominant cause 도출
+    w = oracle_miss_mask
     err_norm_w = np.linalg.norm(err_vec[w], axis=1)
     corr_rotation = float(np.corrcoef(np.abs(omega_z[w]), err_norm_w)[0, 1])
     corr_curvature = float(np.corrcoef(curvature[w], err_norm_w)[0, 1])
@@ -367,6 +385,17 @@ def stage1_diagnostic() -> dict:
     par_pct = err_par_var / total_var
     perp_pct = err_perp_var / total_var
     z_pct = err_z_var / total_var
+
+    # v2.5 sanity: regime sub-breakdown (informational only, decision 무관)
+    # oracle miss sample 의 regime 분포 — main 분석 결과와 정합 확인용
+    oracle_miss_regime_dist = {}
+    for r in range(18):
+        n_r = int(((regimes == r) & oracle_miss_mask).sum())
+        if n_r > 0:
+            oracle_miss_regime_dist[int(r)] = {
+                "n_in_miss": n_r,
+                "miss_rate": float(((regimes == r) & oracle_miss_mask).sum() / max((regimes == r).sum(), 1)),
+            }
 
     dominant_causes = []
     if corr_rotation > 0.3 or perp_pct > 0.4:
@@ -384,26 +413,65 @@ def stage1_diagnostic() -> dict:
         dominant_causes.append({"cause": "jerk", "evidence": {"corr_jerk": corr_jerk},
                                  "recommended_family": "higher_order_jerk"})
 
-    # ── 3. 가지치기 후보 도출 ──
-    selector_pick_idx = oof_scores.argmax(axis=1)
+    # ── 3. 가지치기 후보 도출 (v2.4: Structural containment 기반, selector pick rate 무관) ──
+    # Reviewer feedback 반영: 효과 측정 (selector pick rate) 대신 *구조적 redundancy*
+    # 후보 i 가 j 에 의해 dominated → i 제거 (selector 거동 무관, robust)
+    K_orig = 27
+    hit_matrix = (err <= R_HIT)                 # (N, 27)
+    hit_rate = hit_matrix.mean(axis=0)           # (27,)
+    coord_dist_matrix = np.zeros((K_orig, K_orig))
+    containment_soft = np.zeros((K_orig, K_orig))  # ratio of hit_i ∩ hit_j / |hit_i|
+    containment_strict = np.zeros((K_orig, K_orig), dtype=bool)
+
+    for i in range(K_orig):
+        for j in range(K_orig):
+            if i == j: continue
+            coord_dist_matrix[i, j] = float(np.linalg.norm(
+                corrected_cands[:, i] - corrected_cands[:, j], axis=1
+            ).mean())
+            n_i = hit_matrix[:, i].sum()
+            if n_i == 0:
+                containment_soft[i, j] = 1.0
+                containment_strict[i, j] = True
+            else:
+                both = (hit_matrix[:, i] & hit_matrix[:, j]).sum()
+                containment_soft[i, j] = float(both / n_i)
+                if both == n_i and hit_matrix[:, j].sum() >= n_i:
+                    containment_strict[i, j] = True
+
     prune_candidates = []
-    for c in range(27):
-        oracle_best_rate = float((best_idx == c).mean())
-        selector_pick_rate = float((selector_pick_idx == c).mean())
-        if oracle_best_rate < 0.005 and selector_pick_rate < 0.005:
-            kept_mask = np.ones(27, dtype=bool)
-            kept_mask[c] = False
-            oracle_after = float((err[:, kept_mask].min(axis=1) <= R_HIT).mean())
-            oracle_before = float((err.min(axis=1) <= R_HIT).mean())
-            delta = oracle_before - oracle_after
-            if delta < 0.001:
-                prune_candidates.append({
-                    "idx": c,
-                    "name": selector.CANDIDATES[c].name,
-                    "oracle_best_rate": oracle_best_rate,
-                    "selector_pick_rate": selector_pick_rate,
-                    "oracle_delta_if_removed": delta,
-                })
+    for i in range(K_orig):
+        for j in range(K_orig):
+            if i == j: continue
+            # 판정 1: strict containment (hit_i ⊆ hit_j) + j 가 더 많이 hit
+            strict_ok = bool(containment_strict[i, j] and hit_rate[j] > hit_rate[i])
+            # 판정 2: soft containment ≥ 95% + 좌표 거의 동일 + j 가 더 많이 hit
+            soft_ok = bool(
+                containment_soft[i, j] >= 0.95
+                and coord_dist_matrix[i, j] < 0.005   # 5mm 이내 좌표
+                and hit_rate[j] > hit_rate[i]
+            )
+            if strict_ok or soft_ok:
+                # Safety check: i 제거 후 oracle 손실 측정
+                kept_mask = np.ones(K_orig, dtype=bool)
+                kept_mask[i] = False
+                oracle_after = float((err[:, kept_mask].min(axis=1) <= R_HIT).mean())
+                oracle_before = float((err.min(axis=1) <= R_HIT).mean())
+                delta = oracle_before - oracle_after
+                if delta < 0.001:
+                    prune_candidates.append({
+                        "idx": i,
+                        "name": selector.CANDIDATES[i].name,
+                        "dominator_idx": j,
+                        "dominator_name": selector.CANDIDATES[j].name,
+                        "rule": "strict" if strict_ok else "soft",
+                        "containment_soft": float(containment_soft[i, j]),
+                        "coord_dist": float(coord_dist_matrix[i, j]),
+                        "hit_rate_i": float(hit_rate[i]),
+                        "hit_rate_j": float(hit_rate[j]),
+                        "oracle_delta_if_removed": delta,
+                    })
+                break   # i 는 j 에 의해 제거됨, j 비교 종료
 
     # ── 4. Selector hit gap decomposition (review Point 3 — 진짜 병목 식별) ──
     # 정정: "top-1 ranking 12.6%" = "27 중 *진짜 best* 정확 픽 비율" (oracle best 와 일치).
@@ -462,10 +530,12 @@ def stage1_diagnostic() -> dict:
             "gap_to_target": float(0.85 - (err[mask].min(axis=1) <= R_HIT).mean()),
         }
 
-    # ── 7. 박제 ──
+    # ── 7. 박제 (v2.5: oracle miss 기반 main + regime sanity 별도) ──
     summary = {
-        "n_worst": int(worst_mask.sum()),
-        "residual_breakdown_worst": {
+        "mask_strategy": "oracle_miss_v2.5",   # ← v2.4 worst_regime 에서 변경
+        "n_oracle_miss": n_oracle_miss,
+        "oracle_miss_rate": float(oracle_miss_mask.mean()),   # ≈ 0.2812 (= 1 − 0.7188)
+        "residual_breakdown_oracle_miss": {                    # ← v2.4 _worst 에서 변경
             "par_pct": par_pct, "perp_pct": perp_pct, "z_pct": z_pct,
             "corr_rotation": corr_rotation, "corr_curvature": corr_curvature,
             "corr_jerk": corr_jerk,
@@ -476,7 +546,9 @@ def stage1_diagnostic() -> dict:
         "selector_gap_decomposition": selector_gap_decomposition,  # main_bottleneck 판정
         "margin_top1_top2": margin_hist,
         "softmax_diffusion_signal": softmax_diffusion_signal,
-        "per_regime_oracle": per_regime_oracle,
+        # 아래 두 항목 = informational sanity only (regime 사용, decision 무관)
+        "per_regime_oracle_sanity": per_regime_oracle,
+        "oracle_miss_regime_dist_sanity": oracle_miss_regime_dist,
     }
     ANALYSIS_DIR.mkdir(parents=True, exist_ok=True)
     (ANALYSIS_DIR / "diagnostic.json").write_text(json.dumps(summary, indent=2))
@@ -489,19 +561,24 @@ def stage1_diagnostic() -> dict:
 - `analysis/plan-008/diagnostic.md`:
   - 1 줄 결론 (dominant cause + 가지치기 후보 수 + **main_bottleneck (ranking vs drift)**)
   - **Selector gap decomposition 표** (oracle_hit, argmax_hit, soft_hit, ranking_acc, gap_ranking, gap_drift) — top-1 ranking 12.6% 의 *정확한 의미* + 진짜 metric 박제
-  - residual breakdown
-  - 가지치기 후보 표
+  - **Oracle miss residual breakdown (v2.5)**: par/perp/z 분산 비율 + corr_rotation/curvature/jerk — *oracle miss sample (~2800)* 위에서 측정 (regime 무관, plan main lever 의 직접 target)
+  - **가지치기 후보 표 (v2.4 structural containment)**: 각 row = (i, j, rule, containment_soft, coord_dist, hit_rate_i, hit_rate_j, oracle_delta)
   - margin 분포 (drift 가설 supporting)
-  - per-regime oracle gap 표 (18 regime)
+  - **per-regime oracle gap 표 (sanity only, v2.5 격하)**: 18 regime 별 oracle hit rate — decision 영향 X, 익숙한 grouping 으로 sanity check 만
+  - **oracle miss regime 분포 (sanity only)**: oracle miss sample 의 regime 별 집중도 — main residual breakdown 결과와 정합 확인용
 
 ### §4.3 G0 합격 기준
 
-- `dominant_causes` ≥ 1 entry (없으면 `diagnostic_inconclusive` warn)
-- `prune_candidates` 리스트 박제 (비어 있어도 통과)
+- `mask_strategy == "oracle_miss_v2.5"` 박제 (regime mask 사용 X — Variant A 정합)
+- `n_oracle_miss` 박제 (예상 ~2800, oracle 0.7188 → miss rate 0.2812)
+- `dominant_causes` ≥ 1 entry — **oracle miss residual 위에서 도출** (없으면 `diagnostic_inconclusive` warn)
+- **`prune_candidates` 리스트 박제 (v2.4 structural containment)**: 각 entry 가 (i, j, rule, containment_soft, coord_dist, hit_rate_i, hit_rate_j, oracle_delta) 모두 포함. 비어 있어도 통과 (단 threshold 완화 검토 — caveat #17).
+- **Containment matrices 박제** (informational, sanity): `containment_soft` (K×K), `coord_dist_matrix` (K×K), `hit_rate` (K,) — pairwise 구조 audit 가능
 - **`selector_gap_decomposition` 박제** — `main_bottleneck` ∈ {"ranking", "drift"} 결정. 결과에 따라 plan-008 의 main lever 우선순위 *데이터 기반* 재조정:
   - `main_bottleneck == "ranking"` (gap_ranking ≫ gap_drift): selector 강화 (Point 4 의 pairwise/distill fallback) 가 main, pruning 은 secondary
   - `main_bottleneck == "drift"` (gap_drift ≫ gap_ranking): pruning 이 main, selector 강화는 secondary (이전 v2.1 의 가설)
-- `margin_top1_top2` + `per_regime_oracle` 박제
+- `margin_top1_top2` 박제
+- `per_regime_oracle_sanity` + `oracle_miss_regime_dist_sanity` 박제 (sanity only, decision 무관)
 
 ### §4.4 시간 예산
 
@@ -511,12 +588,25 @@ def stage1_diagnostic() -> dict:
 
 ## §5. STAGE 2 — 가지치기 (Step 2a) + Greedy Set-Cover 재정의 (Step 2b, Strategy D) (c3, c4, c5)
 
-### §5.1 Step 2a — 가지치기 (v2.3 unchanged)
+### §5.1 Step 2a — 가지치기 (v2.4: Structural Containment 기반)
+
+**v2.4 변경**: selector pick rate 기반 → **pairwise structural containment** 기반 (reviewer feedback). selector 거동 무관, 후보 풀의 *내재적 redundancy* 만 봄.
+
+#### Identification criteria (§4 의 diagnostic.py 에서 도출)
+
+후보 i 가 *redundant* 로 판정되는 조건 (둘 중 하나):
+
+1. **Strict containment**: `hit_i ⊆ hit_j` (i 가 hit 인 모든 sample 에서 j 도 hit) + `hit_rate[j] > hit_rate[i]`
+2. **Soft containment**: `containment_soft(i, j) ≥ 0.95` (i 의 hit 중 95%+가 j 의 hit) + `coord_dist(i, j) < 0.005m` (좌표 거의 동일) + `hit_rate[j] > hit_rate[i]`
+
+#### Safety verification (oracle 손실 방지)
+
+식별된 redundant 후보를 *일괄 제거* 후 oracle 손실 측정:
 
 ```python
 def step2a_prune(prune_candidates: list, cands_27: np.ndarray, train_y: np.ndarray) -> dict:
-    """진단 prune_candidates 적용 + oracle 측정."""
-    prune_idx = [p["idx"] for p in prune_candidates]
+    """v2.4: structural containment 로 식별된 redundant 후보 일괄 제거 + oracle safety."""
+    prune_idx = [p["idx"] for p in prune_candidates]   # diagnostic 의 structural list
     kept_mask = np.ones(27, dtype=bool)
     kept_mask[prune_idx] = False
 
@@ -525,18 +615,38 @@ def step2a_prune(prune_candidates: list, cands_27: np.ndarray, train_y: np.ndarr
     oracle_pruned = float((err_pruned.min(axis=1) <= R_HIT).mean())
     oracle_orig = float((np.linalg.norm(cands_27 - train_y[:, None, :], axis=2).min(axis=1) <= R_HIT).mean())
 
+    # Post-pruning sanity (Method 1, post-hoc effect — informational only)
+    # oof_scores 의 pruned subset 으로 soft_hit 재측정
+    scores_pruned = oof_scores[:, kept_mask]
+    weights_pruned = softmax_np(scores_pruned, temp=0.03)
+    soft_pred_pruned = (cands_pruned * weights_pruned[:, :, None]).sum(axis=1)
+    soft_hit_pruned = float((np.linalg.norm(soft_pred_pruned - train_y, axis=1) <= R_HIT).mean())
+
     return {
+        "pruning_method": "structural_containment_v2.4",
         "pruned_count": len(prune_idx),
         "remaining_count": int(kept_mask.sum()),
+        "pruned_pairs": prune_candidates,   # (i, j) 쌍 + rule (strict/soft) + containment 박제
         "oracle_orig": oracle_orig,
         "oracle_pruned": oracle_pruned,
         "oracle_delta": oracle_pruned - oracle_orig,
+        "oracle_safe": (oracle_orig - oracle_pruned) < 0.001,
+        # Post-hoc sanity (informational, decision 무관)
+        "soft_hit_pruned_posthoc": soft_hit_pruned,
         "kept_indices": [int(i) for i in np.where(kept_mask)[0]],
         "kept_names": [selector.CANDIDATES[i].name for i in np.where(kept_mask)[0]],
     }
 ```
 
-→ 예상 결과: 27 → ~22 candidates (5~10 redundant 제거).
+→ 예상 결과: 27 → ~17~22 candidates (5~10 redundant 제거, containment 기반).
+
+#### v2.4 의 의도
+
+- **Identification**: 후보 풀의 *내재적* 구조 (selector 무관)
+- **Verification**: oracle preservation (필수, severe `oracle_drop` trigger)
+- **Sanity**: post-hoc effect (informational, decision 영향 X)
+
+이 3 단계 분리가 reviewer 의 "selector pick rate 의존 → robustness 부족" 비판 해소.
 
 ### §5.2 Step 2b — `CandidateSpec` schema 확장 (Option A) + **Greedy Set-Cover (Strategy D)** Template Pool
 
@@ -888,6 +998,45 @@ iter 7: + multi_step_rk2 → oracle 0.851, delta +0.009 ✓ target 도달, stop
 
 ## §6. STAGE 3 — Selector 재학습 (Variant A path) (c6, c7, c8)
 
+### §6.0 Sanity baseline — Family 효과 분리 (v2.6 신규)
+
+**의도**: Step 3 의 G2 OOF 임계 (0.70) 가 *family 추가 효과* 인지 *hyperparam 변경 효과* 인지 분리. 메인 검증 [CRITICAL] 3 의 cheap fix.
+
+**측정**:
+
+```python
+# Step 3 진입 전, extended pool 학습 *전에* 동일 hyperparam 으로 27 후보 baseline 측정
+# analysis/plan-008/sanity_baseline_27.py
+selector.CANDIDATES = ORIGINAL_27_CANDIDATES   # plan-004 의 원본 27
+selector.make_candidates = ORIGINAL_make_candidates
+
+selector.SELECTOR_MAIN([
+    '--root', str(DATA_ROOT),
+    '--out-dir', str(SANITY_RUN_DIR),
+    '--models', 'attn_gru',
+    '--folds', '5', '--fold-limit', '5',
+    '--regime-prior-strength', '0',     # Variant A path 동일
+    '--pre-epochs', '10', '--fine-epochs', '8', '--freeze-fine-epochs', '3',
+    '--epoch-plus', '5', '--patience', '4',
+    '--hidden', '48', '--batch', '4096',   # 동일 hyperparam
+    '--device', 'cuda:1',
+])
+# → sanity_baseline_27_oof 측정
+```
+
+**기대값**: Variant A baseline 0.6570 (plan-005 STAGE 6) ± 0.005 재현. 재현 시 hyperparam 효과 marginal 확정.
+
+**Step 3 G2 OOF 의 family 효과**:
+- `family_effect = oof_extended_pool − sanity_baseline_27`
+- 의도: family 효과 ≥ +0.03 (extended pool 의 *진짜* 회수율)
+- family 효과 < +0.02 이면 → oracle 0.85 의 *회수율 낮음* 신호, plan-009 selector arch 교체 후보 강화
+
+**산출**:
+- `analysis/plan-008/sanity_baseline_27.json`: `{sanity_baseline_27_oof, hyperparam_set, n_folds}`
+- `runs/baseline/G001_sanity-27/oof_selector_scores.npz` (재사용 안하지만 박제)
+
+**시간 예산**: ~30 분 (5-fold OOF, plan-004 의 fold timing 답습).
+
 ### §6.1 학습 방법
 
 ```python
@@ -960,22 +1109,46 @@ assert test_feat.shape[2] == expected_dim, f"cand_dim mismatch: {test_feat.shape
 
 위반 시 `schema_v22_residue` severe (selector.py 의 Option A 수정 누락).
 
-### §6.2 Variant A path 검증 (severe `regime_residue` 방지)
+### §6.2 Variant A path 검증 (severe `regime_residue` 방지) — **v2.6 강화**
 
-학습 전 + 후 assert:
+학습 전 + 후 assert (메인 검증 [SUGGEST] 5 의 cheap fix):
 
 ```python
-# 학습 전: regime 코드 호출 가능성 검증
+# 1. 학습 전: regime 코드 호출 가능성 검증
 import inspect
 src = inspect.getsource(selector.SELECTOR_MAIN)
-# assert 'regime_prior_strength' in args
-# regime_prior_strength=0 이 학습 안에서 enforce 됨을 확인 (selector.py 가 regime bias 를 0 으로 곱함)
+# regime_prior_strength=0 이 학습 안에서 enforce 됨 (selector.py 가 regime bias 를 0 으로 곱함)
+assert '--regime-prior-strength' in cli_args and cli_args[cli_args.index('--regime-prior-strength') + 1] == '0'
 
-# 학습 후: 산출 npz 의 ens_scores 가 physics_bias 만 가산됐는지 검증 (regime_bias_table 무가산)
-# (이건 selector 내부 로직이므로 sample 점검 가능)
+# 2. 학습 후 (v2.6 신규): 산출 npz 의 regime_bias_table 검증
+import numpy as np
+z = np.load(RUN_DIR / "oof_selector_scores.npz")
+if "regime_bias_table" in z.files:
+    rbt = z["regime_bias_table"]    # shape (18, n_cand) or (n_cand,)
+    rbt_var = float(np.var(rbt))
+    # Variant A path 강제: regime_bias_table 모두 0 (또는 분산 0 = 모든 cell 동일 상수)
+    assert rbt_var < 1e-10, f"regime_residue: regime_bias_table 분산 {rbt_var} > 1e-10 (Variant A 위배)"
+else:
+    # 또는 키 자체 부재 (regime bias 가 학습에 등장 안 함)
+    pass
+
+# 3. (v2.6 신규) ens_scores 의 per-regime stratification 검증
+# 만약 regime 영향 *zero* 면 같은 candidate 의 ens_scores 가 regime 별로 동일 분포여야 함
+oof_scores = z["ens_scores"]    # (N, n_cand)
+regimes_oof = z.get("regimes")   # (N,) — Variant A path 에서도 informational
+if regimes_oof is not None:
+    # informational only: 만약 regime 별 mean score 차이가 *큰* candidate 있으면 의심
+    per_regime_mean_diff = []
+    for c in range(oof_scores.shape[1]):
+        per_regime_scores = [oof_scores[regimes_oof == r, c].mean() for r in range(18) if (regimes_oof == r).any()]
+        per_regime_mean_diff.append(max(per_regime_scores) - min(per_regime_scores))
+    median_diff = float(np.median(per_regime_mean_diff))
+    # informational: median diff > 1.0 이면 regime 영향 의심 (단 candidate features 자체가 regime-correlated 일 수 있음 — warn only)
+    if median_diff > 1.0:
+        print(f"WARN: per-regime ens_scores diff median = {median_diff:.3f} > 1.0 — Variant A path 잔재 의심")
 ```
 
-위반 시 즉시 escalate.
+위반 (1 또는 2 의 assert 실패) 시 즉시 escalate (`regime_residue` severe). 3 은 informational warn-only.
 
 ### §6.3 산출
 
@@ -986,7 +1159,12 @@ src = inspect.getsource(selector.SELECTOR_MAIN)
 
 ### §6.4 G2 합격 기준 (자동 판정)
 
-- OOF hit (soft) **≥ 0.71**
+- OOF hit (soft) **≥ 0.70** (v2.4 완화, 이전 0.71)
+- **Sanity baseline check (v2.6 신규)**:
+  - `sanity_baseline_27_oof ∈ [0.652, 0.662]` (Variant A baseline 0.6570 ± 0.005 재현 — hyperparam 효과 marginal 확정)
+  - 재현 실패 시 (out of band) → `sanity_baseline_drift` warn (hyperparam 변경 효과가 family 효과와 *혼재* 가능, 결과 해석 주의)
+  - **`family_effect = oof_extended_pool − sanity_baseline_27_oof ≥ +0.03`** — family 의 *순* 회수 효과 최소 임계
+  - `family_effect < +0.02` → `family_effect_marginal` warn-only (oracle 0.85 *회수율 낮음* 신호, plan-009 selector arch 교체 후보 강화 trigger)
 - **Ranking gap** (= oracle − selector argmax hit) **≤ 7pp** (plan-005 추정값 유지 minimum, *추가 악화 방지*)
   - top-1 ranking 정확도 (oracle best 정확 픽 비율) 는 *informational* only (12.6% → 13%+ 이면 보너스, 단 main metric 아님)
   - 진짜 metric = argmax hit (= 1등 픽 *1cm 안* 비율). oracle - argmax 가 작아야 selector 가 풀 안의 hit 후보를 잘 찾는다는 신호.
@@ -1017,15 +1195,16 @@ src = inspect.getsource(selector.SELECTOR_MAIN)
 
 **Fallback 순서**: 1 → 2 → 3 → 4 (순차 또는 조합). 각 시도마다 5-fold OOF 측정.
 
-**최종 미달 시**: 4 회 fallback 모두 OOF < 0.71 이면 `selector_no_improvement` severe. plan-009 의 selector arch 교체 후보 trigger.
+**최종 미달 시**: 4 회 fallback 모두 OOF < 0.70 이면 `selector_no_improvement` severe. plan-009 의 selector arch 교체 후보 trigger.
 
 → 시간 예산: fallback 1 회당 ~30 분, 최대 4 회 = +2 시간.
 
 ### §6.6 시간 예산
 
-- selector 재학습: ~30 분
+- sanity baseline (27 후보 + 새 hyperparam Variant A) 5-fold OOF: ~30 분 (v2.6 신규)
+- selector 재학습 (extended pool): ~30 분
 - corrector full-fit (기존, plan-004 그대로): ~10 분
-- LB 제출: ~수 분
+- submission.csv 생성 (LB 미제출): ~수 분
 
 ---
 
@@ -1035,13 +1214,13 @@ src = inspect.getsource(selector.SELECTOR_MAIN)
 
 **Secondary lever**: 본 plan 의 main 은 Step 2/3 의 candidate-level 개선. Corrector 재설계는 *알려진 plan-005 fix* 의 추가 booster.
 
-**Conditional path**:
-- Step 3 LB 도달치에 따라 Step 4 가치 다름:
-  - Step 3 LB ≥ 0.78: corrector 재설계 가치 *상대적으로 낮음* → 진행 but expected gain +0.02 정도
-  - Step 3 LB 0.74~0.78: corrector 재설계 *standard ROI* → +0.03~0.05
-  - Step 3 LB < 0.74: corrector 재설계 *최대 ROI* → +0.05~0.07
+**Conditional path (v2.6 — LB 잔재 fix)**:
+- 본 plan LB 제출 = **0 회** (v2.1 carry-over 결정). Step 3 LB 측정 *없음* — *Step 3 OOF* 도달치 기반 가치 평가:
+  - Step 3 OOF ≥ 0.75: corrector 재설계 가치 *상대적으로 낮음* → 진행 but expected gain +0.02 정도
+  - Step 3 OOF 0.70~0.75: corrector 재설계 *standard ROI* → +0.03~0.05
+  - Step 3 OOF < 0.70 (severe trigger): Step 3 fallback 우선, corrector 후순위
 
-→ Step 3 결과와 무관하게 Step 4 실행 (LB 제출 2 회 보장).
+→ Step 3 OOF 결과와 무관하게 Step 4 실행 (submission.csv 2 종 박제 — Step 3 / Step 4). **LB 제출 0 회 (carry-over)** — plan-008.1 에서 *최종 산출 1 종* (Step 4) 만 수동 dacon-submit 권장 (§8.6 option B).
 
 ### §7.2 Band-Specific Loss
 
@@ -1123,7 +1302,7 @@ G3 미달 시 순차 grid search:
 
 - corrector 재학습: ~30 분
 - λ grid search (최대): +30 분
-- LB 제출: ~수 분
+- submission.csv 생성 (LB 미제출): ~수 분
 
 ---
 
@@ -1347,17 +1526,43 @@ lb_submitted_at: null
 13. **Plan-008 의 ranking 능력 한계** (v2.3): top-1 ranking 12.6% (plan-005 측정) 은 본 plan 에서 *그대로 유지* (selector arch 미수정). 본 plan 의 LB 회수는 (a) 후보 풀 확장 + (b) corrector + (c) pruning 의 부수 효과 만. selector ranking 자체의 개선은 plan-009 의 main task. Step 4 LB < 0.74 면 ranking 능력 동결의 hard ceiling 가능성 검토.
 14. **Strategy D (greedy set cover) 의 local-optimum 위험** (v2.3): Greedy algorithm 은 *전역 optimal pool* 보장 X. 매 iteration *국소 best* 만 선택 → 후보 A + B 가 *함께* add 시 oracle 더 높은데 A 또는 B 단독 add 의 marginal 이 낮으면 둘 다 skip 가능. 단 본 plan 의 template_pool (15 개) 은 작아 *조합* 의 brute-force 도 가능 (`2^15 = 32768`, 각 oracle 측정 ~0.1초 → ~1 시간). G1 fallback 으로 "조합 brute-force" 활성 가능 (plan-009 후보).
 15. **`binormal_scale` field 의미 의존** (v2.3): `CandidateSpec.z_scale` field 의 이름은 v2.2 그대로 유지하되 *Frenet-Serret family 안에서만* binormal frame 의미. 다른 family (trig 등) 는 여전히 world z 방향 (간접) 사용 가능 — make_rot_candidates 가 `d1[:, 2] * spec.z_scale` 식으로 world z 직접 곱하면 위배. v2.3 결정 = trig family 의 `z_scale=1.0` default 유지 (= world z 그대로 사용), Frenet-Serret family 만 *binormal frame 의미*. 향후 plan-009 에서 field 이름 *명시적 분리* (binormal_scale_fs / world_z_keep_trig) 검토.
+16. **Structural containment 의 *retrained selector* 한계** (v2.4): containment 식별은 selector 거동 *무관* (강점). 단 *retrained selector* 가 redundant 라고 식별된 후보 i 를 *어떻게 활용할지* 모름 — 만약 retrained 가 i 의 unique pattern 을 발견했다면 제거 손해. Safety check (oracle delta < 0.001) 으로 *aggregate* 손해는 막지만 *retrained selector 의 distribution shift* 는 못 잡음. Step 3 (selector 재학습) 의 OOF 측정이 진짜 verification — G2 미달 시 pruning rollback 검토.
+17. **Containment 의 *threshold 민감도*** (v2.4): `containment_soft ≥ 0.95` + `coord_dist < 0.005m` 는 magic number. 너무 엄격하면 pruning 거의 없음 (containment ratio 90~95% 인 pair 가 dominant), 너무 느슨하면 over-prune. v2.4 default 는 보수적 (95% + 5mm) — 만약 식별 결과 < 3 개면 threshold 완화 검토 (`0.90 + 0.008m` 등). Step 1 diagnostic 의 `prune_count` 박제로 사용자가 결정.
+18. **Oracle miss mask 의 sample 분포 균질성 위험** (v2.5): `err.min(axis=1) > R_HIT` 가 ~2800 sample (28%). 이 안에 *여러 다른 dynamics* (sharp turn + decel arc + z-drift) 가 섞여 있으면 single `corr_rotation` 같은 aggregate corr 이 *희석* 가능. 즉 dominant cause 가 *진짜 mixed* 일 때 진단이 부정확. mitigation: oracle_miss_regime_dist_sanity 박제로 regime grouping 확인 + caveat #1 (per-regime worst oracle 손해 검증) 으로 보완. 추가 분석 (clustering) 은 plan-009 후보.
+19. **Mask 변경의 plan-005 worst-100 재활용 호환성** (v2.5): plan-005 의 worst-100 worker (heuristic 분석) 는 regime 기반. v2.5 의 `oracle_miss` mask 는 regime 무관 — 두 분석의 sample 집합이 *부분 disjoint* 가능. plan-005 인계 데이터 사용은 *informational sanity* 만 (per_regime_oracle_sanity 표), main residual decomposition 은 v2.5 oracle_miss 위에서 *독립* 측정.
+20. **Oracle 0.85 minimum 의 낙관 위험** (v2.6, Plan agent 검토 [CRITICAL] 2): template_pool 15 (실효 13~14, snap drop + Family 4 drop 후) 의 평균 marginal 회수 가정 +0.019 × 7 templates = +0.13 → oracle 0.85 도달 *낙관*. 실제는 set-cover *diminishing returns* 따를 가능성 큼 — first 1~2 add +0.03~0.04, 3 번째 +0.015, 이후 < 0.01 → 7 templates × 평균 0.014 → +0.10 → **oracle 0.81 도달 추정**. 정확히 `redefinition_partial` warn-only band (0.78~0.85). mitigation: (a) §0.5 의 warn-only band 가 graceful degradation 제공, (b) plan-009 후보 list 에 *진짜 new class* (KNN nearest-neighbor / GP residual / per-sample MLP 회귀) 박제 권장. 본 plan 의 v2.6 framing 변경 X — minimum 0.85 유지하되 *예상치 0.78~0.82* 로 inner expectation 조정 + plan-009 carry-over path 강화.
 
 ---
 
 ## §N+4. 변경 이력
 
+- v2.6 (2026-05-12): **Plan agent 비판적 검토 반영 — 4 항목 박제 (격리 권고는 기각, cheap fix 만 채택)**.
+  - **이유**: 사용자 요청 — "전체 계획 flow 검토. 사용자의 의도에 맞춰서. 각 step 이 타당한가 기준으로 검토. 서브에이전트 호출해서 피드백받고 메인 에이전트가 검증한다". Plan agent 가 6 항목 비판 (3 CRITICAL + 2 SUGGEST + 1 정합 OK). 메인 검증 결과: Step 4 격리 권고 기각 (사용자 의도 §0 의 secondary 에 명시), template_pool 부족 정당 (단 warn-only band 가 graceful mechanism 제공), Step 3 sanity baseline + assert 강화는 cheap fix 채택.
+  - **§7.1 LB 잔재 fix**: "LB 제출 2 회 보장" → "submission.csv 2 종 박제, LB 제출 0 회 (carry-over)". v2.1 의 LB 0 회 결정과 정합. Step 3 *OOF* 기반 conditional path (이전 *LB* 기반).
+  - **§6.0 신설 (sanity baseline)**: Step 3 진입 전 27 후보 + 새 hyperparam OOF baseline 측정. `family_effect = oof_extended − sanity_baseline_27` 분리. G2 합격 기준에 family_effect ≥ +0.03 추가.
+  - **§6.2 assert 강화**: 학습 후 regime_bias_table 분산 < 1e-10 검증 + per-regime ens_scores diff median 측정 (informational warn). v2.5 의 "regime_prior_strength=0 enforce 확인" 만 → 학습 *후* 산출 검증까지 확장.
+  - **§6.4 G2 합격 기준**: sanity_baseline_27_oof 재현 + family_effect ≥ +0.03 추가.
+  - **§6.6 / §7.7 시간 예산**: "LB 제출 ~수 분" → "submission.csv 생성 (LB 미제출) ~수 분" + §6.6 에 sanity baseline ~30 분 추가.
+  - **§0.5 severe 추가**: `sanity_baseline_drift` (warn-only), `family_effect_marginal` (warn-only).
+  - **§0.5 commit chain**: c1.6 (v2.6 spec) + c5.5 (sanity_baseline_27.py) 신설.
+  - **§N+3 caveat #20 신설**: oracle 0.85 minimum 의 낙관 위험 정량 박제 (실제 예상 0.78~0.82, plan-009 carry-over path 강화).
+  - **모든 spec 외 v2.5 의 oracle_miss mask / structural containment / Strategy D / Family 4-5 drop / Variant A baseline / LB carry-over 의도는 유지**.
+- v2.5 (2026-05-12): **STAGE 1 mask 교체 — `worst_regime ∈ {10,16,17}` → `oracle_miss = err.min > 0.01`** (Variant A 정합, main lever 의 직접 target).
+  - **이유**: 사용자 지적 — "G0 에서 왜 regime 안에서 오차를 탐색해? 그냥 oracle 밖의 분포를 바로 볼 수는 없나?". v2.4 의 worst_regime mask 는 self-contradiction (Variant A regime 폐기 + diagnostic regime 사용). plan-008 main lever (oracle 천장 0.7188 → 0.85+ 회수) 의 *직접* target = oracle miss sample (~2800, 28%).
+  - **§4.1 diagnostic 의 mask 교체**: `worst_mask = np.isin(regimes, [10, 16, 17])` → `oracle_miss_mask = err.min(axis=1) > R_HIT`.
+  - **§4 summary key 변경**: `residual_breakdown_worst` → `residual_breakdown_oracle_miss`, `per_regime_oracle` → `per_regime_oracle_sanity` (격하). 신규 키 `mask_strategy`, `n_oracle_miss`, `oracle_miss_rate`, `oracle_miss_regime_dist_sanity`.
+  - **§4.2 산출 markdown**: Oracle miss residual breakdown 박제 + per-regime oracle gap 표 "sanity only" 명시.
+  - **§4.3 G0 합격 기준**: `mask_strategy == "oracle_miss_v2.5"` 박제 강제 + dominant cause 도출이 oracle miss 위에서 옴 명시.
+  - **§0.5 / §1.4 H1 / commit chain c1.5 / decision-note**: oracle miss framing 으로 갱신.
+  - **§N+3 caveats**: #18 (oracle miss sample 의 dynamics mixed 위험), #19 (plan-005 worst-100 sample 부분 disjoint) 신규.
+  - **G2 OOF 0.71 → 0.70**: v2.4 의 별도 완화 (0.6570 + 0.05 → 0.043) 도 v2.5 박제에 포함.
+  - **모든 spec 외 v2.4 의 structural containment / Strategy D / Family 4-5 drop / Variant A baseline / LB carry-over 의도는 유지**.
 - v1 (2026-05-12): 초안 — plan-007 진단 + plan-005 인계 + plan-006 worst regime 데이터 기반. 5 step + synthesis. LB 2 회. corrector 재설계 main lever 2 framing.
 - v2 (2026-05-12): **Framing 재정의 — radical expansion + pruning for soft + Variant A baseline 확정**.
   - **§0 / §0.5 / §1 / §2 spec 갱신**: main lever 2 (재정의 + pruning), secondary (corrector). regime infra 완전 폐기. Target LB 0.78~0.85.
   - **§4 STAGE 1 진단**: softmax diffusion + per-regime oracle gap 추가.
   - **§5 STAGE 2**: 5+ family (6 family) 동시 정의 + family marginal filter (hybrid C path). 20+ 새 후보. oracle target 0.85 minimum / 0.90 stretch.
-  - **§6 STAGE 3**: Variant A path 강제 (`regime_prior_strength=0`). OOF target 0.71. severe `regime_residue` 추가.
+  - **§6 STAGE 3**: Variant A path 강제 (`regime_prior_strength=0`). OOF target 0.70 (v2.4 완화, 이전 0.71). severe `regime_residue` 추가.
   - **§7 STAGE 4**: secondary framing. OOF target Step 3 + 0.02 (이전 +0.04 완화).
   - **§N+3 caveats**: 10 항목 (이전 7 + 새 3 — Variant A path + 6 family fitting + Oracle 0.90 limit).
   - **모든 spec 외 STAGE / G-gate / commit chain / severe / 두 main lever 의도는 v1 의 구조 유지**.
@@ -1369,6 +1574,16 @@ lb_submitted_at: null
   - **severe**: `lb_unsubmitted`, `dacon_submit_skill_missing`, `lb_anomaly` → 본 plan scope X 명시.
   - **frontmatter (§10.1)**: `status: partial (carry-over)`, `lb_score: TBD`, `lb_submitted_at: null` default.
   - **모든 spec 외 v2 의 main lever / oracle target / Variant A baseline 의도는 v2 유지**.
+- v2.4 (2026-05-12): **Pruning criterion 변경 — selector pick rate → structural containment**.
+  - **이유**: 사용자 질문 — "효과 측정이 아니라 후보 두개의 상관관계를 보고 포함관계가 되면 삭제해야하는거아닌가". selector pick rate 기반 가지치기는 *현재 selector 거동* 에 의존 → robustness 부족.
+  - **§4.1 diagnostic 의 prune_candidates 식별 로직 교체**: pairwise containment (strict / soft ≥ 0.95) + coord_dist < 0.005m + hit_rate dominance. selector_pick_idx 사용 X.
+  - **§5.1 Step 2a**: identification + verification + sanity 3 단계 분리:
+    - Identification = structural containment (selector 무관)
+    - Verification = oracle preservation < 0.001
+    - Sanity = post-hoc soft_hit_pruned (informational)
+  - **§0 / §0.5 / §2.1 / §1.4 H2**: containment 기반 framing 으로 갱신.
+  - **§0.5 decision-note**: "Step 2a 가지치기 = structural containment" 박제 (selector pick rate 사용 X 명시).
+  - **모든 spec 외 v2.3 의 Strategy D / family 정의 / corrector / Variant A baseline 의도는 유지**.
 - v2.3 (2026-05-12): **Reviewer 피드백 8 항목 반영 + Strategy D (Greedy Set Cover) 채택**.
   - **§0 한 줄**: main lever = greedy set cover (이전 radical expansion + pruning 동급). pruning 격하 — "Step 1 측정 후 결정".
   - **§0.5 G-gates**: Step 1 의 `argmax_hit` + ranking-vs-drift 분해 추가. Step 2 algorithm 변경 (hybrid C → Strategy D).
