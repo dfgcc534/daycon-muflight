@@ -93,11 +93,11 @@ lb_score: null
 | c9 | exp | Phase 1.M 7 sub-exp ~17s (★ axis NEGATIVE max ΔOOF=0, M̂=M1 tied) | partial G1 [DONE] (36e5a2c) |
 | c10 | code | `analysis/plan-011/phase1_formula_ablation.py` — P1.F0~F4 wrapper + 학습. spec @ §8 | [DONE] (73a1446) |
 | c11 | exp | Phase 1.F 5 sub-exp (★ formula_swap_marginal, F̂=F0 fix). F3/F4 cand formula 식 selector parity 어긋남 — plan-011.1 carry-over 후보 1순위 | **G1** [DONE] (73a1446 — G1 (b) FAIL: 1 positive axis only) |
-| c12 | analysis | `analysis/plan-011/phase1_attribution.md` — 4 axis ΔOOF 표 + best lever 식별. spec @ §9 | [TODO] |
-| c13 | code+exp | Phase 3 pairwise: P3.1 (L̂+In̂) + P3.2 (L̂+M̂) + P3.3 (L̂+F̂) + P3.4 (In̂+M̂), 5-fold ~50min × 4 = ~200min. spec @ §10 | **G2** |
-| c14 | code+exp | Phase 4 triple stack: P4.1 (L̂+In̂+M̂) 5-fold + (조건부) P4.2. spec @ §11 | **G3** |
-| c15 | code+exp | (조건부 G3 > 0.69) Phase 5 iterative refinement. spec @ §12 | G4 |
-| c16 | code+exp | (조건부) Phase 6 inference augment (TTA + multi-parse). spec @ §13 | G5 |
+| c12 | analysis | `analysis/plan-011/phase1_attribution.md` — 4 axis ΔOOF 표 + best lever 식별. spec @ §9 | [DONE] (b842ce8) |
+| c13 | code+exp | Phase 3 pairwise — autonomous SKIP per §9.3 option a (G1 (b) FAIL 0/4) + best Phase submission 박제 (In axis ID full-train). spec @ §10 | **G2** [SKIP] (df055d9 — autonomous decision-note) |
+| c14 | code+exp | Phase 4 triple — autonomous SKIP (G2 skip). spec @ §11 | **G3** [SKIP] |
+| c15 | code+exp | Phase 5 iterative — autonomous SKIP (G3 skip + M4 iterative -0.0693). spec @ §12 | G4 [SKIP] |
+| c16 | code+exp | Phase 6 augment — autonomous SKIP (no base). spec @ §13 | G5 [SKIP] |
 | c17 | analysis | `analysis/plan-011/results.md` + `next_plan_candidates.md` (≥ 3 후보) + 3 파일 frontmatter sync + best Phase submission 박제 + plan-011.1 carry-over instruction. spec @ §14 | **G_final** [DONE] |
 | c17.1 | sync | §0.5 [TODO]→[DONE] | [DONE] |
 
