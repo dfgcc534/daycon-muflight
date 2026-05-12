@@ -42,27 +42,28 @@ lb_score: TBD
 
 ### G-gates
 
-- G0: STAGE 0 인프라 + plan-004/005 산출 검증 (재생성 fallback 포함)  [TODO]
-- G1: STAGE 1 — Variant E OOF hit (raw + corrected 둘 다) + per-regime 박제  [TODO]
-- G2: STAGE 2 — `submission.csv` 생성 + schema 검증  [TODO]
-- G3: STAGE 3 — LB 자율 제출 + `lb_score` 회수  [TODO]
-- G_final: STAGE 4 — synthesis + plan-007 후보 + 3 파일 frontmatter 동시 박제  [TODO]
+- G0: STAGE 0 인프라 + plan-004/005 산출 검증 (재생성 fallback 포함)  [DONE 4cca05d]
+- G1: STAGE 1 — Variant E OOF hit (raw + corrected 둘 다) + per-regime 박제  [DONE 4cca05d]
+- G2: STAGE 2 — `submission.csv` 생성 + schema 검증  [DONE 20612f8]
+- G3: STAGE 3 — LB 자율 제출 + `lb_score` 회수  [DONE 54119b5] (partial — lb_score TBD carry-over)
+- G_final: STAGE 4 — synthesis + plan-007 후보 + 3 파일 frontmatter 동시 박제  [DONE <c6_hash>] (partial — lb_score TBD)
 
 ### Commit chain (next-up)
 
 | # | type | spec section | status |
 |---|---|---|---|
-| c1 | docs | `plans/plan-006-minimal-variant-e-lb.md` 작성 (본 파일) | [TODO] |
-| c2 | code | `analysis/plan-006/variant_e.py` — Variant E score 계산 + submission CSV 생성 + LB 호출 helper. spec @ §4~§7 | [TODO] |
-| G0 | gate | plan-004 `test_selector_scores.npz` (or 재생성 path) + plan-005 corrected_*.npz (or 재생성 path) 모두 로드 가능 | [TODO] |
-| c3 | analysis | STAGE 1 — `analysis/plan-006/variant_e_oof.{json,md}` (raw + corrected 둘 다, overall + per-regime). spec @ §5 | [TODO] |
-| G1 | gate | OOF hit finite + ∈ [0.62, 0.68] + per-regime 18 entry 박제 | [TODO] |
-| c4 | sub-gen | STAGE 2 — `runs/baseline/E001_minimal-variant-e/submission.csv` 생성 + 4-line schema assert. spec @ §6 | [TODO] |
-| G2 | gate | csv 존재, shape == sample_submission.csv, columns 일치, 좌표 finite | [TODO] |
-| c5 | sub-lb | STAGE 3 — `dacon-submit` skill 자율 호출 + `analysis/plan-006/lb_log.md` 박제 + 3 파일 frontmatter `lb_score` 동시 갱신. spec @ §7 | [TODO] |
-| G3 | gate | LB 점수 회수 (float, isSubmitted=True) + lb_log.md 박제 | [TODO] |
-| c6 | synthesis | `analysis/plan-006/results.md` + `next_plan_candidates.md` (≥ 2 후보). spec @ §8 | [TODO] |
-| G_final | gate | results.md + next plan 후보 ≥ 2 + 3 파일 frontmatter 동시 박제 | [TODO] |
+| c1 | docs | `plans/plan-006-minimal-variant-e-lb.md` 작성 (본 파일) | [DONE 42faa2e] |
+| c2 | code | `analysis/plan-006/variant_e.py` — Variant E score 계산 + submission CSV 생성 + LB 호출 helper. spec @ §4~§7 | [DONE a2e4f7c] |
+| G0 | gate | plan-004 `test_selector_scores.npz` (or 재생성 path) + plan-005 corrected_*.npz (or 재생성 path) 모두 로드 가능 | [DONE 4cca05d] |
+| c3 | analysis | STAGE 1 — `analysis/plan-006/variant_e_oof.{json,md}` (raw + corrected 둘 다, overall + per-regime). spec @ §5 | [DONE 4cca05d] |
+| G1 | gate | OOF hit finite + ∈ [0.62, 0.68] + per-regime 18 entry 박제 | [DONE 4cca05d] |
+| c4 | sub-gen | STAGE 2 — `runs/baseline/E001_minimal-variant-e/submission.csv` 생성 + 4-line schema assert. spec @ §6 | [DONE 20612f8] |
+| G2 | gate | csv 존재, shape == sample_submission.csv, columns 일치, 좌표 finite | [DONE 20612f8] |
+| c5 | sub-lb | STAGE 3 — `dacon-submit` skill 자율 호출 + `analysis/plan-006/lb_log.md` 박제 + 3 파일 frontmatter `lb_score` 동시 갱신. spec @ §7 | [DONE 54119b5] (partial) |
+| G3 | gate | LB 점수 회수 (float, isSubmitted=True) + lb_log.md 박제 | [DONE 54119b5] (partial) |
+| c6 | synthesis | `analysis/plan-006/results.md` + `next_plan_candidates.md` (≥ 2 후보). spec @ §8 | [DONE <c6_hash>] |
+| G_final | gate | results.md + next plan 후보 ≥ 2 + 3 파일 frontmatter 동시 박제 | [DONE <c6_hash>] (partial) |
+| c5.1 | carry-over | (대기) lb_score 회수 후 3 파일 frontmatter TBD → `<float>` + status partial → all_complete + lb_log.md row append | [PENDING — user-driven] |
 
 ### Plan-specific severe (WORKFLOW.md §12.3 default 위 추가분)
 
