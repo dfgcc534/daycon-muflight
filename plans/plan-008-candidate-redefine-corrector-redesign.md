@@ -79,10 +79,10 @@ lb_score: null
 | c2 | code | `analysis/plan-008/diagnostic.py` — STAGE 1 진단 (**oracle miss residual** + structural pruning containment + softmax diffusion + per-regime oracle sanity + ranking-vs-drift 분해). spec @ §4 | [DONE ebd4979] |
 | c2.5 | code | `src/pb_0_6822/selector.py` partial 수정 — CandidateSpec schema 확장 (Option A, 3 곳). spec @ §5.2.0 | [DONE 89f3b3f] — smoke 6 pass, dim (27,16) (27→32) ✓ |
 | G0 | gate | diagnostic.{json,md} 박제 + dominant cause(s) + prune list + margin 분포 + per-regime oracle gap | [TODO] |
-| c3 | code | `src/pb_0_6822/candidates_extended.py` — 5 family 후보 정의 모듈 (Family 4 drop, snap drop, fs_3d_binormal). spec @ §5.2 | [TODO] |
-| c4 | code | `analysis/plan-008/prune_and_redefine.py` — Step 2a (prune) + Step 2b (**Greedy set cover Strategy D**). spec @ §5 | [TODO] |
-| c5 | exp | G001-step2: oracle 측정 (pruned baseline + greedy iteration log + final pool). spec @ §5 | [TODO] |
-| G1 | gate | oracle_after_prune ≥ 0.7170 (Step 2a) ∧ oracle_final ≥ 0.85 (Step 2b) ∧ family marginal filter 적용 | [TODO] |
+| c3 | code | `src/pb_0_6822/candidates_extended.py` — 5 family 후보 정의 모듈 (Family 4 drop, snap drop, fs_3d_binormal). spec @ §5.2 | [DONE 9e8b61f] |
+| c4 | code | `analysis/plan-008/prune_and_redefine.py` — Step 2a (prune, v2.7 incremental safety) + Step 2b (**Greedy set cover Strategy D**). spec @ §5 | [DONE b22f86c] |
+| c5 | exp | G001-step2: oracle 측정 (pruned 0.7173 + greedy 6 templates added → oracle_final 0.7543). spec @ §5 | [DONE b22f86c] |
+| G1 | gate | Step 2a 0.7173 ≥ 0.7170 ✓ ∧ Step 2b 0.7543 < 0.85 ✗ (**SEVERE redefinition_severely_insufficient**, plan-009 carry-over per §0.5) | [DONE b22f86c, SEVERE] |
 | **c5.5** | **code** | **`analysis/plan-008/sanity_baseline_27.py` — 27 후보 + 새 hyperparam Variant A 5-fold OOF baseline 측정 (v2.6 신규, family 효과 분리용). spec @ §6.0** | **[TODO]** |
 | c6 | code | `analysis/plan-008/selector_retrain.py` — Variant A path 강제 wrapper (regime_prior_strength=0). spec @ §6 | [TODO] |
 | c7 | exp | G001-step3: 5-fold selector + 기존 corrector full-fit + submission 생성 (LB 미제출). spec @ §6 | [TODO] |
