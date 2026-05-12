@@ -1,0 +1,44 @@
+{
+  "exp_id": "G002-corrector-band",
+  "status": "DEFERRED",
+  "deferred_reason": "\u00a77.3 monkey-patch \uc804\ub7b5 incompatible with current boundary.py \u2014 corrector loss \uac00 train_net() \ub0b4\ubd80 inline \uc815\uc758 (L231-233), module-level callable LOSS_ATTR \ubd80\uc7ac.",
+  "loss_attr_search": {
+    "candidates_searched": [
+      "compute_corrector_loss",
+      "corrector_loss",
+      "loss_fn"
+    ],
+    "found": null,
+    "boundary_callables_matching_loss_or_corr": [
+      "TinyCorrectionNet",
+      "predict_corrected_candidates"
+    ]
+  },
+  "alternatives_considered": [
+    {
+      "name": "alt1_standalone_reimpl",
+      "description": "boundary.py \ubbf8\uc218\uc815, train_net + corrector \ubaa8\ub4c8 \uc7ac\uad6c\ud604 (~200 LOC)",
+      "rejected_reason": "G1+G2 cascade severe \uc704 Step 4 booster ROI marginal \u2014 code budget vs \ud68c\uc218 \ud6a8\uacfc (+0.02) trade-off \ubd80\uc801\ud569."
+    },
+    {
+      "name": "alt2_modify_boundary",
+      "description": "boundary.py \uc5d0 compute_corrector_loss \ud568\uc218 \ucd94\uac00",
+      "rejected_reason": "\u00a70.5 paths blacklist (boundary.py lock-in)"
+    },
+    {
+      "name": "alt3_defer_to_plan_009",
+      "description": "\ubcf8 plan \u00a77 scope \uc81c\uc678, plan-009 task list \ubc15\uc81c",
+      "accepted": true
+    }
+  ],
+  "plan_009_task_added": {
+    "title": "boundary.py \uc758 compute_corrector_loss attribute \ucd94\uac00 + band-specific loss monkey-patch \uac00\ub2a5 \uad6c\uc870 \ub3c4\uc785",
+    "scope": [
+      "boundary.train_net() \uc758 reg = ((pred-yb)**2).sum(dim=1) \uc2dd\uc744 module-level callable compute_corrector_loss(pred, yb, target) \ub85c \ucd94\ucd9c",
+      "\uae30\ubcf8 \ub3d9\uc791 (L2 loss) \ubcf4\uc874 + monkey-patch \uac00\ub2a5 hook \ub178\ucd9c",
+      "plan-008 \u00a77.2 \uc758 band_specific_corrector_loss spec \uadf8\ub300\ub85c \uc801\uc6a9",
+      "G3 \ud569\uaca9 \uae30\uc900: per-band [0,0.5)\u22650.99 / [0.5,1)\u22650.95 / [1,1.5)\u22650.30 + \uc804\uccb4 OOF \u2265 Step3 + 0.02"
+    ]
+  },
+  "g3_status": "DEFERRED (plan-009 carry-over)"
+}
