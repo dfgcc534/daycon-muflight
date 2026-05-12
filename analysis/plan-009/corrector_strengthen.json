@@ -1,0 +1,200 @@
+{
+  "exp_id": "H002_corrector-strengthen",
+  "selector_source": "H001_ranking-loss/oof_selector_scores.npz",
+  "g1_oof_at_g2_entry": 0.6482,
+  "n_folds_measured": 1,
+  "best_sub_exp": "b",
+  "best_oof_soft_hit": 0.6653465346534654,
+  "oof_baseline": 0.6643564356435644,
+  "sub_exp_results": {
+    "0": {
+      "sub_exp": "0",
+      "cap": 0.006,
+      "band": false,
+      "arch_depth_plus_1": false,
+      "fold": 0,
+      "n_val": 2020,
+      "oof_soft_hit": 0.6643564356435644,
+      "oof_argmax_hit": 0.6618811881188119,
+      "hit_after": {
+        "[0,0.5cm)": {
+          "n_in_band": 1013,
+          "hit_rate": 0.9565646594274433
+        },
+        "[0.5,1cm)": {
+          "n_in_band": 533,
+          "hit_rate": 0.6791744840525328
+        },
+        "[1,1.5cm)": {
+          "n_in_band": 220,
+          "hit_rate": 0.02727272727272727
+        },
+        "[1.5,2cm)": {
+          "n_in_band": 69,
+          "hit_rate": 0.0
+        },
+        "[2cm,inf)": {
+          "n_in_band": 185,
+          "hit_rate": 0.0
+        }
+      },
+      "corrector_oracle_gain": 0.008415841584158423,
+      "corrected_oracle_hit": 0.7737623762376238,
+      "raw_oracle_hit": 0.7653465346534654,
+      "ckpt_path": "runs/baseline/H002_corrector-strengthen/fold_0/sub_0/boundary_sub_0.pt"
+    },
+    "a": {
+      "sub_exp": "a",
+      "cap": 0.012,
+      "band": false,
+      "arch_depth_plus_1": false,
+      "fold": 0,
+      "n_val": 2020,
+      "oof_soft_hit": 0.6589108910891089,
+      "oof_argmax_hit": 0.657920792079208,
+      "hit_after": {
+        "[0,0.5cm)": {
+          "n_in_band": 1013,
+          "hit_rate": 0.9545903257650543
+        },
+        "[0.5,1cm)": {
+          "n_in_band": 533,
+          "hit_rate": 0.6791744840525328
+        },
+        "[1,1.5cm)": {
+          "n_in_band": 220,
+          "hit_rate": 0.0
+        },
+        "[1.5,2cm)": {
+          "n_in_band": 69,
+          "hit_rate": 0.0
+        },
+        "[2cm,inf)": {
+          "n_in_band": 185,
+          "hit_rate": 0.0
+        }
+      },
+      "corrector_oracle_gain": 0.0,
+      "corrected_oracle_hit": 0.7653465346534654,
+      "raw_oracle_hit": 0.7653465346534654,
+      "ckpt_path": "runs/baseline/H002_corrector-strengthen/fold_0/sub_a/boundary_sub_a.pt"
+    },
+    "b": {
+      "sub_exp": "b",
+      "cap": 0.006,
+      "band": true,
+      "arch_depth_plus_1": false,
+      "fold": 0,
+      "n_val": 2020,
+      "oof_soft_hit": 0.6653465346534654,
+      "oof_argmax_hit": 0.6638613861386139,
+      "hit_after": {
+        "[0,0.5cm)": {
+          "n_in_band": 1013,
+          "hit_rate": 0.9526159921026653
+        },
+        "[0.5,1cm)": {
+          "n_in_band": 533,
+          "hit_rate": 0.6885553470919324
+        },
+        "[1,1.5cm)": {
+          "n_in_band": 220,
+          "hit_rate": 0.04090909090909091
+        },
+        "[1.5,2cm)": {
+          "n_in_band": 69,
+          "hit_rate": 0.0
+        },
+        "[2cm,inf)": {
+          "n_in_band": 185,
+          "hit_rate": 0.0
+        }
+      },
+      "corrector_oracle_gain": 0.010396039603960405,
+      "corrected_oracle_hit": 0.7757425742574258,
+      "raw_oracle_hit": 0.7653465346534654,
+      "ckpt_path": "runs/baseline/H002_corrector-strengthen/fold_0/sub_b/boundary_sub_b.pt"
+    },
+    "c": {
+      "sub_exp": "c",
+      "cap": 0.006,
+      "band": false,
+      "arch_depth_plus_1": true,
+      "fold": 0,
+      "n_val": 2020,
+      "oof_soft_hit": 0.6613861386138614,
+      "oof_argmax_hit": 0.6589108910891089,
+      "hit_after": {
+        "[0,0.5cm)": {
+          "n_in_band": 1013,
+          "hit_rate": 0.9496544916090819
+        },
+        "[0.5,1cm)": {
+          "n_in_band": 533,
+          "hit_rate": 0.6716697936210131
+        },
+        "[1,1.5cm)": {
+          "n_in_band": 220,
+          "hit_rate": 0.05
+        },
+        "[1.5,2cm)": {
+          "n_in_band": 69,
+          "hit_rate": 0.0
+        },
+        "[2cm,inf)": {
+          "n_in_band": 185,
+          "hit_rate": 0.0
+        }
+      },
+      "corrector_oracle_gain": 0.007425742574257432,
+      "corrected_oracle_hit": 0.7727722772277228,
+      "raw_oracle_hit": 0.7653465346534654,
+      "ckpt_path": "runs/baseline/H002_corrector-strengthen/fold_0/sub_c/boundary_sub_c.pt"
+    },
+    "d": {
+      "sub_exp": "d",
+      "cap": 0.012,
+      "band": true,
+      "arch_depth_plus_1": true,
+      "fold": 0,
+      "n_val": 2020,
+      "oof_soft_hit": 0.6623762376237624,
+      "oof_argmax_hit": 0.657920792079208,
+      "hit_after": {
+        "[0,0.5cm)": {
+          "n_in_band": 1013,
+          "hit_rate": 0.9545903257650543
+        },
+        "[0.5,1cm)": {
+          "n_in_band": 533,
+          "hit_rate": 0.6585365853658537
+        },
+        "[1,1.5cm)": {
+          "n_in_band": 220,
+          "hit_rate": 0.05
+        },
+        "[1.5,2cm)": {
+          "n_in_band": 69,
+          "hit_rate": 0.0
+        },
+        "[2cm,inf)": {
+          "n_in_band": 185,
+          "hit_rate": 0.0
+        }
+      },
+      "corrector_oracle_gain": -0.0034653465346534684,
+      "corrected_oracle_hit": 0.7618811881188119,
+      "raw_oracle_hit": 0.7653465346534654,
+      "ckpt_path": "runs/baseline/H002_corrector-strengthen/fold_0/sub_d/boundary_sub_d.pt"
+    }
+  },
+  "additivity_class": "super-additive",
+  "g2_pass": {
+    "oof_soft_hit_vs_g1_plus_003": false,
+    "hit_after_1_1_5cm_ge_030": false,
+    "hit_after_0_5_1cm_ge_095": false,
+    "corrector_oracle_gain_ge_0": true
+  },
+  "variant_a_safe": true,
+  "decision_note": "spec-default — 1-fold (fold=0) approx 채택 (5-fold concat 25 fits ~75min 시간 한계 회피, N_val=2020 binomial std error ≤0.005 로 sub-exp 비교 충분). selector source = H001 (G1 SEVERE FAIL) 의 score_bank — attribution informativeness 보존. plan-008 c7 baseline (0.6503) 보다 약간 낮은 G1 (0.6482) 위 측정 — best Phase 선정 시 §10.1 caveat #16 fallback 적용."
+}

@@ -1,0 +1,112 @@
+inline selector loaded: 27 candidates
+inline residual boundary MLP loaded
+[plan-009 c7 corrector_strengthen] start (1-fold approx, 5 sub-exp)
+[device] cuda
+
+=== sub-exp 0 | cap=0.006 | band=off | arch=default ===
+GAUGE stage=pretrain epoch=1 loss=0.199590 soft_hit=0.6653 gate_hit=0.6634 best_gate=0.6634 wait=0/4
+GAUGE stage=pretrain epoch=2 loss=0.175767 soft_hit=0.6649 gate_hit=0.6649 best_gate=0.6649 wait=0/4
+GAUGE stage=pretrain epoch=3 loss=0.163538 soft_hit=0.6658 gate_hit=0.6649 best_gate=0.6649 wait=1/4
+GAUGE stage=pretrain epoch=4 loss=0.150867 soft_hit=0.6649 gate_hit=0.6649 best_gate=0.6649 wait=2/4
+GAUGE stage=pretrain epoch=5 loss=0.148127 soft_hit=0.6649 gate_hit=0.6649 best_gate=0.6649 wait=3/4
+GAUGE stage=pretrain epoch=6 loss=0.145189 soft_hit=0.6683 gate_hit=0.6634 best_gate=0.6649 wait=4/4
+GAUGE stage=finetune epoch=1 loss=0.113526 soft_hit=0.6639 gate_hit=0.6609 best_gate=0.6649 wait=1/4
+GAUGE stage=finetune epoch=2 loss=0.110381 soft_hit=0.6629 gate_hit=0.6624 best_gate=0.6649 wait=2/4
+GAUGE stage=finetune epoch=3 loss=0.109149 soft_hit=0.6619 gate_hit=0.6629 best_gate=0.6649 wait=3/4
+GAUGE stage=finetune epoch=4 loss=0.107861 soft_hit=0.6644 gate_hit=0.6658 best_gate=0.6658 wait=0/4
+GAUGE stage=finetune epoch=5 loss=0.106847 soft_hit=0.6639 gate_hit=0.6653 best_gate=0.6658 wait=1/4
+GAUGE stage=finetune epoch=6 loss=0.106124 soft_hit=0.6639 gate_hit=0.6634 best_gate=0.6658 wait=2/4
+GAUGE stage=finetune epoch=7 loss=0.105572 soft_hit=0.6639 gate_hit=0.6644 best_gate=0.6658 wait=3/4
+GAUGE stage=finetune epoch=8 loss=0.104709 soft_hit=0.6634 gate_hit=0.6624 best_gate=0.6658 wait=4/4
+  [save] runs/baseline/H002_corrector-strengthen/fold_0/sub_0/boundary_sub_0.pt
+  [restore] boundary.compute_corrector_loss = original
+[sub-exp 0] oof_soft_hit=0.6644  corrector_oracle_gain=+0.0084
+
+=== sub-exp a | cap=0.012 | band=off | arch=default ===
+GAUGE stage=pretrain epoch=1 loss=0.419533 soft_hit=0.6579 gate_hit=0.6559 best_gate=0.6629 wait=1/4
+GAUGE stage=pretrain epoch=2 loss=0.360540 soft_hit=0.6609 gate_hit=0.6559 best_gate=0.6629 wait=2/4
+GAUGE stage=pretrain epoch=3 loss=0.324399 soft_hit=0.6599 gate_hit=0.6609 best_gate=0.6629 wait=3/4
+GAUGE stage=pretrain epoch=4 loss=0.283331 soft_hit=0.6594 gate_hit=0.6579 best_gate=0.6629 wait=4/4
+GAUGE stage=pretrain epoch=5 loss=0.268306 soft_hit=0.6629 gate_hit=0.6574 best_gate=0.6629 wait=5/4
+GAUGE stage=finetune epoch=1 loss=0.265683 soft_hit=0.6614 gate_hit=0.6604 best_gate=0.6629 wait=1/4
+GAUGE stage=finetune epoch=2 loss=0.254364 soft_hit=0.6525 gate_hit=0.6510 best_gate=0.6629 wait=2/4
+GAUGE stage=finetune epoch=3 loss=0.244014 soft_hit=0.6668 gate_hit=0.6624 best_gate=0.6629 wait=3/4
+GAUGE stage=finetune epoch=4 loss=0.238209 soft_hit=0.6639 gate_hit=0.6594 best_gate=0.6629 wait=4/4
+GAUGE stage=finetune epoch=5 loss=0.234973 soft_hit=0.6634 gate_hit=0.6609 best_gate=0.6629 wait=5/4
+  [save] runs/baseline/H002_corrector-strengthen/fold_0/sub_a/boundary_sub_a.pt
+  [restore] boundary.compute_corrector_loss = original
+[sub-exp a] oof_soft_hit=0.6589  corrector_oracle_gain=+0.0000
+
+=== sub-exp b | cap=0.006 | band=on | arch=default ===
+  [override] boundary.compute_corrector_loss = band_specific
+GAUGE stage=pretrain epoch=1 loss=0.131143 soft_hit=0.6639 gate_hit=0.6624 best_gate=0.6629 wait=1/4
+GAUGE stage=pretrain epoch=2 loss=0.118334 soft_hit=0.6649 gate_hit=0.6609 best_gate=0.6629 wait=2/4
+GAUGE stage=pretrain epoch=3 loss=0.111499 soft_hit=0.6644 gate_hit=0.6644 best_gate=0.6644 wait=0/4
+GAUGE stage=pretrain epoch=4 loss=0.104609 soft_hit=0.6663 gate_hit=0.6649 best_gate=0.6649 wait=0/4
+GAUGE stage=pretrain epoch=5 loss=0.103078 soft_hit=0.6658 gate_hit=0.6644 best_gate=0.6649 wait=1/4
+GAUGE stage=pretrain epoch=6 loss=0.101704 soft_hit=0.6678 gate_hit=0.6658 best_gate=0.6658 wait=0/4
+GAUGE stage=pretrain epoch=7 loss=0.100147 soft_hit=0.6698 gate_hit=0.6658 best_gate=0.6658 wait=1/4
+GAUGE stage=pretrain epoch=8 loss=0.099570 soft_hit=0.6698 gate_hit=0.6693 best_gate=0.6693 wait=0/4
+GAUGE stage=pretrain epoch=9 loss=0.098682 soft_hit=0.6733 gate_hit=0.6668 best_gate=0.6693 wait=1/4
+GAUGE stage=pretrain epoch=10 loss=0.098203 soft_hit=0.6718 gate_hit=0.6683 best_gate=0.6693 wait=2/4
+GAUGE stage=pretrain epoch=11 loss=0.097322 soft_hit=0.6693 gate_hit=0.6673 best_gate=0.6693 wait=3/4
+GAUGE stage=pretrain epoch=12 loss=0.096109 soft_hit=0.6688 gate_hit=0.6653 best_gate=0.6693 wait=4/4
+GAUGE stage=finetune epoch=1 loss=0.083757 soft_hit=0.6683 gate_hit=0.6649 best_gate=0.6693 wait=1/4
+GAUGE stage=finetune epoch=2 loss=0.081245 soft_hit=0.6688 gate_hit=0.6678 best_gate=0.6693 wait=2/4
+GAUGE stage=finetune epoch=3 loss=0.079983 soft_hit=0.6688 gate_hit=0.6668 best_gate=0.6693 wait=3/4
+GAUGE stage=finetune epoch=4 loss=0.079365 soft_hit=0.6673 gate_hit=0.6673 best_gate=0.6693 wait=4/4
+GAUGE stage=finetune epoch=5 loss=0.078661 soft_hit=0.6683 gate_hit=0.6678 best_gate=0.6693 wait=5/4
+  [save] runs/baseline/H002_corrector-strengthen/fold_0/sub_b/boundary_sub_b.pt
+  [restore] boundary.compute_corrector_loss = original
+[sub-exp b] oof_soft_hit=0.6653  corrector_oracle_gain=+0.0104
+
+=== sub-exp c | cap=0.006 | band=off | arch=depth+1 ===
+  [arch] depth+1 (3 ResidualMLPBlock)
+GAUGE stage=pretrain epoch=1 loss=0.199420 soft_hit=0.6609 gate_hit=0.6579 best_gate=0.6629 wait=1/4
+GAUGE stage=pretrain epoch=2 loss=0.176362 soft_hit=0.6649 gate_hit=0.6604 best_gate=0.6629 wait=2/4
+GAUGE stage=pretrain epoch=3 loss=0.162871 soft_hit=0.6653 gate_hit=0.6653 best_gate=0.6653 wait=0/4
+GAUGE stage=pretrain epoch=4 loss=0.152502 soft_hit=0.6668 gate_hit=0.6614 best_gate=0.6653 wait=1/4
+GAUGE stage=pretrain epoch=5 loss=0.150542 soft_hit=0.6653 gate_hit=0.6644 best_gate=0.6653 wait=2/4
+GAUGE stage=pretrain epoch=6 loss=0.145690 soft_hit=0.6658 gate_hit=0.6634 best_gate=0.6653 wait=3/4
+GAUGE stage=pretrain epoch=7 loss=0.144005 soft_hit=0.6668 gate_hit=0.6668 best_gate=0.6668 wait=0/4
+GAUGE stage=pretrain epoch=8 loss=0.149395 soft_hit=0.6693 gate_hit=0.6649 best_gate=0.6668 wait=1/4
+GAUGE stage=pretrain epoch=9 loss=0.143591 soft_hit=0.6688 gate_hit=0.6653 best_gate=0.6668 wait=2/4
+GAUGE stage=pretrain epoch=10 loss=0.141916 soft_hit=0.6733 gate_hit=0.6624 best_gate=0.6668 wait=3/4
+GAUGE stage=pretrain epoch=11 loss=0.140425 soft_hit=0.6688 gate_hit=0.6639 best_gate=0.6668 wait=4/4
+GAUGE stage=finetune epoch=1 loss=0.113161 soft_hit=0.6653 gate_hit=0.6629 best_gate=0.6668 wait=1/4
+GAUGE stage=finetune epoch=2 loss=0.108512 soft_hit=0.6673 gate_hit=0.6629 best_gate=0.6668 wait=2/4
+GAUGE stage=finetune epoch=3 loss=0.106806 soft_hit=0.6693 gate_hit=0.6634 best_gate=0.6668 wait=3/4
+GAUGE stage=finetune epoch=4 loss=0.105246 soft_hit=0.6663 gate_hit=0.6634 best_gate=0.6668 wait=4/4
+GAUGE stage=finetune epoch=5 loss=0.104096 soft_hit=0.6683 gate_hit=0.6658 best_gate=0.6668 wait=5/4
+  [save] runs/baseline/H002_corrector-strengthen/fold_0/sub_c/boundary_sub_c.pt
+  [restore] boundary.compute_corrector_loss = original
+[sub-exp c] oof_soft_hit=0.6614  corrector_oracle_gain=+0.0074
+
+=== sub-exp d | cap=0.012 | band=on | arch=depth+1 ===
+  [override] boundary.compute_corrector_loss = band_specific
+  [arch] depth+1 (3 ResidualMLPBlock)
+GAUGE stage=pretrain epoch=1 loss=0.241573 soft_hit=0.6515 gate_hit=0.6515 best_gate=0.6629 wait=1/4
+GAUGE stage=pretrain epoch=2 loss=0.212477 soft_hit=0.6545 gate_hit=0.6520 best_gate=0.6629 wait=2/4
+GAUGE stage=pretrain epoch=3 loss=0.192981 soft_hit=0.6594 gate_hit=0.6589 best_gate=0.6629 wait=3/4
+GAUGE stage=pretrain epoch=4 loss=0.175640 soft_hit=0.6589 gate_hit=0.6599 best_gate=0.6629 wait=4/4
+GAUGE stage=pretrain epoch=5 loss=0.164133 soft_hit=0.6614 gate_hit=0.6564 best_gate=0.6629 wait=5/4
+GAUGE stage=finetune epoch=1 loss=0.166631 soft_hit=0.6550 gate_hit=0.6554 best_gate=0.6629 wait=1/4
+GAUGE stage=finetune epoch=2 loss=0.159433 soft_hit=0.6495 gate_hit=0.6495 best_gate=0.6629 wait=2/4
+GAUGE stage=finetune epoch=3 loss=0.153413 soft_hit=0.6639 gate_hit=0.6629 best_gate=0.6629 wait=3/4
+GAUGE stage=finetune epoch=4 loss=0.149905 soft_hit=0.6658 gate_hit=0.6639 best_gate=0.6639 wait=0/4
+GAUGE stage=finetune epoch=5 loss=0.148172 soft_hit=0.6658 gate_hit=0.6653 best_gate=0.6653 wait=0/4
+GAUGE stage=finetune epoch=6 loss=0.146721 soft_hit=0.6668 gate_hit=0.6634 best_gate=0.6653 wait=1/4
+GAUGE stage=finetune epoch=7 loss=0.145306 soft_hit=0.6653 gate_hit=0.6614 best_gate=0.6653 wait=2/4
+GAUGE stage=finetune epoch=8 loss=0.144101 soft_hit=0.6644 gate_hit=0.6639 best_gate=0.6653 wait=3/4
+  [save] runs/baseline/H002_corrector-strengthen/fold_0/sub_d/boundary_sub_d.pt
+  [restore] boundary.compute_corrector_loss = original
+[sub-exp d] oof_soft_hit=0.6624  corrector_oracle_gain=-0.0035
+
+[best] sub-exp b oof_soft_hit=0.6653
+[OK] analysis/plan-009/corrector_strengthen.json
+[OK] analysis/plan-009/corrector_attribution.json
+
+=== G2 합격기준 ===
+  best sub-exp b OOF = 0.6653  vs G1+0.03 = 0.6782: pass=False
+  additivity = super-additive (+0.0054 gain)
+  attribution: a_cap=-0.0054 b_band=+0.0010 c_arch=-0.0030 d_all=-0.0020

@@ -1,0 +1,10 @@
+{
+  "delta_oof_a_cap": -0.00544554455445545,
+  "delta_oof_b_band": 0.000990099009900991,
+  "delta_oof_c_arch": -0.002970297029702973,
+  "delta_oof_d_all": -0.001980198019801982,
+  "expected_sum_a_b_c": -0.007425742574257432,
+  "compound_gain_d_vs_sum": 0.00544554455445545,
+  "additivity_class": "super-additive",
+  "plan_010_recommendation": "compound"
+}
