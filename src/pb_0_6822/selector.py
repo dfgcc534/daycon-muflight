@@ -82,6 +82,18 @@ class CandidateSpec:
     d2: float = 0.0
     jerk: float = 0.0
     time_scale: float = 1.0
+    # plan-008 v2.2 schema extension (Option A) — new family fields, all default=0/1
+    # → existing 27 base candidates remain backward-compatible.
+    # family_id enum: 0=base, 1=trig, 2=arc, 3=frenet_serret_3d, 4=(dropped per_regime),
+    #                 5=higher_order, 6=cross_term.
+    omega_scale: float = 0.0       # trig family — 각속도 배율
+    arc_curvature: float = 0.0     # arc family — 호 곡률 배율
+    z_scale: float = 1.0           # plan-008 v2.3: FS3D binormal frame magnitude (NOT world z).
+                                   # Trig family 도 동일 field 사용 (직선/회전 모두 z 진폭 배율 의미).
+    family_id: int = 0
+
+
+N_FAMILY = 7   # base + 6 new families (Family 4 slot 보존, 항상 0)
 
 
 CANDIDATES = [
@@ -217,10 +229,23 @@ def make_candidates(x: np.ndarray, end_idx: int, horizon: int = 2) -> np.ndarray
     return np.stack(preds, axis=1).astype(np.float32)
 
 
-def candidate_spec_features(count: int) -> np.ndarray:
-    rows = [[spec.d1, spec.par, spec.perp, spec.d2, spec.jerk, spec.time_scale] for spec in CANDIDATES]
-    spec = np.asarray(rows, dtype=np.float32)[None, :, :]
-    return np.repeat(spec, count, axis=0)
+def candidate_spec_features(count: int, candidates_list: list[CandidateSpec] | None = None) -> np.ndarray:
+    """plan-008 v2.2 Option A: 9 scalar + 7 family one-hot = 16-dim per candidate.
+
+    `candidates_list` 가 None 이면 module-level CANDIDATES 사용 (기존 호환).
+    extended pool (plan-008 §6.1) 에서는 monkey-patch 한 CANDIDATES 또는 직접 전달.
+    """
+    cand_list = candidates_list if candidates_list is not None else CANDIDATES
+    rows = []
+    for spec in cand_list:
+        scalar_feats = [
+            spec.d1, spec.par, spec.perp, spec.d2, spec.jerk, spec.time_scale,
+            spec.omega_scale, spec.arc_curvature, spec.z_scale,
+        ]
+        family_onehot = [1.0 if i == spec.family_id else 0.0 for i in range(N_FAMILY)]
+        rows.append(scalar_feats + family_onehot)
+    spec_arr = np.asarray(rows, dtype=np.float32)[None, :, :]
+    return np.repeat(spec_arr, count, axis=0)
 
 
 CANDIDATE_SPEC_MATRIX = candidate_spec_features(1)[0]
@@ -419,7 +444,20 @@ def make_seq_features(x: np.ndarray, end_idx: int, direction: float = 1.0) -> np
     return np.stack(feats, axis=1).astype(np.float32)
 
 
-def make_candidate_features(x: np.ndarray, end_idx: int, candidates: np.ndarray, horizon: int = 2, direction: float = 1.0) -> np.ndarray:
+def make_candidate_features(
+    x: np.ndarray,
+    end_idx: int,
+    candidates: np.ndarray,
+    horizon: int = 2,
+    direction: float = 1.0,
+    candidates_list: list[CandidateSpec] | None = None,
+) -> np.ndarray:
+    """plan-008 v2.2 Option A: spec scalar 9 + family one-hot 7 + interactions 4 = 16+9+3+4 = 32 dim.
+
+    Interactions (4 dims):
+      - existing 2: spec.par × ctx.acc_par_scalar/speed, spec.perp × ctx.perp_norm/speed
+      - new 2:      spec.omega_scale × ctx.turn_cos,     spec.arc_curvature × ctx.curvature
+    """
     p0, d1, acc = motion_terms(x, end_idx)
     tangent = d1 / (np.linalg.norm(d1, axis=1, keepdims=True) + EPS)
     delta = candidates - p0[:, None, :]
@@ -428,7 +466,7 @@ def make_candidate_features(x: np.ndarray, end_idx: int, candidates: np.ndarray,
     dist = np.linalg.norm(delta, axis=2, keepdims=True)
     speed = np.linalg.norm(d1, axis=1, keepdims=True)[:, None, :]
     scale = np.maximum(speed * float(horizon), EPS)
-    spec = candidate_spec_features(len(x))
+    spec = candidate_spec_features(len(x), candidates_list=candidates_list)
     ctx_base = np.concatenate(
         [
             turn_model_features_from_context(turn_context_features(x, end_idx)),
@@ -437,7 +475,21 @@ def make_candidate_features(x: np.ndarray, end_idx: int, candidates: np.ndarray,
         axis=1,
     )
     ctx = ctx_base[:, None, :].repeat(candidates.shape[1], axis=1)
-    interactions = spec[:, :, 1:3] * ctx[:, :, [3, 4]]
+    # ctx 9-dim ordering (per turn_model_features_from_context + direction):
+    #   0: speed,           1: prev_speed/speed,  2: acc_norm/speed,
+    #   3: acc_par_scalar/speed, 4: perp_norm/speed,  5: jerk_norm/speed,
+    #   6: turn_cos,        7: curvature,         8: direction
+    # spec 9 scalar ordering:
+    #   0: d1, 1: par, 2: perp, 3: d2, 4: jerk, 5: time_scale,
+    #   6: omega_scale, 7: arc_curvature, 8: z_scale
+    interactions = np.concatenate(
+        [
+            spec[:, :, 1:3] * ctx[:, :, [3, 4]],     # existing: par × acc_par, perp × perp_norm
+            spec[:, :, 6:7] * ctx[:, :, 6:7],         # NEW: omega_scale × turn_cos
+            spec[:, :, 7:8] * ctx[:, :, 7:8],         # NEW: arc_curvature × curvature
+        ],
+        axis=2,
+    )
     return np.concatenate(
         [
             par / scale,
