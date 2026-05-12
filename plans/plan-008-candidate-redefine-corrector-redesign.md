@@ -22,7 +22,7 @@ lb_score: null
 
 > **plan-008 의 main lever + 2 secondary lever (v2.3 reviewer 피드백 반영):**
 >
-> 1. **★ Candidate pool greedy set-cover expansion (Strategy D)** — oracle **0.7188 → 0.85+ (minimum), stretch 0.90**. 후보 template_pool 에서 *oracle 기여도 가장 큰* 것을 greedy 하게 add (set cover 인식). 모든 family pre-defined + 동시 추가 X — *data-driven 순차 선택*.
+> 1. **★ Candidate pool greedy set-cover expansion (Strategy D)** — oracle **0.7188 → 0.85+ (aspirational target, stretch 0.90)**. *예상 spec-simulate 결과 0.78~0.82* (§N+3 caveat #20, diminishing-returns 가정); 본 plan 의 *intended outcome band* 는 `0.78 ≤ oracle < 0.85` warn-only 범위, 0.85 도달은 set-cover marginal 회수율이 caveat 추정보다 높을 때 보너스. severe (`redefinition_severely_insufficient`) 트리거는 `oracle < 0.78`. 후보 template_pool 에서 *oracle 기여도 가장 큰* 것을 greedy 하게 add (set cover 인식). 모든 family pre-defined + 동시 추가 X — *data-driven 순차 선택*.
 >
 > 2. **(secondary) Pruning — structural redundancy 기반 (v2.4 reviewer 피드백 반영)** — 27 후보의 *pairwise containment / coordinate similarity* 분석으로 redundant 후보 식별 (selector pick rate *무관*). 두 후보 i, j 가 (a) `containment_strict` (hit_i ⊆ hit_j) 또는 (b) `containment_soft ≥ 0.95 + coord_dist < 0.005` + `hit_rate[j] > hit_rate[i]` 만족 시 i 제거. **Step 1 측정 후 main/secondary 위치 결정** (drift 와 ranking gap 분해 결과 의존). 효과 측정 (Δsoft_hit) 은 post-pruning sanity check 만.
 >
@@ -215,6 +215,8 @@ lb_score: null
 | **H3 (v2.3 갱신)**: Greedy set cover 로 template_pool 에서 순차 add → oracle ≥ 0.85 (stretch 0.90) | Step 2b greedy iteration | extended pool + iteration log |
 | H4: Variant A path 로 새 후보 풀 selector 학습 → OOF ≥ 0.70 | Step 3 5-fold OOF | OOF |
 | H5: corrector band-specific 재설계로 per-band hit 회복 + 전체 OOF +0.02 | Step 4 OOF + per-band | OOF |
+
+**H5 정량 derivation (v2.6)**: plan-005 `corrector_decomp.md` 측정값 — corrector 가 `[0.5, 1cm]` band 의 hit 을 100% → 92.17% (−7.83pp) 깎고 `[1, 1.5cm]` band 의 hit 을 0% → 9.77% (+9.77pp) 회수. Population-weighted 전체 효과 ≈ `−0.078 × p_band[0.5,1] + 0.098 × p_band[1,1.5]` ≈ −0.0077 (= `corrector_oracle_gain` 일치). Band-specific re-design 의 목표 = 손실 측 (band [0.5,1]) `−7.83pp → ≥ −2pp` (회수 5.83pp × p_band[0.5,1] ≈ 0.20) → 전체 +0.012. 동시에 회수 측 (band [1,1.5]) `+9.77pp → +18~20pp` (cap 0.006→0.008 fallback) → 전체 +0.016. 합 ≈ **+0.025~0.030**, 안전 buffer 적용 → minimum +0.02 박제.
 | H6: (선택) test-internal hyperparam re-tune | Step 5 grid search | gap 회수율 |
 
 → H1~H5 *데이터로 검증*. **main lever = H3 (greedy set cover)**, secondary = H2 (pruning, H1.5 결과에 따라) + H5 (corrector).
@@ -249,7 +251,7 @@ lb_score: null
 | Selector arch 교체 (TCN/Transformer/MLP coeff) | plan-007 의 framework 대체 시도가 0.6482 ceiling 확정. 본 plan 은 Variant A path 유지 (arch 동일). |
 | `src/pb_0_6822/selector.py` 의 **arch / 학습 로직** 수정 | lock-in. **단 CandidateSpec schema 확장 + cand_feat 함수의 spec/interactions 부분 확장은 허용** (Option A, v2.2 결정). Attn-GRU model class / `train_one` / `run_fold` / `SELECTOR_MAIN` 등 학습 로직은 미수정. |
 | `src/pb_0_6822/boundary.py` 수정 | lock-in, import only. corrector loss 재학습은 wrapper 에서 monkey-patch. |
-| 다중 LB 제출 (3 회 이상) | 본 plan LB = 2 회. Step 5 LB 후속. |
+| ~~다중 LB 제출 (3 회 이상)~~ | **v2.1 잔재 삭제** — 본 plan LB = 0 회 (할당량 소진, carry-over). 위 row 와 동일 의미. |
 | End-to-end 학습 | plan-004 의 2-stage sequential 유지. |
 | 27 후보의 *family 정의 변경* | 가지치기는 *제거* 만, 기존 후보 수정 X. |
 
@@ -276,7 +278,7 @@ lb_score: null
     - 최종 `oracle_final ≥ 0.85` (minimum)
     - `0.78 ≤ oracle_final < 0.85` → warn-only (plan-009 후속)
     - `oracle_final < 0.78` → severe
-  - Per-regime: worst (16/17/10) 의 `oracle_after_final ≥ 0.55`
+  - Per-regime worst (16/17/10) 의 `oracle_after_final ≥ 0.55` — **warn-only sanity** (regime infra 폐기 확정 §2.2, regime 사용 = diagnostic-time *informational* only, decision/severe 무관)
 - **G2**: 5-fold OOF hit (soft) **≥ 0.70** (Variant A baseline 0.6570 + 0.043 minimum, v2.4 완화 — 이전 0.71) + `submission.csv` schema OK. **LB 회수 X (carry-over)**.
 - **G3**:
   - `[0, 0.5cm) hit_after ≥ 0.99`
@@ -294,7 +296,7 @@ lb_score: null
 - **Per-band hit**: `[0, 0.5), [0.5, 1.0), [1.0, 1.5), [1.5, 2.0), [2.0, ∞)` 5 bin
 - **Per-regime hit**: 18 regime (filter 용도, 모델 입력 X)
 - **Family marginal contribution**: 각 family 추가 시 oracle 변화 (cumulative ablation)
-- **LB**: 2 회 (Step 3 + Step 4)
+- ~~**LB**: 2 회 (Step 3 + Step 4)~~ → **v2.1+ : LB 본 plan 내 0 회** (할당량 소진, submission.csv 2 종 생성만, plan-008.1 carry-over).
 
 ---
 
@@ -332,6 +334,9 @@ def stage1_diagnostic() -> dict:
     ids, train_y = selector.read_labels(DATA_ROOT / "train_labels.csv")
     train_x = selector.load_stack(DATA_ROOT / "train", ids)
     end_idx = train_x.shape[1] - 1
+    # v2.6 boundary check: 11-pt trajectory → end_idx=10. higher_order_coord_func 의 진짜 jerk 는
+    # end_idx ≥ 4 필요 (`x[end_idx-3]` 까지 indexing). §5.2.1 의 jerk_vec 정합 보장.
+    assert end_idx >= 4, f"trajectory 길이 부족 — end_idx={end_idx}, jerk/curvature 식 indexing 불가"
 
     cands = selector.make_candidates(train_x, end_idx, horizon=2)
     bins = selector.fit_regime_bins(train_x, end_idx)         # sanity only (per_regime_oracle 표)
@@ -345,16 +350,26 @@ def stage1_diagnostic() -> dict:
     oof_scores = z_scores["ens_scores"]
 
     # ── 2. Residual decomposition (v2.5: oracle miss sample 전체) ──
-    err = np.linalg.norm(corrected_cands - train_y[:, None, :], axis=2)
-    best_idx = err.argmin(axis=1)
-    best_pred = corrected_cands[np.arange(len(train_y)), best_idx]
+    # v2.6 fix: oracle 정의 정합 — §1.1 "Oracle (best of 27, raw) = 0.7188" 은 *raw* cands 위 측정.
+    #          oracle_miss_mask 는 raw err matrix 위에서 계산해야 expected miss_rate ≈ 0.2812 정합.
+    #          corrected err 는 ranking gap decomposition (§4 step 4) 에서 별도 사용.
+    err_raw = np.linalg.norm(cands - train_y[:, None, :], axis=2)           # raw oracle
+    err = np.linalg.norm(corrected_cands - train_y[:, None, :], axis=2)     # corrected (downstream)
+    best_idx = err_raw.argmin(axis=1)                                        # raw best (oracle 정의)
+    best_pred = cands[np.arange(len(train_y)), best_idx]
     err_vec = best_pred - train_y
 
-    # ⭐ v2.5 main mask: oracle miss = 27 후보 *모두* 가 1cm 밖
+    # ⭐ v2.5 main mask: oracle miss = 27 *raw* 후보 모두 1cm 밖
     # → plan-008 main lever (oracle 천장 0.7188 → 0.85+ 회수) 의 *직접* target population
-    oracle_miss_mask = err.min(axis=1) > R_HIT   # shape (N,), ~2800 True (28%)
+    oracle_miss_mask = err_raw.min(axis=1) > R_HIT   # shape (N,), ~2800 True (= 1 − 0.7188)
     n_oracle_miss = int(oracle_miss_mask.sum())
 
+    # selector.motion_terms 규약 (plan-004 lock-in):
+    #   p0  = train_x[:, end_idx, :]                                   # 현재 위치
+    #   d1  = train_x[:, end_idx, :] - train_x[:, end_idx - 1, :]       # 1차 차분 = 속도 estimate
+    #   acc = (train_x[:, end_idx, :]
+    #          - 2*train_x[:, end_idx - 1, :]
+    #          + train_x[:, end_idx - 2, :])                            # 2차 차분 = 가속도 estimate
     p0, d1, acc = selector.motion_terms(train_x, end_idx)
     tangent = d1 / (np.linalg.norm(d1, axis=1, keepdims=True) + 1e-8)
     err_par = (err_vec * tangent).sum(axis=1)
@@ -367,7 +382,16 @@ def stage1_diagnostic() -> dict:
         d2[:, 0] * d1[:, 1] - d2[:, 1] * d1[:, 0],
         d2[:, 0] * d1[:, 0] + d2[:, 1] * d1[:, 1]
     )
-    curvature = err_perp_xy / (np.linalg.norm(d1, axis=1) + 1e-8)
+    # v2.6 fix: kinematic curvature (motion 자체) — residual 무관.
+    #   K = ||d2_perp|| / ||d1||²  where d2_perp = d2 − (d2·t̂)·t̂ ;  t̂ = d1/||d1||
+    eps = 1e-8
+    d1_norm = np.linalg.norm(d1, axis=1) + eps
+    d2_par_scalar = (d2 * tangent).sum(axis=1)                 # scalar projection on tangent
+    d2_perp_vec = d2 - d2_par_scalar[:, None] * tangent
+    d2_perp_norm = np.linalg.norm(d2_perp_vec, axis=1)
+    curvature = d2_perp_norm / (d1_norm ** 2 + eps)             # kinematic curvature
+    # 잔차 측면 perp magnitude (residual statistics 용도, dominant_causes "z_axis"/"perp" 분기) 는 따로 유지
+    residual_perp_xy = err_perp_xy
     prev_acc = d2 - (train_x[:, end_idx - 2] - train_x[:, end_idx - 3])
     jerk_norm = np.linalg.norm(acc - prev_acc, axis=1)
 
@@ -453,11 +477,14 @@ def stage1_diagnostic() -> dict:
             )
             if strict_ok or soft_ok:
                 # Safety check: i 제거 후 oracle 손실 측정
+                # v2.6 정합: §1.1 oracle (best of 27, *raw*) = 0.7188 정의와 동일하게 err_raw 위에서 측정.
+                # containment / hit_matrix 는 corrected err 위에서 도출 (selector 가 본 hit 인지가 redundancy
+                # 의도와 더 부합) 이지만, oracle safety 는 *raw* baseline 위에서 정량 보장.
                 kept_mask = np.ones(K_orig, dtype=bool)
                 kept_mask[i] = False
-                oracle_after = float((err[:, kept_mask].min(axis=1) <= R_HIT).mean())
-                oracle_before = float((err.min(axis=1) <= R_HIT).mean())
-                delta = oracle_before - oracle_after
+                oracle_after_raw = float((err_raw[:, kept_mask].min(axis=1) <= R_HIT).mean())
+                oracle_before_raw = float((err_raw.min(axis=1) <= R_HIT).mean())
+                delta = oracle_before_raw - oracle_after_raw
                 if delta < 0.001:
                     prune_candidates.append({
                         "idx": i,
@@ -471,7 +498,11 @@ def stage1_diagnostic() -> dict:
                         "hit_rate_j": float(hit_rate[j]),
                         "oracle_delta_if_removed": delta,
                     })
-                break   # i 는 j 에 의해 제거됨, j 비교 종료
+                # v2.6 break 의미 명시: dominator j1 가 safety 실패해도 j2 로 retry 안 함 — *intentional single-dominator*.
+                # 이유: pair-wise containment 는 transitive 하지 않고, 한 dominator 가 cover 못 하면
+                #       structural redundancy 가 다르다는 의미이므로 다른 j 로 fallback 의도 X. (§5.1 의
+                #       aggregate safety check 가 jointly removal 의 최종 보증 — caveat #16 참고.)
+                break
 
     # ── 4. Selector hit gap decomposition (review Point 3 — 진짜 병목 식별) ──
     # 정정: "top-1 ranking 12.6%" = "27 중 *진짜 best* 정확 픽 비율" (oracle best 와 일치).
@@ -517,6 +548,12 @@ def stage1_diagnostic() -> dict:
     }
     # 작은 margin = top1/top2 가 비슷 → soft averaging 의 centroid drift 가능성
     # 단 §4 의 selector_gap_decomposition 이 *직접 측정* — drift 가 진짜 문제인지 binary 판정
+    # v2.6 unit/threshold 정당성:
+    #   - oof_scores 는 selector.SELECTOR_MAIN ens_scores → softmax 입력 *logit* (plan-004 lock-in).
+    #   - margin = sorted_score[:, 0] - sorted_score[:, 1] = logit 단위.
+    #   - threshold 0.1: temperature=0.03 일 때 softmax(0.1/0.03) ≈ softmax(3.33) → top1/top2 weight ratio ≈ e^3.33 ≈ 28x.
+    #     margin < 0.1 (= logit 단위) 면 top2 의 weight 가 top1 의 1/28 이상 = 비중 ≥ 3.5% → soft drift signal.
+    #   - 단 informational only — main_bottleneck binary 결정은 selector_gap_decomposition (위 §4 step 4) 의 정량 비교.
     softmax_diffusion_signal = margin_hist["p50"] < 0.1
 
     # ── 6. Per-regime oracle gap ──
@@ -604,7 +641,20 @@ def stage1_diagnostic() -> dict:
 식별된 redundant 후보를 *일괄 제거* 후 oracle 손실 측정:
 
 ```python
-def step2a_prune(prune_candidates: list, cands_27: np.ndarray, train_y: np.ndarray) -> dict:
+def softmax_np(x: np.ndarray, temp: float = 0.03) -> np.ndarray:
+    """Row-wise softmax over last axis (numpy). temp 작을수록 sharp."""
+    z = x / temp
+    z = z - z.max(axis=-1, keepdims=True)
+    e = np.exp(z)
+    return e / e.sum(axis=-1, keepdims=True)
+
+
+def step2a_prune(
+    prune_candidates: list,
+    cands_27: np.ndarray,
+    train_y: np.ndarray,
+    oof_scores: np.ndarray,           # shape (N, 27) — §4.1 의 P001 ens_scores
+) -> dict:
     """v2.4: structural containment 로 식별된 redundant 후보 일괄 제거 + oracle safety."""
     prune_idx = [p["idx"] for p in prune_candidates]   # diagnostic 의 structural list
     kept_mask = np.ones(27, dtype=bool)
@@ -630,7 +680,10 @@ def step2a_prune(prune_candidates: list, cands_27: np.ndarray, train_y: np.ndarr
         "oracle_orig": oracle_orig,
         "oracle_pruned": oracle_pruned,
         "oracle_delta": oracle_pruned - oracle_orig,
-        "oracle_safe": (oracle_orig - oracle_pruned) < 0.001,
+        # v2.6 threshold 일치 — §3.2 G1 의 `oracle_after_prune ≥ 0.7170` (= 0.7188 − 0.0018) 와 정합.
+        # 이전 v2.4: per-pair safety 는 0.001 사용 (§4.1) — pair-wise filter 라 더 엄격.
+        # 본 aggregate safety 는 0.0018 (G1 spec) — 일괄 제거 후 누적 손실 허용 한계.
+        "oracle_safe": (oracle_orig - oracle_pruned) < 0.0018,
         # Post-hoc sanity (informational, decision 무관)
         "soft_hit_pruned_posthoc": soft_hit_pruned,
         "kept_indices": [int(i) for i in np.where(kept_mask)[0]],
@@ -746,7 +799,7 @@ TRIG_CANDIDATES = [
 ]
 
 def make_rot_candidates(x, end_idx, horizon=2):
-    """R(omega·omega_scale·horizon)·d1 + p0."""
+    """Batch coord func — 모든 TRIG_CANDIDATES 좌표 한 번에 산출. shape (N, 4, 3)."""
     p0, d1, _ = selector.motion_terms(x, end_idx)
     d2 = x[:, end_idx-1] - x[:, end_idx-2]
     omega_z = np.arctan2(
@@ -755,33 +808,220 @@ def make_rot_candidates(x, end_idx, horizon=2):
     )
     preds = []
     for spec in TRIG_CANDIDATES:
-        theta = omega_z * spec.omega_scale * horizon
-        cos_t, sin_t = np.cos(theta), np.sin(theta)
-        d1_rot = np.stack([
-            cos_t*d1[:,0] - sin_t*d1[:,1],
-            sin_t*d1[:,0] + cos_t*d1[:,1],
-            spec.z_scale * d1[:,2]
-        ], axis=1)
-        preds.append(p0 + d1_rot * horizon)
-    return np.stack(preds, axis=1).astype(np.float32)
+        preds.append(rot_coord_func(x, end_idx, horizon=horizon, spec=spec,
+                                     _p0=p0, _d1=d1, _omega_z=omega_z))
+    return np.concatenate(preds, axis=1).astype(np.float32)
+
+
+def rot_coord_func(x, end_idx, *, horizon=2, spec, _p0=None, _d1=None, _omega_z=None):
+    """Per-spec coord func — greedy set-cover 가 호출하는 unit. shape (N, 1, 3).
+
+    §5.3 의 step2b_greedy_set_cover 가 template_pool 의 (name, spec, coord_func) tuple
+    에서 coord_func(train_x, end_idx, horizon=2, spec=spec) 호출 → (N, 1, 3) 기대.
+    """
+    if _p0 is None:
+        _p0, _d1, _ = selector.motion_terms(x, end_idx)
+    if _omega_z is None:
+        d2 = x[:, end_idx-1] - x[:, end_idx-2]
+        _omega_z = np.arctan2(
+            d2[:,0]*_d1[:,1] - d2[:,1]*_d1[:,0],
+            d2[:,0]*_d1[:,0] + d2[:,1]*_d1[:,1]
+        )
+    theta = _omega_z * spec.omega_scale * horizon
+    cos_t, sin_t = np.cos(theta), np.sin(theta)
+    d1_rot = np.stack([
+        cos_t*_d1[:,0] - sin_t*_d1[:,1],
+        sin_t*_d1[:,0] + cos_t*_d1[:,1],
+        spec.z_scale * _d1[:,2]
+    ], axis=1)
+    pred = _p0 + d1_rot * horizon                    # shape (N, 3)
+    return pred[:, None, :].astype(np.float32)        # shape (N, 1, 3)
 ```
 
-**Family 2~6**: 동일 패턴. 각 family 의 `CandidateSpec` 에 적절한 fields 채우기.
+**Family 2~6**: 동일 패턴 — 각 family 의 `CandidateSpec` 에 fields 채우고, batch `make_*_candidates(x, end_idx, horizon=2)` + per-spec `*_coord_func(x, end_idx, *, horizon, spec) → (N, 1, 3)` 한 쌍 정의. `*_coord_func` 시그너처는 §5.3 greedy set-cover 가 호출하는 unit.
 
 | Family | family_id | 주 fields |
 |---|---|---|
 | trig | 1 | `omega_scale`, `z_scale` |
 | arc | 2 | `arc_curvature`, `time_scale` (호 길이) |
-| frenet_serret_3d | 3 | `z_scale`, `d1` (kappa estimate) |
-| per_regime_specialized | 4 | `par`, `perp`, `omega_scale` (regime 별 조합) |
-| higher_order | 5 | `jerk`, `par`, `d2` (jerk + multi-step) |
+| frenet_serret_3d | 3 | `z_scale` (= binormal_scale, §5.2.3 의미 재정의) |
+| ~~per_regime_specialized~~ | ~~4~~ | **drop (v2.3 reviewer #1)** — regime backdoor 회피 |
+| higher_order | 5 | `jerk`, `par`, `d2` (jerk + multi-step RK2) |
 | cross_term | 6 | `par`, `omega_scale` (speed_slope × d1 등) |
+
+**Family 2 — Arc** (`make_arc_candidates`, `arc_coord_func`):
+
+```python
+ARC_CANDIDATES = [
+    CandidateSpec("arc_continue", arc_curvature=1.0, family_id=2),
+    CandidateSpec("arc_decel",    arc_curvature=0.9, family_id=2),
+    CandidateSpec("arc_accel",    arc_curvature=1.1, family_id=2),
+]
+
+def arc_coord_func(x, end_idx, *, horizon=2, spec):
+    """3-point circular arc fit + arclength extrapolation. shape (N, 1, 3).
+       arc_curvature 가 호 진행 속도 배율 (1.0=등각속도, 0.9=감속, 1.1=가속)."""
+    p0, d1, _ = selector.motion_terms(x, end_idx)   # p0 (N,3), d1 (N,3)
+    d2 = x[:, end_idx-1] - x[:, end_idx-2]           # (N, 3)
+    # 평면 (xy) 호 진행각 estimate
+    omega_z = np.arctan2(
+        d2[:,0]*d1[:,1] - d2[:,1]*d1[:,0],
+        d2[:,0]*d1[:,0] + d2[:,1]*d1[:,1]
+    )                                                # (N,) — 호 진행각
+    theta = omega_z * spec.arc_curvature * horizon   # arc 진행각 × 배율
+    cos_t, sin_t = np.cos(theta), np.sin(theta)
+    arc_step = np.stack([
+        cos_t * d1[:,0] - sin_t * d1[:,1],
+        sin_t * d1[:,0] + cos_t * d1[:,1],
+        d1[:,2],                                      # world z 그대로
+    ], axis=1) * horizon
+    pred = p0 + arc_step                              # (N, 3)
+    return pred[:, None, :].astype(np.float32)
+
+
+def make_arc_candidates(x, end_idx, horizon=2):
+    return np.concatenate(
+        [arc_coord_func(x, end_idx, horizon=horizon, spec=s) for s in ARC_CANDIDATES],
+        axis=1,
+    ).astype(np.float32)
+```
+
+**Family 3 — Frenet-Serret 3D** (`make_fs3d_candidates`, `fs3d_coord_func`, v2.3 binormal frame):
+
+```python
+FS3D_CANDIDATES = [
+    CandidateSpec("fs_3d_planar",       z_scale=0.0, family_id=3),  # planar (tau=0)
+    CandidateSpec("fs_3d_low_torsion",  z_scale=0.5, family_id=3),
+    CandidateSpec("fs_3d_binormal",     z_scale=1.0, family_id=3),  # binormal (B=T×N)
+]
+
+def fs3d_coord_func(x, end_idx, *, horizon=2, spec):
+    """Frenet-Serret 3D — T/N/B local frame 의 binormal 진폭. shape (N, 1, 3).
+
+    T = unit(d1)
+    N = unit(d2 − (d2·T)T)           # d2 의 T-수직 성분
+    B = T × N                          # binormal
+    kappa_estimate = ||d2 − (d2·T)T|| / max(||d1||², ε)
+    pred = p0 + d1·horizon + spec.z_scale (= binormal_scale) · ||d1|| · horizon · kappa · B
+    """
+    p0, d1, _ = selector.motion_terms(x, end_idx)
+    d2 = x[:, end_idx-1] - x[:, end_idx-2]
+    eps = 1e-9
+    d1_norm = np.linalg.norm(d1, axis=1, keepdims=True) + eps    # (N, 1)
+    T = d1 / d1_norm
+    d2_par = (np.einsum("ij,ij->i", d2, T))[:, None] * T          # (N, 3)
+    d2_perp = d2 - d2_par                                          # (N, 3)
+    N_norm = np.linalg.norm(d2_perp, axis=1, keepdims=True) + eps
+    N = d2_perp / N_norm
+    B = np.cross(T, N)                                              # binormal (N, 3)
+    kappa = (N_norm[:, 0] / (d1_norm[:, 0] ** 2 + eps))[:, None]    # (N, 1)
+    binormal_term = spec.z_scale * d1_norm * horizon * kappa * B    # (N, 3)
+    pred = p0 + d1 * horizon + binormal_term
+    return pred[:, None, :].astype(np.float32)
+
+
+def make_fs3d_candidates(x, end_idx, horizon=2):
+    return np.concatenate(
+        [fs3d_coord_func(x, end_idx, horizon=horizon, spec=s) for s in FS3D_CANDIDATES],
+        axis=1,
+    ).astype(np.float32)
+```
+
+**Family 5 — Higher-order** (`make_higher_order_candidates`, `higher_order_coord_func`, snap drop):
+
+```python
+HIGHER_ORDER_CANDIDATES = [
+    CandidateSpec("jerk_acc_par_120", par=1.2, jerk=0.1, family_id=5),
+    CandidateSpec("multi_step_rk2",   d1=2.0,  d2=1.0,   family_id=5),
+]
+
+def higher_order_coord_func(x, end_idx, *, horizon=2, spec):
+    """Per-spec dispatch:
+      - spec.jerk > 0  → jerk-augmented: pred = p0 + par·d1·h + 0.5·d2·h² + (jerk/6)·jerk_vec·h³
+      - 그 외 (d1>0 ∧ d2>0) → 11-step RK2: dt = horizon/11, x_{k+1} = x_k + d1·dt + 0.5·d2·dt²
+
+    v2.6 fix: 이전 변수명 `d3` 는 2차 차분 (acceleration) 식이었음 — 진짜 jerk = 3차 차분.
+              `jerk_vec` = x[end-1] − 3·x[end-2] + 3·x[end-3] − x[end-4]  (3rd-order finite difference).
+    """
+    p0, d1, acc = selector.motion_terms(x, end_idx)
+    if spec.jerk > 0:
+        d2 = x[:, end_idx-1] - x[:, end_idx-2]
+        # 진짜 jerk = 3차 차분 (boundary: end_idx ≥ 4 필요)
+        jerk_vec = (x[:, end_idx-1] - 3*x[:, end_idx-2]
+                    + 3*x[:, end_idx-3] - x[:, end_idx-4])
+        pred = p0 + spec.par * d1 * horizon + 0.5 * d2 * horizon**2 \
+               + (spec.jerk / 6.0) * jerk_vec * horizon**3
+    else:
+        d2 = x[:, end_idx-1] - x[:, end_idx-2]
+        n_steps = 11
+        dt = horizon / n_steps
+        pred = p0.copy()
+        d1_step = spec.d1 * d1 / max(horizon, 1e-9)   # d1 per dt unit
+        d2_step = spec.d2 * d2 / max(horizon**2, 1e-9)
+        for _ in range(n_steps):
+            pred = pred + d1_step * dt + 0.5 * d2_step * dt**2
+    return pred[:, None, :].astype(np.float32)
+
+
+def make_higher_order_candidates(x, end_idx, horizon=2):
+    return np.concatenate(
+        [higher_order_coord_func(x, end_idx, horizon=horizon, spec=s) for s in HIGHER_ORDER_CANDIDATES],
+        axis=1,
+    ).astype(np.float32)
+```
+
+**Family 6 — Cross-term** (`make_cross_term_candidates`, `cross_term_coord_func`):
+
+```python
+CROSS_TERM_CANDIDATES = [
+    CandidateSpec("speed_slope_d1_120",  par=1.2, omega_scale=0.5, family_id=6),
+    CandidateSpec("speed_norm_acc_par",  par=1.0, jerk=0.3,        family_id=6),
+    CandidateSpec("omega_speed",         par=1.0, omega_scale=1.0, family_id=6),
+]
+
+def cross_term_coord_func(x, end_idx, *, horizon=2, spec):
+    """Feature × motion cross-term — per-sample 적응.
+       speed_slope ≈ (||d1|| − ||d1_prev||) / ||d1_prev|| (스칼라 per sample)
+       cross_term = spec.par · speed_slope · d1 + spec.omega_scale · turn_cos · d1
+       pred = p0 + d1·horizon + cross_term · horizon
+    """
+    p0, d1, _ = selector.motion_terms(x, end_idx)
+    eps = 1e-9
+    d1_prev = x[:, end_idx-1] - x[:, end_idx-2]    # (N, 3)
+    d1_norm = np.linalg.norm(d1, axis=1) + eps
+    d1_prev_norm = np.linalg.norm(d1_prev, axis=1) + eps
+    speed_slope = (d1_norm - d1_prev_norm) / d1_prev_norm    # (N,)
+    # turn_cos = unit(d1) · unit(d1_prev)
+    cos_turn = np.einsum("ij,ij->i", d1, d1_prev) / (d1_norm * d1_prev_norm)
+    cross_term = spec.par * speed_slope[:, None] * d1 \
+                 + spec.omega_scale * cos_turn[:, None] * d1
+    pred = p0 + d1 * horizon + cross_term * horizon
+    return pred[:, None, :].astype(np.float32)
+
+
+def make_cross_term_candidates(x, end_idx, horizon=2):
+    return np.concatenate(
+        [cross_term_coord_func(x, end_idx, horizon=horizon, spec=s) for s in CROSS_TERM_CANDIDATES],
+        axis=1,
+    ).astype(np.float32)
+```
 
 #### §5.2.2 통합 — Extended candidates list
 
 ```python
 # candidates_extended.py
 from src.pb_0_6822 import selector as _sel
+
+# kept_families 의미 contract (v2.6 명시):
+#   - Strategy D (Greedy) 가 *individual template* 단위 add 이지만, 본 통합 함수는
+#     family-level on/off filter 인터페이스를 사용 (구현 단순성 + base whitelist 정합).
+#   - greedy 결과 selected_templates 의 family set 으로 derive:
+#       kept_families = {spec.family_id_name for (_, spec, _) in iteration_log if added}
+#     (family_id_name = "trig"/"arc"/"frenet_serret_3d"/"higher_order"/"cross_term")
+#   - 한 family 의 *일부 template* 만 greedy 가 select 했어도 family 통째 include —
+#     selector 학습 입장에서 family one-hot 신호 분리 위한 *과대 포함* OK.
+#     단 *전체 family 가 한 번도 select 안 됨* 시 그 family drop.
+#   - 진짜 template-level granularity 필요 시 plan-009 후보 (`get_extended_candidates_list_by_template`).
 
 def get_extended_candidates_list(kept_indices, kept_families):
     """기존 pruned 27 + 5 family kept ones → CandidateSpec list."""
@@ -791,7 +1031,7 @@ def get_extended_candidates_list(kept_indices, kept_families):
     if "trig" in kept_families: new_specs.extend(TRIG_CANDIDATES)
     if "arc" in kept_families: new_specs.extend(ARC_CANDIDATES)
     if "frenet_serret_3d" in kept_families: new_specs.extend(FS3D_CANDIDATES)
-    if "per_regime" in kept_families: new_specs.extend(PER_REGIME_CANDIDATES)
+    # v2.3: Family 4 (per_regime_specialized) drop — regime backdoor 회피. 분기 제거.
     if "higher_order" in kept_families: new_specs.extend(HIGHER_ORDER_CANDIDATES)
     if "cross_term" in kept_families: new_specs.extend(CROSS_TERM_CANDIDATES)
 
@@ -810,7 +1050,7 @@ def make_candidates_extended(x, end_idx, horizon=2, kept_indices=None, kept_fami
     return np.concatenate(new_cands_list, axis=1).astype(np.float32)
 ```
 
-**총 후보 수**: 27 (pruned) + 4 (trig) + 3 (arc) + 3 (fs3d) + 3 (per_regime) + 3 (higher_order) + 3 (cross_term) = **27 + 19 = 46 후보 (모든 family kept 시)**, family filter 후 ~35~40.
+**총 후보 수**: 27 (pruned base) + 4 (trig) + 3 (arc) + 3 (fs3d) + 2 (higher_order, snap drop) + 3 (cross_term) = **27 + 15 = 42 후보** (모든 family kept 시; Family 4 per_regime drop v2.3 반영). family filter 후 ~32~37.
 
 #### §5.2.3 Template Pool 구성 — v2.3 (Family 4 drop, snap drop, fs_3d_binormal)
 
@@ -855,6 +1095,41 @@ def make_candidates_extended(x, end_idx, horizon=2, kept_indices=None, kept_fami
 
 **총 template_pool 크기: 4 + 3 + 3 + 2 + 3 = 15 templates** (이전 v2.2 의 19 → 15, Family 4 의 -3 + snap -1).
 
+#### §5.2.4 `build_template_pool()` — greedy set-cover 진입점
+
+`step2b_greedy_set_cover` 가 받는 `list[(name, spec, coord_func)]` tuple list 를 산출하는 build 함수 (v2.6 신설 — 인터페이스 갭 해소).
+
+```python
+# candidates_extended.py
+def build_template_pool() -> list:
+    """§5.2.3 의 15 templates 를 (name, spec, coord_func) tuple list 로 정렬.
+       §5.3 step2b_greedy_set_cover 의 template_pool 인자로 전달.
+
+       각 family 의 *per-spec* coord_func (return shape (N, 1, 3)) 를 binding —
+       batch make_*_candidates (return (N, K, 3)) 가 아닌 per-spec wrapper.
+    """
+    return (
+        [(s.name, s, rot_coord_func)         for s in TRIG_CANDIDATES]          # 4
+        + [(s.name, s, arc_coord_func)        for s in ARC_CANDIDATES]           # 3
+        + [(s.name, s, fs3d_coord_func)       for s in FS3D_CANDIDATES]          # 3
+        + [(s.name, s, higher_order_coord_func) for s in HIGHER_ORDER_CANDIDATES]  # 2
+        + [(s.name, s, cross_term_coord_func) for s in CROSS_TERM_CANDIDATES]    # 3
+    )
+```
+
+**사용** (`analysis/plan-008/prune_and_redefine.py`):
+
+```python
+from src.pb_0_6822 import candidates_extended as cx
+template_pool = cx.build_template_pool()         # list[(name, spec, coord_func)], len = 15
+result = step2b_greedy_set_cover(
+    cands_pruned, train_y, train_x, end_idx,
+    template_pool=template_pool,
+    kept_pruned_specs=KEPT_PRUNED_SPECS,
+    regimes=regimes,
+)
+```
+
 ### §5.3 Greedy Set-Cover Algorithm (Strategy D, v2.3 core)
 
 **Algorithm**: pruned pool 에서 시작 → template_pool 의 모든 후보 중 *oracle 증가가 가장 큰* 1 개를 add → 반복. 종료: delta < threshold OR pool size limit OR oracle target.
@@ -866,6 +1141,8 @@ def step2b_greedy_set_cover(
     train_x: np.ndarray,                 # shape (N, T, 3) — template 좌표 계산용
     end_idx: int,
     template_pool: list,                 # list[(name, spec, coord_func)] — §5.2.3 의 13~15 templates
+    kept_pruned_specs: list,             # CandidateSpec list — Step 2a 결과의 kept base specs (M_pruned 개)
+    regimes: np.ndarray,                 # shape (N,) — informational sanity only (per-regime breakdown 용)
     *,
     target_oracle: float = 0.90,
     max_pool_size: int = 50,
@@ -873,13 +1150,19 @@ def step2b_greedy_set_cover(
 ) -> dict:
     """Greedy set-cover: 매 iteration oracle 최대 증가 후보 add.
 
+    Oracle 측정 set (v2.6 명시): **full train (in-sample, all N samples)**.
+      - §1.1 의 "Oracle (best of 27, raw) = 0.7188" 정의 (plan-005) 와 동일 set.
+      - OOF/CV split 사용 X — pool selection 자체는 train-set oracle 최대화가 목표.
+      - 일반화 verification 은 Step 3 의 5-fold OOF (G2) 에서 별도 수행.
+      - 만약 OOF-based pool selection 이 필요하면 plan-009 후보로 박제 (v2.6 caveat #21).
+
     종료 조건 (any):
       1. compute_oracle(pool) >= target_oracle  → 0.90 stretch goal 달성
       2. len(pool) >= max_pool_size              → pool 폭주 방지
       3. best_delta < min_delta                  → 의미 있는 회수 X
     """
     pool_cands = cands_pruned              # 좌표 array, shape (N, M, 3)
-    pool_specs = list(KEPT_PRUNED_SPECS)   # CandidateSpec list
+    pool_specs = list(kept_pruned_specs)   # CandidateSpec list
     remaining_templates = list(template_pool)
 
     err = np.linalg.norm(pool_cands - train_y[:, None, :], axis=2)
@@ -987,7 +1270,7 @@ iter 7: + multi_step_rk2 → oracle 0.851, delta +0.009 ✓ target 도달, stop
   - `0.78 ≤ oracle_final < 0.85` → warn-only flag (`redefinition_partial`)
   - `oracle_final < 0.78` → severe (`redefinition_severely_insufficient`)
   - `stop_reason` ∈ {"target_oracle_reached", "max_pool_size_reached", "delta_below_threshold"}
-- Per-regime worst (16/17/10) 의 `oracle_after_greedy ≥ 0.55`
+- Per-regime worst (16/17/10) 의 `oracle_after_greedy ≥ 0.55` — **warn-only sanity** (regime infra 폐기 §2.2, decision/severe 무관)
 
 ### §5.6 시간 예산
 
@@ -1007,7 +1290,13 @@ iter 7: + multi_step_rk2 → oracle 0.851, delta +0.009 ✓ target 도달, stop
 ```python
 # Step 3 진입 전, extended pool 학습 *전에* 동일 hyperparam 으로 27 후보 baseline 측정
 # analysis/plan-008/sanity_baseline_27.py
-selector.CANDIDATES = ORIGINAL_27_CANDIDATES   # plan-004 의 원본 27
+import copy
+# v2.6 fix: monkey-patch 직전에 module-level CANDIDATES / make_candidates 의 백업을 저장.
+#          본 sanity baseline 자체는 baseline 그대로 학습이라 patch 가 강제는 아니지만,
+#          ORIGINAL_* 변수는 §6.1 의 EXTENDED patch 직전 backup 으로도 재사용되는 의도.
+ORIGINAL_27_CANDIDATES = copy.deepcopy(selector.CANDIDATES)
+ORIGINAL_make_candidates = selector.make_candidates
+selector.CANDIDATES = ORIGINAL_27_CANDIDATES   # plan-004 의 원본 27 (sanity baseline 진입 시 무변)
 selector.make_candidates = ORIGINAL_make_candidates
 
 selector.SELECTOR_MAIN([
@@ -1041,12 +1330,25 @@ selector.SELECTOR_MAIN([
 
 ```python
 # analysis/plan-008/selector_retrain.py
+import json
 import numpy as np
+from pathlib import Path
 from src.pb_0_6822 import selector
 from src.pb_0_6822 import candidates_extended
 
-KEPT_INDICES = [...]               # Step 2a 결과
-KEPT_FAMILIES = [...]              # Step 2b 결과 (filter 후)
+ANALYSIS_DIR = Path(__file__).resolve().parents[1] / "analysis/plan-008"
+
+# v2.6 binding source 명시 — §5 산출 JSON 의 정확한 key:
+#   - prune_summary.json   : key `"kept_indices"` (§5.1 step2a_prune 의 return dict)
+#   - greedy_set_cover.json: key `"pool_specs_final"` → entry list → 각 `spec.family_id` 추출
+KEPT_INDICES = json.loads((ANALYSIS_DIR / "prune_summary.json").read_text())["kept_indices"]
+_FAMILY_ID_NAME = {1: "trig", 2: "arc", 3: "frenet_serret_3d", 5: "higher_order", 6: "cross_term"}
+_greedy = json.loads((ANALYSIS_DIR / "greedy_set_cover.json").read_text())
+KEPT_FAMILIES = sorted({
+    _FAMILY_ID_NAME[s["family_id"]]
+    for s in _greedy["pool_specs_final"]
+    if s["family_id"] in _FAMILY_ID_NAME
+})
 
 # v2.2: schema 확장된 CandidateSpec list 사전 구성
 EXTENDED_CANDIDATES = candidates_extended.get_extended_candidates_list(KEPT_INDICES, KEPT_FAMILIES)
@@ -1094,10 +1396,13 @@ assert hasattr(sample_spec, "z_scale"), "schema v2.2 미적용"
 assert hasattr(sample_spec, "family_id"), "schema v2.2 미적용"
 
 # 2. 기존 27 후보의 backward-compat 검증 (default 적용)
-for c in selector.CANDIDATES[:27]:   # 기존 27 만
-    if c.family_id == 0:    # base family 만 검증 (extended 는 family_id != 0)
-        assert c.omega_scale == 0.0, f"base candidate {c.name} 의 omega_scale 변경됨"
-        assert c.arc_curvature == 0.0, f"base candidate {c.name} 의 arc_curvature 변경됨"
+# v2.6 fix: §6.1 monkey-patch 이후 selector.CANDIDATES 는 base_kept (family_id=0) + new specs (family_id ∈ 1..6)
+#          가 섞임. 따라서 *family_id == 0* filter 로 base family 만 검증 (slice [:27] 사용 X).
+base_specs = [c for c in selector.CANDIDATES if c.family_id == 0]
+assert len(base_specs) >= 1, "base family (family_id=0) 후보가 monkey-patch 이후에도 한 개 이상 남아 있어야 함"
+for c in base_specs:
+    assert c.omega_scale == 0.0, f"base candidate {c.name} 의 omega_scale 변경됨"
+    assert c.arc_curvature == 0.0, f"base candidate {c.name} 의 arc_curvature 변경됨"
 
 # 3. cand_feat 차원 확인
 test_cands = selector.make_candidates(train_x, 10, horizon=2)
@@ -1118,6 +1423,10 @@ assert test_feat.shape[2] == expected_dim, f"cand_dim mismatch: {test_feat.shape
 import inspect
 src = inspect.getsource(selector.SELECTOR_MAIN)
 # regime_prior_strength=0 이 학습 안에서 enforce 됨 (selector.py 가 regime bias 를 0 으로 곱함)
+# v2.6 binding: cli_args 는 §6.1 의 `selector.SELECTOR_MAIN([...])` 호출 list 와 동일 객체.
+# 본 assert 진입 *전에* 변수에 저장 후 호출하는 패턴 사용:
+#     cli_args = ['--root', str(DATA_ROOT), ..., '--regime-prior-strength', '0', ...]
+#     selector.SELECTOR_MAIN(cli_args)
 assert '--regime-prior-strength' in cli_args and cli_args[cli_args.index('--regime-prior-strength') + 1] == '0'
 
 # 2. 학습 후 (v2.6 신규): 산출 npz 의 regime_bias_table 검증
@@ -1171,6 +1480,7 @@ if regimes_oof is not None:
 - `submission_step3.csv` schema OK
 - `regime_residue` severe 미발동
 - **LB 회수 X (carry-over)** — submission.csv 박제만
+- **변수 단일성 (v2.6 명시)**: Step 3 의 G2 OOF 는 *기존 corrector (plan-004 lock-in)* 위에서 측정. Step 4 (§7) 는 *새 corrector (band-specific)* 위에서 측정 → Step 3 G2 vs Step 4 G3 비교 시 (selector 동일, corrector 만 변경) 한 변수 분리. Step 3 안에서 corrector 도 변경 X (§6.1 의 `run_full.run_boundary()` 는 plan-004 기존 corrector full-fit).
 
 ### §6.5 Fallback (G2 미달 시) — **v2.3 강화 (reviewer #4)**
 
@@ -1232,39 +1542,84 @@ import torch.nn.functional as F
 def band_specific_corrector_loss(
     corrected_pred, raw_pred, target,
     lambda_protect=1.0, lambda_recover=2.0,
+    cap: float = 0.006,                   # corrector head output clamp (||corrected - raw|| <= cap), v2.3 fallback grid
+    lambda_keep: float = 0.5,             # [0, 0.5cm) band 보존 weight (G3 0.99 hard 정합)
+    target_recover: float = 0.009,        # band_recover hinge target — 0.9cm 안 들어오기
 ):
-    """Band hinge loss:
-       [0, 0.5cm)  : 안 건드림 (loss = 0)
-       [0.5, 1cm)  : 보호 hinge — 멀어지면 처벌
-       [1, 1.5cm)  : 회수 hinge — 0.9cm 안 들어오면 처벌
+    """Band hinge loss + cap penalty.
+
+    Input shape contract (v2.6 명시):
+      - corrected_pred : torch.Tensor, shape (B, 3) — corrector head output (selected single pred per sample, *post* soft-select)
+      - raw_pred       : torch.Tensor, shape (B, 3) — soft-selected raw (pre-correction) pred
+      - target         : torch.Tensor, shape (B, 3) — ground-truth label
+      - 모든 텐서: float32, same device, gradient flow 는 corrected_pred 에서만.
+      - boundary.py 의 기존 corrector head 가 per-sample 단일 좌표 (B, 3) 산출이라 가정 — plan-004 lock-in 답습.
+        (만약 boundary 가 per-candidate (B, K, 3) 산출이면 caller 가 soft-select 후 (B, 3) 전달)
+
+    Band hinge loss + cap penalty:
+       [0, 0.5cm)  : 보존 hinge — corrected 가 raw 보다 멀어지면 lambda_keep 처벌 (G3 [0,0.5) ≥ 0.99 정합)
+       [0.5, 1cm)  : 보호 hinge — 멀어지면 lambda_protect 처벌
+       [1, 1.5cm)  : 회수 hinge — target_recover 안 들어오면 lambda_recover 처벌
        [1.5+ cm)   : 무시 (cap 한계)
+       Cap penalty: ||corrected - raw|| > cap 시 over-cap 만큼 추가 처벌 (모든 band 공통).
+
+       cap parameter 의미: corrector head 의 *output magnitude* clamp.
+         - v2.3 default 0.006 (= 6mm, 노트북 L1 의 "tiny correction" 정신)
+         - fallback 0.008 (§7.4 grid search): G3 [1, 1.5cm) 회수 < 0.30 시 1.33x 활성
+       Cap 이 *loss 안 hinge* 로 enforce 되는 이유: corrector arch (boundary.py lock-in) 미수정 정책.
     """
     err_raw = torch.norm(raw_pred - target, dim=1)
     err_new = torch.norm(corrected_pred - target, dim=1)
+    delta = torch.norm(corrected_pred - raw_pred, dim=1)        # corrector 변경량
 
+    band_keep    = (err_raw < 0.005)
     band_protect = (err_raw >= 0.005) & (err_raw < 0.010)
     band_recover = (err_raw >= 0.010) & (err_raw < 0.015)
 
     loss = torch.tensor(0.0, device=err_raw.device)
+    if band_keep.any():
+        loss = loss + lambda_keep * F.relu(err_new[band_keep] - err_raw[band_keep]).mean()
     if band_protect.any():
         loss = loss + lambda_protect * F.relu(err_new[band_protect] - err_raw[band_protect]).mean()
     if band_recover.any():
-        loss = loss + lambda_recover * F.relu(err_new[band_recover] - 0.009).mean()
+        loss = loss + lambda_recover * F.relu(err_new[band_recover] - target_recover).mean()
+    # Cap penalty (전 band 공통) — corrector head output 의 *magnitude clamp* enforce
+    loss = loss + F.relu(delta - cap).mean()
     return loss
 ```
 
 ### §7.3 학습
 
 ```python
+import inspect
 from src.pb_0_6822 import boundary
-ORIG_LOSS = boundary.compute_corrector_loss  # 또는 boundary 내부 loss 호출 점 식별
-boundary.compute_corrector_loss = lambda c, r, t, *a, **k: \
-    band_specific_corrector_loss(c, r, t,
-                                  lambda_protect=1.0, lambda_recover=2.0)
+
+# Monkey-patch target 식별 (boundary.py 자체는 lock-in, *import 후 attribute 만* 교체).
+# 후보 attribute names: 'compute_corrector_loss' (예상 default), 'corrector_loss', 'loss_fn'.
+# boundary 모듈에서 *L2 또는 hinge 류 corrector loss 를 *반환* 하는 callable 을 찾는다.
+CANDIDATE_ATTRS = ["compute_corrector_loss", "corrector_loss", "loss_fn"]
+LOSS_ATTR = next(
+    (a for a in CANDIDATE_ATTRS if callable(getattr(boundary, a, None))),
+    None,
+)
+assert LOSS_ATTR is not None, (
+    "boundary 모듈에서 corrector loss attribute 식별 실패. "
+    f"후보: {CANDIDATE_ATTRS}. 실제 boundary 모듈 dir: {[a for a in dir(boundary) if 'loss' in a.lower() or 'corr' in a.lower()]}"
+)
+
+ORIG_LOSS = getattr(boundary, LOSS_ATTR)
+setattr(boundary, LOSS_ATTR, lambda c, r, t, *a, **k: band_specific_corrector_loss(
+    c, r, t, lambda_protect=1.0, lambda_recover=2.0
+))
 
 from src.pb_0_6822 import run_full
 run_full.run_boundary()
+
+# 학습 후 복원 (다른 plan 산출 영향 차단)
+setattr(boundary, LOSS_ATTR, ORIG_LOSS)
 ```
+
+**Lock-in 정합**: `boundary.py` 본문 *미수정* (whitelist 외) — 본 patch 는 *Python attribute 교체* 만으로 file 변경 X. `LOSS_ATTR` 의 정확한 attribute name 박제는 c9 (corrector_band.py 작성) 진입 시 `dir(boundary)` 출력의 `*loss*` / `*corr*` candidate 1 개를 식별 + commit msg `decision-note:` 1 줄 박제 (`decision-note: spec-default — boundary.LOSS_ATTR = '<name>' (dir() 식별 결과)`).
 
 ### §7.4 λ + cap Grid Search (fallback) — **v2.3 cap 추가 (reviewer #2)**
 
@@ -1377,9 +1732,30 @@ dacon 일일 할당량 = 2 회 가정 시:
 ### §9.1 측정 식
 
 ```python
+def evaluate_pipeline(test_x, subsamples, temp: float, lambda_recover: float) -> float:
+    """Step 3/4 pipeline 의 *test-internal* hit@1cm 측정.
+       각 (end_idx, target) sub-sample 에 대해 candidate 좌표 + corrector + soft-select 적용.
+       Returns: hit rate aggregated over all subsamples."""
+    hits, total = 0, 0
+    from src.pb_0_6822 import boundary as _bnd
+    for end_idx, target in subsamples:
+        cands = selector.make_candidates(test_x, end_idx, horizon=2)         # uses monkey-patched extended pool
+        scores = selector.predict_scores(test_x, end_idx, cands)              # selector inference (Variant A)
+        # corrector 적용 (Step 4 의 lambda_recover 가 hyperparam — 학습된 head 의 추론 시점 weight 으로 사용)
+        corrected = _bnd.apply_corrector(cands, lambda_recover=lambda_recover)
+        pred = _bnd.soft_select(corrected, scores, temperature=temp)          # (N, 3)
+        err = np.linalg.norm(pred - target, axis=1)
+        hits += int((err <= R_HIT).sum())
+        total += int(err.shape[0])
+    return float(hits / max(total, 1))
+
+
 def stage5_test_internal_tune():
     """Test 11점 trajectory 의 내부 sub-sample 50K = test 분포 free label.
-    Step 3/4 의 hyperparam (corrector λ, selector temp) 만 grid search."""
+    Step 3/4 의 hyperparam (corrector λ, selector temp) 만 grid search.
+
+    `step4_oof_hit` 는 outer scope (Step 4 산출 §7.5 의 oof_hit value) 에서 주입 — 본 함수 호출 직전에
+    `step4_oof_hit = json.load(...analysis/plan-008/corrector_band.json)['oof_hit']` 등으로 binding."""
 
     test_ids = selector.read_submission_ids(DATA_ROOT / "sample_submission.csv")
     test_x = selector.load_stack(DATA_ROOT / "test", test_ids)
