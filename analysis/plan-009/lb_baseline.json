@@ -20,7 +20,9 @@
       "expected_lb": null,
       "anchor": "OOF + 0.022 gap (plan-005/008 trajectory)",
       "estimated_lb": 0.6723,
-      "status": "pending dacon-submit (할당량 소진, 다음 날 사용자 수동 호출)"
+      "status": "submitted (2026-05-13, dacon-submit isSubmitted=True); pending lb_score from user (DACON 웹페이지 회수)",
+      "submitted_at": "2026-05-13",
+      "submitted_memo": "plan-008.1 carry-over (plan-008 c7 baseline, Variant A extended 25 cands, OOF 0.6503)"
     },
     "plan_009_1": {
       "submission_path": "runs/baseline/H002_corrector-strengthen/submission_step2.csv",
@@ -30,7 +32,9 @@
       "estimated_lb": 0.6873,
       "estimated_lb_formula": "OOF 0.6653 + 0.022 gap (plan-005/008 trajectory)",
       "scenario_class": "C (낮음) 0.69~0.72 LB 영역 의 상단",
-      "status": "pending dacon-submit (할당량 소진, 다음 날 사용자 수동 호출)",
+      "status": "submitted (2026-05-13, dacon-submit isSubmitted=True); pending lb_score from user (DACON 웹페이지 회수)",
+      "submitted_at": "2026-05-13",
+      "submitted_memo": "plan-009.1 carry-over (H002 sub-exp b band-specific, OOF 0.6653, +0.0150 vs plan-008)",
       "g_status_summary": {
         "G0": "DONE (oracle_1cm=0.7562, oracle_1.5cm=0.8701, cap_saturation=0.2918)",
         "G1": "SEVERE FAIL (H001 OOF=0.6482, ranking loss regression)",
