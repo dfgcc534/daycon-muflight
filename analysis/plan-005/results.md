@@ -68,27 +68,55 @@ plan-006 의 Variant E LB=0.6692 회수 후 (full LB=0.6806 대비 -1.14pp), Var
 - Variant B: `0.65 × physics_bias + 0.45 × regime_bias_table[test_regimes]` (full-train bias, no GRU) → `soft_select(corrected_test, temp=0.03)`
 
 제출 (2026-05-12 KST, plan-006 LB=0.6692 회수 직후):
-- E002_variant-a-gru-physics: dacon-submit 성공, `lb_score: TBD` (carry-over open)
-- E003_variant-b-physics-regime: dacon-submit 성공, `lb_score: TBD` (carry-over open)
+- E002_variant-a-gru-physics: lb_score **0.6796** (carry-over closed)
+- E003_variant-b-physics-regime: lb_score **0.6704** (carry-over closed)
 
-OOF↔LB 비교 표 (LB 회수 후 채울 행 = `[TBD]`):
+### OOF↔LB 4-way 비교 표
 
 | Variant | OOF (soft) | LB | OOF→LB gap | 비고 |
 |---|---|---|---|---|
-| full (GRU + physics + regime) | 0.6599 | 0.6806 | +0.0207 | plan-004 측정 |
-| A_no_regime (GRU + physics) | 0.6570 | **[TBD]** | **[TBD]** | E002 (carry-over) |
-| B_no_gru (physics + regime) | 0.6547 | **[TBD]** | **[TBD]** | E003 (carry-over) |
-| E_minimal (physics only) | 0.6524 | 0.6692 | +0.0168 | plan-006 측정 |
+| **full** (GRU + physics + regime) | 0.6599 | **0.6806** | +0.0207 | plan-004 측정 |
+| **A** (GRU + physics, no regime) | 0.6570 | **0.6796** | **+0.0226** | E002 (max gap) |
+| **B** (physics + regime, no GRU) | 0.6547 | **0.6704** | **+0.0157** | E003 (min gap) |
+| **E** (physics only, no GRU/regime) | 0.6524 | 0.6692 | +0.0168 | plan-006 측정 |
 
-산출:
+OOF→LB gap range = `[0.0157, 0.0226]` (span 7bp) — **variant-invariant 아님** (plan-006 §4 의 "gap 거의 일관" 가정 *반증*).
+
+### LB marginal contribution
+
+| 분해 | OOF Δ | LB Δ | OOF↔LB 일관성 |
+|---|---|---|---|
+| **regime** (full − A) | +0.0029 | **+0.0010** | LB 가 OOF 의 *35%* — 거의 noise |
+| **GRU** (full − B) | +0.0052 | **+0.0102** | LB 가 OOF 의 *2배* — 더 큰 lift |
+| GRU (A − E) | +0.0046 | +0.0104 | LB 일관 (≈ +0.010pp regardless of regime) |
+| regime (B − E) | +0.0023 | +0.0012 | LB 일관 (≈ +0.001pp regardless of GRU) |
+| physics (E − F_uniform) | +0.0004 | (미측정) | OOF 거의 없음 |
+
+→ **핵심 발견**:
+1. **regime 은 LB 단위로 거의 noise** (+0.0010pp ≈ 10 hits). plan-005 통찰 "GRU/regime 은 장식" 의 *regime 부분 입증*.
+2. **GRU 는 LB 단위로 의미 lift** (+0.0102pp ≈ 100 hits). plan-005 통찰 *GRU 부분 반증* — GRU 는 OOF 보다 LB 에서 *더* 큰 역할.
+3. **Variant A 가 최강 단순화**: full 대비 -0.0010pp (사실상 동일), regime infra 완전 제거 가능.
+4. OOF↔LB gap 은 variant-별로 다름 (A>full>E>B 순). plan-006 의 "variant-invariant gap" 가정은 4bp 정확도 외 7bp range — variant 추정 신뢰도 ±0.01pp.
+
+### plan-006 통찰 update (post-hoc)
+
+- plan-006 §3 의 "plan-005 통찰 입증" 결론 = **부분 입증 + 부분 반증**:
+  - ✓ regime = 장식 (LB 0.001) → plan-007 의 regime 제거 path 정당.
+  - ✗ GRU = 장식 → **반증**. GRU 는 LB 에서 OOF 의 2배 lift (0.010pp). Variant E 가 full 대비 -1.14pp 손실의 *주원인 = GRU 부재* (regime 부재 아님).
+  - 단순화 path 재정의: **Variant A 가 새 baseline** (drop regime only, keep GRU). LB cost = -0.001pp (≈ free).
+
+### plan-007 후보 재정렬 (decision-note)
+
+- ★ **A1' (재정렬, 최우선)**: Variant A baseline 위에 후보 다양화 (27→35+). regime infra 완전 폐기. LB 시작점 = 0.6796 + 후보 다양화 lift.
+- A2 corrector 재설계: 변경 없음 (corrector lift +0.0274 OOF 가 main, 모든 variant 공통).
+- ★ **신규 후보 B3 (LB 검증 완료)**: GRU/physics 의 OOF↔LB amplification (OOF +0.0046 → LB +0.0104 ≈ 2.3×) 의 *원인 분석* — GRU 가 LB-side regime equivalent 정보를 학습했는가?
+- B1/B2 (시나리오 B): 폐기 (시나리오 A 입증).
+
+### 산출
+
 - 코드: `analysis/plan-005/variants_ab_lb.py`
 - 제출 CSV: `runs/baseline/E002_variant-a-gru-physics/submission.csv`, `runs/baseline/E003_variant-b-physics-regime/submission.csv`
 - LB log: `analysis/plan-005/lb_log.md`
-
-LB 회수 후 carry-over 작업:
-- `lb_log.md` 의 TBD → `<float>` row update (또는 신규 row append, plan-006 §7.4 패턴)
-- 본 절 OOF↔LB 표의 [TBD] 채움
-- gap variant 간 일관성 (plan-006 §4 의 -0.0039 noise) 확장 분석
 
 ## STAGE 5 — Failure analysis + B001 비교
 
