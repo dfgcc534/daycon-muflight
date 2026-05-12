@@ -67,7 +67,7 @@ lb_score: null
 ### G-gates
 
 - G0: Phase 0 diagnostics + preflight.json 생성 [DONE] (b6e582a — D001=0.6570 < 0.66, c008 path disabled, P1.L2 자동 skip)
-- G1: Phase 1 4-axis ablation (24 sub-exp) — 4 best lever 식별 + 최소 2 axis 에서 +0.005 [TODO]
+- G1: Phase 1 4-axis ablation (24 sub-exp) — L NEG / In POSITIVE (ID +0.0050) / M NEG / F NEG → G1 (b) FAIL (1/4 positive) [DONE] (73a1446 — `phase1_no_lever_positive` warn, autonomous: P3.1 만 진행)
 - G2: Phase 3 pairwise (4 pair 5-fold) — super-additive 입증 [TODO]
 - G3: Phase 4 triple stack (P4.1 + 조건부 P4.2) — OOF ≥ G2 + 0.003 [TODO]
 - G4: Phase 5 iterative (조건부 G3 > 0.69) — [1,1.5cm) hit ≥ 0.20 + iter_gap ≤ 0.05 [TODO]
@@ -88,8 +88,8 @@ lb_score: null
 | c7 | exp | Phase 1.In 4 sub-exp 실행 (★ AXIS POSITIVE, In̂=ID at +0.0050). ~10s | partial G1 [DONE] (234b824 — c6/c7 통합) |
 | c8 | code | `analysis/plan-011/phase1_arch_ablation.py` — P1.M0~M6 wrapper. spec @ §7 | [DONE] (36e5a2c) |
 | c9 | exp | Phase 1.M 7 sub-exp ~17s (★ axis NEGATIVE max ΔOOF=0, M̂=M1 tied) | partial G1 [DONE] (36e5a2c) |
-| c10 | code | `analysis/plan-011/phase1_formula_ablation.py` — P1.F0~F4 wrapper. spec @ §8 | [TODO] |
-| c11 | exp | Phase 1.F 4 sub-exp 실행 (~50min, F0 reuse) | **G1** |
+| c10 | code | `analysis/plan-011/phase1_formula_ablation.py` — P1.F0~F4 wrapper + 학습. spec @ §8 | [DONE] (73a1446) |
+| c11 | exp | Phase 1.F 5 sub-exp (★ formula_swap_marginal, F̂=F0 fix). F3/F4 cand formula 식 selector parity 어긋남 — plan-011.1 carry-over 후보 1순위 | **G1** [DONE] (73a1446 — G1 (b) FAIL: 1 positive axis only) |
 | c12 | analysis | `analysis/plan-011/phase1_attribution.md` — 4 axis ΔOOF 표 + best lever 식별. spec @ §9 | [TODO] |
 | c13 | code+exp | Phase 3 pairwise: P3.1 (L̂+In̂) + P3.2 (L̂+M̂) + P3.3 (L̂+F̂) + P3.4 (In̂+M̂), 5-fold ~50min × 4 = ~200min. spec @ §10 | **G2** |
 | c14 | code+exp | Phase 4 triple stack: P4.1 (L̂+In̂+M̂) 5-fold + (조건부) P4.2. spec @ §11 | **G3** |
