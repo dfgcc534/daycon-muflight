@@ -1,3 +1,89 @@
+# plan-005 진단 결과 + 핵심 직관 (upgrade motivation)
+
+이하 두 upgrade idea (연속 heatmap, 학습 후보) 의 *motivation* 은 plan-005 의 정량 진단. 핵심 finding 과 그로부터 도출된 5가지 직관 박제.
+
+## 핵심 수치 (`analysis/plan-005/results.md`)
+
+| Metric | 값 | 시사점 |
+|---|---|---|
+| **Raw oracle** | **0.7188** | 27 후보의 ceiling — selector 완벽해도 못 넘음 |
+| **Post-correction oracle** | **0.7111** | ⚠️ corrector 가 oracle 을 *0.77pp 떨어뜨림* (14/18 regime negative) |
+| **Selector hit (soft)** | **0.6599** | oracle 까지 5.1pp gap |
+| **Selector top-1 ranking** | **12.6%** | 진짜 best 후보를 1순위로 picking 12.6%만 — soft 평균이 cover |
+| **GRU marginal contribution** | **+0.0052** | noise floor (±0.005) 근방 — 거의 기여 없음 |
+| **Regime marginal contribution** | **+0.0029** | noise floor 미만 — 거의 기여 없음 |
+| **GRU intervention helped/hurt** | **0.565 / 0.435** | 거의 50:50 (무작위적 개입) |
+| **PB vs B001 baseline** | 0.6599 vs 0.5787 | PB win 965 / loss 153 (6.3:1) — framework 자체는 정당 |
+
+## STAGE별 finding
+
+| STAGE | 핵심 finding |
+|---|---|
+| **1 Oracle** | corrector 가 oracle 을 *낮춤* — family-aware loss 가 best 후보를 옮기는 부작용 |
+| **2 Selector** | top-K {1: 12.6%, 3: 21.8%, 5: 28.2%} — ranking 능력 매우 약함, soft 평균이 noise cover |
+| **3 Corrector** | cap saturation 3.6% (cap 충분). binormal 변위 = parallel 의 1/7 (z 축 보정 거의 0) |
+| **4 Component** | GRU/regime 기여 noise floor 근방, helped/hurt ≈ 50:50 (무작위 개입) |
+| **5 Failure** | worst-100 의 49% 가 regime 10~14 (high-speed × high-curvature) 집중 |
+
+## 5가지 직관
+
+### 1. Selector 는 picker 가 아니라 distributor
+
+```
+Top-1 ranking 정확도: 12.6%   ← "진짜 best 를 1순위로 picking"
+Soft hit rate:        66.0%   ← "최종 좌표가 정답 1cm 안"
+```
+
+비유 — 27지선다: 학생이 정답을 1번으로 마킹하는 비율 12.6%, 그런데 *확신도 분포의 가중평균 좌표* 가 정답 영역에 떨어지는 비율 66%. **selector 는 "정답을 안다" 가 아니라 "정답이 어느 *영역* 인지 좁힐 줄 안다".** 27 개 후보가 비슷한 좌표 부근에 있어 *평균이 정답 영역에 들어감*.
+
+### 2. GRU 와 regime 둘 다 *장식*
+
+- GRU 기여 +0.0052, regime 기여 +0.0029 — 둘 다 노이즈 floor (±0.005) 근방
+- 개입했을 때 helped/hurt ≈ 50:50 → 거의 무작위적 개입
+
+→ **PB framework 의 "지능" 90% 는 *손으로 짠 27 개 물리 식* 에서 나오고, 신경망/regime 은 장식에 가깝다.**
+
+### 3. Corrector 의 역설 — 평균을 최적화하면 best 가 망가진다
+
+기대: corrector 가 27 후보를 더 정답에 가깝게 → oracle ↑
+실제: corrector 적용 후 oracle 0.7188 → 0.7111 (0.77pp ↓)
+
+비유 — 사격 훈련: 27 명에게 *평균 탄착점이 정중앙* 되도록 보정값 적용 → 평균은 정중앙, 그러나 *이미 정중앙 맞히던 1명* 은 보정값 때문에 옆으로 밀려남. **Soft prediction 최적화를 위한 *부수 효과*.**
+
+### 4. 진짜 ceiling 은 후보 다양성
+
+```
+1.0000  절대 ceiling
+0.7188  Raw oracle (27 후보의 한계)  ★ 진짜 ceiling
+0.7111  Post-corr oracle
+0.6599  Selector + corrector (실제 PB)
+0.5787  B001 linear baseline
+```
+
+selector/corrector 를 완벽하게 만들어도 0.7188 위로 못 감. 그 위로 가려면 **후보를 더 많이/잘 만들어야** 함. worst-100 의 49% 가 regime 10~14 (high-speed) 집중 → *고속 비행 모기의 정답 영역을 27 후보가 못 덮음*.
+
+### 5. *Simple is better* — 이 framework 은 과설계
+
+- GRU 기여 ≈ 0
+- Regime 기여 ≈ 0
+- Corrector 가 oracle 까지 *떨어뜨림*
+- 그래도 B001 보다 +8pp 잘함
+
+**결론**: PB 가 B001 을 이기는 이유는 *27 개 후보의 다양성* + *soft averaging* 두 가지뿐. 나머지 정교함은 *비용만 들이고 효과 미미*. **Galton 황소 무게 추측 (군중 평균이 전문가보다 정확) 의 trajectory prediction 버전.**
+
+## 이 진단이 가리키는 upgrade 방향
+
+| 방향 | 동기 metric | 이 문서에서의 대응 |
+|---|---|---|
+| **후보 다양성 ↑** | Raw oracle 0.7188 ceiling + worst-100 의 49% high-speed regime 집중 | **Idea 2 (데이터 기반 N 후보 학습)** — 사람 직관 한계 돌파, drone 확장 시 재학습만 |
+| **Regime prior 단순화** | regime 기여 +0.0029 (noise floor 미만), 18 이산 격자가 marginal 정보만 제공 | **Idea 1 (연속 heatmap)** — 격자 → 부드러운 kernel, feature 수 늘면 자연 대응 |
+| **GRU 제거 / arch 교체** | GRU 기여 +0.0052 (noise floor), top-1 12.6% | plan-006 후보 1 (selector 단순화 / TCN·Transformer 교체) — 본 문서 out-of-scope |
+| **Corrector loss 재설계** | oracle 0.77pp 손실 (14/18 regime negative) | plan-006 후보 2 — 본 문서 out-of-scope |
+
+→ 본 문서의 두 idea (연속 heatmap, 학습 후보) 는 **후보 다양성 강화 + regime 단순화** 두 anchor 를 *파이프라인의 다른 단계* 에서 동시 공격. 4가지 ablation 조합으로 분리 측정 가능 (마지막 섹션 참조).
+
+---
+
 # PB_0.6822 Upgrade Idea: 이산 regime 표 → 연속 heatmap
 
 ## 현재 구조 (PB_0.6822 코드공유.ipynb)
