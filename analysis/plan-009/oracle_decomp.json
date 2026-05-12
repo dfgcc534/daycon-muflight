@@ -1,0 +1,94 @@
+{
+  "exp_id": "plan-009/oracle_decomp",
+  "source_npz": "runs/baseline/G001_candidate-redefine/oof_selector_scores.npz",
+  "n_samples": 10000,
+  "n_candidates": 25,
+  "dim": 3,
+  "bin_distribution_8bin": {
+    "[0, 0.5cm)": {
+      "count": 4896,
+      "fraction": 0.4896
+    },
+    "[0.5cm, 1cm)": {
+      "count": 2666,
+      "fraction": 0.2666
+    },
+    "[1cm, 1.5cm)": {
+      "count": 1139,
+      "fraction": 0.1139
+    },
+    "[1.5cm, 2cm)": {
+      "count": 356,
+      "fraction": 0.0356
+    },
+    "[2cm, 3cm)": {
+      "count": 364,
+      "fraction": 0.0364
+    },
+    "[3cm, 5cm)": {
+      "count": 316,
+      "fraction": 0.0316
+    },
+    "[5cm, 10cm)": {
+      "count": 227,
+      "fraction": 0.0227
+    },
+    "[10cm, inf)": {
+      "count": 36,
+      "fraction": 0.0036
+    }
+  },
+  "oracle_1cm": 0.7562,
+  "oracle_1_5cm": 0.8701,
+  "oracle_2cm": 0.9057,
+  "n_in_band_per_band": {
+    "[0, 0.5cm)": 4896,
+    "[0.5cm, 1cm)": 2666,
+    "[1cm, 1.5cm)": 1139,
+    "[1.5cm, 2cm)": 356,
+    "[2cm, inf)": 943
+  },
+  "n_oracle_miss_1cm": 2438,
+  "n_oracle_miss_1_5cm": 1299,
+  "best_err_stats": {
+    "mean": 0.009228027584366307,
+    "median": 0.005134791719000508,
+    "p25": 0.0024953849830042043,
+    "p75": 0.009835411806315662,
+    "p95": 0.03357219231279821,
+    "max": 0.16416842141338325
+  },
+  "best_cand_idx_distribution": {
+    "0": 253,
+    "1": 987,
+    "2": 1330,
+    "3": 347,
+    "4": 697,
+    "5": 235,
+    "6": 687,
+    "7": 1358,
+    "8": 197,
+    "9": 470,
+    "10": 410,
+    "11": 543,
+    "12": 459,
+    "13": 98,
+    "14": 144,
+    "15": 897,
+    "16": 0,
+    "17": 80,
+    "18": 78,
+    "19": 0,
+    "20": 40,
+    "21": 8,
+    "22": 120,
+    "23": 505,
+    "24": 57
+  },
+  "plan_008_reference_match": {
+    "oracle_1cm_expected": 0.7562,
+    "oracle_1cm_actual": 0.7562,
+    "tolerance": 0.002,
+    "match": true
+  }
+}
