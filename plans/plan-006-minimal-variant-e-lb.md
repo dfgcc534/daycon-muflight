@@ -63,7 +63,7 @@ lb_score: 0.6692
 | G3 | gate | LB 점수 회수 (float, isSubmitted=True) + lb_log.md 박제 | [DONE 54119b5] (partial) |
 | c6 | synthesis | `analysis/plan-006/results.md` + `next_plan_candidates.md` (≥ 2 후보). spec @ §8 | [DONE 0511e94] |
 | G_final | gate | results.md + next plan 후보 ≥ 2 + 3 파일 frontmatter 동시 박제 | [DONE 0511e94] (partial) |
-| c5.1 | carry-over | lb_score=0.6692 회수 → 3 파일 frontmatter TBD → 0.6692 + status partial → all_complete + lb_log.md row append + 시나리오 A 입증 결론 박제 | [DONE <c5_1_hash>] |
+| c5.1 | carry-over | lb_score=0.6692 회수 → 3 파일 frontmatter TBD → 0.6692 + status partial → all_complete + lb_log.md row append + 시나리오 A 입증 결론 박제 | [DONE b305500] |
 
 ### Plan-specific severe (WORKFLOW.md §12.3 default 위 추가분)
 
