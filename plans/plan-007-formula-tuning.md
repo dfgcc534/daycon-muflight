@@ -71,7 +71,7 @@ lb_score: TBD
 | c9 | code | `analysis/plan-007/mlp_coeff.py` — STAGE 4 MLP coefficient regression. spec @ §7 | [DONE d145bb3] |
 | c10 | exp | F002: MLP 학습 + OOF 측정 (LB 미제출). spec @ §7 | [DONE 2c7eb3d] oof=0.6482 |
 | G3 | gate | MLP OOF ≥ Step 3 best + 0.005 | [DONE] PASS (+0.0095, scenario B) |
-| c11 | synthesis | `analysis/plan-007/results.md` + `next_plan_candidates.md` (≥ 2 후보). spec @ §9 | [DONE (partial)] this commit, lb_score=TBD |
+| c11 | synthesis | `analysis/plan-007/results.md` + `next_plan_candidates.md` (≥ 2 후보). spec @ §9 | [DONE (partial)] d618e14, lb_score=TBD |
 | G_final | gate | results.md + next plan 후보 ≥ 2 + 3 파일 frontmatter 동시 박제 | [DONE (partial)] lb_score TBD carry-over |
 
 ### Plan-specific severe (WORKFLOW.md §12.3 default 위 추가분)
