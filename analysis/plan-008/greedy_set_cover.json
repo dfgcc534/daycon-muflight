@@ -1,0 +1,315 @@
+{
+  "iteration_log": [
+    {
+      "iter": 0,
+      "added_template": null,
+      "family_id": null,
+      "oracle": 0.7173,
+      "delta": 0.0,
+      "pool_size": 12
+    },
+    {
+      "iter": 1,
+      "added_template": "arc_decel",
+      "family_id": 2,
+      "oracle": 0.7419,
+      "delta": 0.024599999999999955,
+      "pool_size": 13
+    },
+    {
+      "iter": 2,
+      "added_template": "rot_high_150",
+      "family_id": 1,
+      "oracle": 0.7481,
+      "delta": 0.006199999999999983,
+      "pool_size": 14
+    },
+    {
+      "iter": 3,
+      "added_template": "speed_slope_d1_120",
+      "family_id": 6,
+      "oracle": 0.7509,
+      "delta": 0.0028000000000000247,
+      "pool_size": 15
+    },
+    {
+      "iter": 4,
+      "added_template": "rot_low_080",
+      "family_id": 1,
+      "oracle": 0.7522,
+      "delta": 0.0012999999999999678,
+      "pool_size": 16
+    },
+    {
+      "iter": 5,
+      "added_template": "omega_speed",
+      "family_id": 6,
+      "oracle": 0.7533,
+      "delta": 0.0010999999999999899,
+      "pool_size": 17
+    },
+    {
+      "iter": 6,
+      "added_template": "fs_3d_low_torsion",
+      "family_id": 3,
+      "oracle": 0.7543,
+      "delta": 0.0010000000000000009,
+      "pool_size": 18
+    }
+  ],
+  "oracle_final": 0.7543,
+  "total_candidates_final": 18,
+  "pool_specs_final": [
+    {
+      "name": "p0_2d1",
+      "family_id": 0,
+      "d1": 2.0,
+      "par": 0.0,
+      "perp": 0.0,
+      "d2": 0.0,
+      "jerk": 0.0,
+      "time_scale": 1.0,
+      "omega_scale": 0.0,
+      "arc_curvature": 0.0,
+      "z_scale": 1.0
+    },
+    {
+      "name": "acc_2d1_060",
+      "family_id": 0,
+      "d1": 2.0,
+      "par": 0.6,
+      "perp": 0.6,
+      "d2": 0.0,
+      "jerk": 0.0,
+      "time_scale": 1.0,
+      "omega_scale": 0.0,
+      "arc_curvature": 0.0,
+      "z_scale": 1.0
+    },
+    {
+      "name": "frenet_par110_perp_neg020",
+      "family_id": 0,
+      "d1": 1.94,
+      "par": 1.1,
+      "perp": -0.2,
+      "d2": 0.0,
+      "jerk": 0.0,
+      "time_scale": 1.0,
+      "omega_scale": 0.0,
+      "arc_curvature": 0.0,
+      "z_scale": 1.0
+    },
+    {
+      "name": "jerk_small_pos",
+      "family_id": 0,
+      "d1": 1.98,
+      "par": 0.8,
+      "perp": -0.05,
+      "d2": 0.0,
+      "jerk": 0.08,
+      "time_scale": 1.0,
+      "omega_scale": 0.0,
+      "arc_curvature": 0.0,
+      "z_scale": 1.0
+    },
+    {
+      "name": "jerk_small_neg",
+      "family_id": 0,
+      "d1": 1.98,
+      "par": 0.8,
+      "perp": -0.05,
+      "d2": 0.0,
+      "jerk": -0.08,
+      "time_scale": 1.0,
+      "omega_scale": 0.0,
+      "arc_curvature": 0.0,
+      "z_scale": 1.0
+    },
+    {
+      "name": "frenet_par120_perp020",
+      "family_id": 0,
+      "d1": 1.98,
+      "par": 1.2,
+      "perp": 0.2,
+      "d2": 0.0,
+      "jerk": 0.0,
+      "time_scale": 1.0,
+      "omega_scale": 0.0,
+      "arc_curvature": 0.0,
+      "z_scale": 1.0
+    },
+    {
+      "name": "frenet_fast_par120_perp_neg020",
+      "family_id": 0,
+      "d1": 2.08,
+      "par": 1.2,
+      "perp": -0.2,
+      "d2": 0.0,
+      "jerk": 0.0,
+      "time_scale": 1.0,
+      "omega_scale": 0.0,
+      "arc_curvature": 0.0,
+      "z_scale": 1.0
+    },
+    {
+      "name": "latency_short_frenet_best_085",
+      "family_id": 0,
+      "d1": 1.98,
+      "par": 0.96,
+      "perp": -0.08,
+      "d2": 0.0,
+      "jerk": 0.0,
+      "time_scale": 0.85,
+      "omega_scale": 0.0,
+      "arc_curvature": 0.0,
+      "z_scale": 1.0
+    },
+    {
+      "name": "latency_long_frenet_best_108",
+      "family_id": 0,
+      "d1": 1.98,
+      "par": 0.96,
+      "perp": -0.08,
+      "d2": 0.0,
+      "jerk": 0.0,
+      "time_scale": 1.08,
+      "omega_scale": 0.0,
+      "arc_curvature": 0.0,
+      "z_scale": 1.0
+    },
+    {
+      "name": "latency_long_frenet_best_115",
+      "family_id": 0,
+      "d1": 1.98,
+      "par": 0.96,
+      "perp": -0.08,
+      "d2": 0.0,
+      "jerk": 0.0,
+      "time_scale": 1.15,
+      "omega_scale": 0.0,
+      "arc_curvature": 0.0,
+      "z_scale": 1.0
+    },
+    {
+      "name": "latency_long_turn_neg_110",
+      "family_id": 0,
+      "d1": 1.98,
+      "par": 1.1,
+      "perp": -0.2,
+      "d2": 0.0,
+      "jerk": 0.0,
+      "time_scale": 1.1,
+      "omega_scale": 0.0,
+      "arc_curvature": 0.0,
+      "z_scale": 1.0
+    },
+    {
+      "name": "latency_short_turn_pos_090",
+      "family_id": 0,
+      "d1": 1.96,
+      "par": 0.9,
+      "perp": 0.2,
+      "d2": 0.0,
+      "jerk": 0.0,
+      "time_scale": 0.9,
+      "omega_scale": 0.0,
+      "arc_curvature": 0.0,
+      "z_scale": 1.0
+    },
+    {
+      "name": "arc_decel",
+      "family_id": 2,
+      "d1": 2.0,
+      "par": 0.0,
+      "perp": 0.0,
+      "d2": 0.0,
+      "jerk": 0.0,
+      "time_scale": 1.0,
+      "omega_scale": 0.0,
+      "arc_curvature": 0.9,
+      "z_scale": 1.0
+    },
+    {
+      "name": "rot_high_150",
+      "family_id": 1,
+      "d1": 2.0,
+      "par": 0.0,
+      "perp": 0.0,
+      "d2": 0.0,
+      "jerk": 0.0,
+      "time_scale": 1.0,
+      "omega_scale": 1.5,
+      "arc_curvature": 0.0,
+      "z_scale": 1.0
+    },
+    {
+      "name": "speed_slope_d1_120",
+      "family_id": 6,
+      "d1": 2.0,
+      "par": 1.2,
+      "perp": 0.0,
+      "d2": 0.0,
+      "jerk": 0.0,
+      "time_scale": 1.0,
+      "omega_scale": 0.5,
+      "arc_curvature": 0.0,
+      "z_scale": 1.0
+    },
+    {
+      "name": "rot_low_080",
+      "family_id": 1,
+      "d1": 2.0,
+      "par": 0.0,
+      "perp": 0.0,
+      "d2": 0.0,
+      "jerk": 0.0,
+      "time_scale": 1.0,
+      "omega_scale": 0.8,
+      "arc_curvature": 0.0,
+      "z_scale": 1.0
+    },
+    {
+      "name": "omega_speed",
+      "family_id": 6,
+      "d1": 2.0,
+      "par": 1.0,
+      "perp": 0.0,
+      "d2": 0.0,
+      "jerk": 0.0,
+      "time_scale": 1.0,
+      "omega_scale": 1.0,
+      "arc_curvature": 0.0,
+      "z_scale": 1.0
+    },
+    {
+      "name": "fs_3d_low_torsion",
+      "family_id": 3,
+      "d1": 2.0,
+      "par": 0.0,
+      "perp": 0.0,
+      "d2": 0.0,
+      "jerk": 0.0,
+      "time_scale": 1.0,
+      "omega_scale": 0.0,
+      "arc_curvature": 0.0,
+      "z_scale": 0.5
+    }
+  ],
+  "templates_added_count": 6,
+  "templates_remaining_count": 9,
+  "stop_reason": "delta_below_threshold",
+  "per_regime_worst": {
+    "10": {
+      "n": 546,
+      "oracle_after_greedy": 0.5512820512820513
+    },
+    "16": {
+      "n": 354,
+      "oracle_after_greedy": 0.3502824858757062
+    },
+    "17": {
+      "n": 356,
+      "oracle_after_greedy": 0.47191011235955055
+    }
+  }
+}

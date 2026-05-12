@@ -1,0 +1,523 @@
+{
+  "pruning_method": "structural_containment_v2.4+v2.7_incremental_safety",
+  "candidate_count_identified": 24,
+  "pruned_count": 15,
+  "rejected_count": 9,
+  "remaining_count": 12,
+  "pruned_pairs": [
+    {
+      "idx": 2,
+      "name": "acc_2d1_050",
+      "dominator_idx": 1,
+      "dominator_name": "acc_2d1_040",
+      "rule": "soft",
+      "containment_soft": 0.9954912935323383,
+      "coord_dist": 0.00044314618571661413,
+      "hit_rate_i": 0.6432,
+      "hit_rate_j": 0.6453,
+      "oracle_delta_if_removed": 0.0,
+      "agg_delta_after_accept": 0.0
+    },
+    {
+      "idx": 5,
+      "name": "frenet_best",
+      "dominator_idx": 6,
+      "dominator_name": "frenet_par090_perp000",
+      "rule": "soft",
+      "containment_soft": 0.9950814632646787,
+      "coord_dist": 0.0003120696055702865,
+      "hit_rate_i": 0.6506,
+      "hit_rate_j": 0.6511,
+      "oracle_delta_if_removed": 0.0,
+      "agg_delta_after_accept": 0.0
+    },
+    {
+      "idx": 6,
+      "name": "frenet_par090_perp000",
+      "dominator_idx": 7,
+      "dominator_name": "frenet_par100_perp000",
+      "rule": "soft",
+      "containment_soft": 0.9969282752265397,
+      "coord_dist": 0.00025348979397676885,
+      "hit_rate_i": 0.6511,
+      "hit_rate_j": 0.6515,
+      "oracle_delta_if_removed": 0.0,
+      "agg_delta_after_accept": 0.0
+    },
+    {
+      "idx": 7,
+      "name": "frenet_par100_perp000",
+      "dominator_idx": 9,
+      "dominator_name": "frenet_par090_perp020",
+      "rule": "soft",
+      "containment_soft": 0.9878741366078281,
+      "coord_dist": 0.0007408123346976936,
+      "hit_rate_i": 0.6515,
+      "hit_rate_j": 0.6527,
+      "oracle_delta_if_removed": 0.0,
+      "agg_delta_after_accept": 0.0
+    },
+    {
+      "idx": 8,
+      "name": "frenet_par100_perp_neg010",
+      "dominator_idx": 6,
+      "dominator_name": "frenet_par090_perp000",
+      "rule": "soft",
+      "containment_soft": 0.9921622867680959,
+      "coord_dist": 0.0005100565031170845,
+      "hit_rate_i": 0.6507,
+      "hit_rate_j": 0.6511,
+      "oracle_delta_if_removed": 0.0,
+      "agg_delta_after_accept": 0.0
+    },
+    {
+      "idx": 9,
+      "name": "frenet_par090_perp020",
+      "dominator_idx": 18,
+      "dominator_name": "frenet_par120_perp020",
+      "rule": "soft",
+      "containment_soft": 0.9901945763750575,
+      "coord_dist": 0.0007781172753311694,
+      "hit_rate_i": 0.6527,
+      "hit_rate_j": 0.6528,
+      "oracle_delta_if_removed": 0.0,
+      "agg_delta_after_accept": 0.0
+    },
+    {
+      "idx": 10,
+      "name": "frenet_par080_perp020",
+      "dominator_idx": 5,
+      "dominator_name": "frenet_best",
+      "rule": "soft",
+      "containment_soft": 0.9835460556666155,
+      "coord_dist": 0.0010021948255598545,
+      "hit_rate_i": 0.6503,
+      "hit_rate_j": 0.6506,
+      "oracle_delta_if_removed": 0.0,
+      "agg_delta_after_accept": 0.0
+    },
+    {
+      "idx": 12,
+      "name": "frenet_fast_par100",
+      "dominator_idx": 5,
+      "dominator_name": "frenet_best",
+      "rule": "soft",
+      "containment_soft": 0.9913553565915406,
+      "coord_dist": 0.0008313630823977292,
+      "hit_rate_i": 0.6478,
+      "hit_rate_j": 0.6506,
+      "oracle_delta_if_removed": 0.0,
+      "agg_delta_after_accept": 0.0
+    },
+    {
+      "idx": 13,
+      "name": "frenet_slow_par100",
+      "dominator_idx": 5,
+      "dominator_name": "frenet_best",
+      "rule": "soft",
+      "containment_soft": 0.9896668723010488,
+      "coord_dist": 0.0009516613790765405,
+      "hit_rate_i": 0.6484,
+      "hit_rate_j": 0.6506,
+      "oracle_delta_if_removed": 0.0,
+      "agg_delta_after_accept": 0.0
+    },
+    {
+      "idx": 16,
+      "name": "frenet_par070_perp_neg020",
+      "dominator_idx": 5,
+      "dominator_name": "frenet_best",
+      "rule": "soft",
+      "containment_soft": 0.9916447470215071,
+      "coord_dist": 0.000836801715195179,
+      "hit_rate_i": 0.6463,
+      "hit_rate_j": 0.6506,
+      "oracle_delta_if_removed": 0.0,
+      "agg_delta_after_accept": 0.0
+    },
+    {
+      "idx": 1,
+      "name": "acc_2d1_040",
+      "dominator_idx": 5,
+      "dominator_name": "frenet_best",
+      "rule": "soft",
+      "containment_soft": 0.971796063846273,
+      "coord_dist": 0.001985745970159769,
+      "hit_rate_i": 0.6453,
+      "hit_rate_j": 0.6506,
+      "oracle_delta_if_removed": 9.999999999998899e-05,
+      "agg_delta_after_accept": 9.999999999998899e-05
+    },
+    {
+      "idx": 17,
+      "name": "frenet_par120_perp_neg020",
+      "dominator_idx": 5,
+      "dominator_name": "frenet_best",
+      "rule": "soft",
+      "containment_soft": 0.9881374210445232,
+      "coord_dist": 0.0008498156676068902,
+      "hit_rate_i": 0.6491,
+      "hit_rate_j": 0.6506,
+      "oracle_delta_if_removed": 9.999999999998899e-05,
+      "agg_delta_after_accept": 0.0004999999999999449
+    },
+    {
+      "idx": 22,
+      "name": "latency_short_frenet_best_092",
+      "dominator_idx": 0,
+      "dominator_name": "p0_2d1",
+      "rule": "soft",
+      "containment_soft": 0.9701350277998412,
+      "coord_dist": 0.0024953200481832027,
+      "hit_rate_i": 0.6295,
+      "hit_rate_j": 0.637,
+      "oracle_delta_if_removed": 9.999999999998899e-05,
+      "agg_delta_after_accept": 0.0006000000000000449
+    },
+    {
+      "idx": 20,
+      "name": "frenet_slow_par070_perp020",
+      "dominator_idx": 0,
+      "dominator_name": "p0_2d1",
+      "rule": "soft",
+      "containment_soft": 0.9651272384542884,
+      "coord_dist": 0.002365980064496398,
+      "hit_rate_i": 0.6366,
+      "hit_rate_j": 0.637,
+      "oracle_delta_if_removed": 0.00019999999999997797,
+      "agg_delta_after_accept": 0.0010000000000000009
+    },
+    {
+      "idx": 3,
+      "name": "acc_2d1_056",
+      "dominator_idx": 1,
+      "dominator_name": "acc_2d1_040",
+      "rule": "soft",
+      "containment_soft": 0.9918813427010148,
+      "coord_dist": 0.0007435361039824784,
+      "hit_rate_i": 0.6405,
+      "hit_rate_j": 0.6453,
+      "oracle_delta_if_removed": 0.00029999999999996696,
+      "agg_delta_after_accept": 0.0014999999999999458
+    }
+  ],
+  "rejected_pairs": [
+    {
+      "idx": 11,
+      "name": "frenet_par110_perp_neg020",
+      "dominator_idx": 5,
+      "dominator_name": "frenet_best",
+      "rule": "soft",
+      "containment_soft": 0.9898242368177613,
+      "coord_dist": 0.0008101641433313489,
+      "hit_rate_i": 0.6486,
+      "hit_rate_j": 0.6506,
+      "oracle_delta_if_removed": 0.00019999999999997797,
+      "reject_reason": "aggregate_unsafe",
+      "agg_delta_if_accept": 0.0023999999999999577
+    },
+    {
+      "idx": 23,
+      "name": "latency_long_frenet_best_108",
+      "dominator_idx": 0,
+      "dominator_name": "p0_2d1",
+      "rule": "soft",
+      "containment_soft": 0.959572125216297,
+      "coord_dist": 0.0032554299104958773,
+      "hit_rate_i": 0.6357,
+      "hit_rate_j": 0.637,
+      "oracle_delta_if_removed": 0.00029999999999996696,
+      "reject_reason": "aggregate_unsafe",
+      "agg_delta_if_accept": 0.0018000000000000238
+    },
+    {
+      "idx": 14,
+      "name": "jerk_small_pos",
+      "dominator_idx": 9,
+      "dominator_name": "frenet_par090_perp020",
+      "rule": "soft",
+      "containment_soft": 0.9860408038042645,
+      "coord_dist": 0.0008831829763948917,
+      "hit_rate_i": 0.6519,
+      "hit_rate_j": 0.6527,
+      "oracle_delta_if_removed": 0.00039999999999995595,
+      "reject_reason": "aggregate_unsafe",
+      "agg_delta_if_accept": 0.0020000000000000018
+    },
+    {
+      "idx": 19,
+      "name": "frenet_fast_par120_perp_neg020",
+      "dominator_idx": 1,
+      "dominator_name": "acc_2d1_040",
+      "rule": "soft",
+      "containment_soft": 0.9549339549339549,
+      "coord_dist": 0.0031414402183145285,
+      "hit_rate_i": 0.6435,
+      "hit_rate_j": 0.6453,
+      "oracle_delta_if_removed": 0.00039999999999995595,
+      "reject_reason": "aggregate_unsafe",
+      "agg_delta_if_accept": 0.0023999999999999577
+    },
+    {
+      "idx": 15,
+      "name": "jerk_small_neg",
+      "dominator_idx": 5,
+      "dominator_name": "frenet_best",
+      "rule": "soft",
+      "containment_soft": 0.9862378227926396,
+      "coord_dist": 0.0009361981647089124,
+      "hit_rate_i": 0.6467,
+      "hit_rate_j": 0.6506,
+      "oracle_delta_if_removed": 0.0004999999999999449,
+      "reject_reason": "aggregate_unsafe",
+      "agg_delta_if_accept": 0.0023999999999999577
+    },
+    {
+      "idx": 26,
+      "name": "latency_short_turn_pos_090",
+      "dominator_idx": 0,
+      "dominator_name": "p0_2d1",
+      "rule": "soft",
+      "containment_soft": 0.9614366103939093,
+      "coord_dist": 0.003353462554514408,
+      "hit_rate_i": 0.6042,
+      "hit_rate_j": 0.637,
+      "oracle_delta_if_removed": 0.0004999999999999449,
+      "reject_reason": "aggregate_unsafe",
+      "agg_delta_if_accept": 0.0033999999999999586
+    },
+    {
+      "idx": 4,
+      "name": "acc_2d1_060",
+      "dominator_idx": 1,
+      "dominator_name": "acc_2d1_040",
+      "rule": "soft",
+      "containment_soft": 0.9896858884200657,
+      "coord_dist": 0.0009083664626814425,
+      "hit_rate_i": 0.6399,
+      "hit_rate_j": 0.6453,
+      "oracle_delta_if_removed": 0.0007000000000000339,
+      "reject_reason": "aggregate_unsafe",
+      "agg_delta_if_accept": 0.013700000000000045
+    },
+    {
+      "idx": 25,
+      "name": "latency_long_turn_neg_110",
+      "dominator_idx": 0,
+      "dominator_name": "p0_2d1",
+      "rule": "soft",
+      "containment_soft": 0.9552627297868879,
+      "coord_dist": 0.004556405823677778,
+      "hit_rate_i": 0.6147,
+      "hit_rate_j": 0.637,
+      "oracle_delta_if_removed": 0.0007000000000000339,
+      "reject_reason": "aggregate_unsafe",
+      "agg_delta_if_accept": 0.0021999999999999797
+    },
+    {
+      "idx": 0,
+      "name": "p0_2d1",
+      "dominator_idx": 1,
+      "dominator_name": "acc_2d1_040",
+      "rule": "soft",
+      "containment_soft": 0.9747252747252747,
+      "coord_dist": 0.0016944369999691844,
+      "hit_rate_i": 0.637,
+      "hit_rate_j": 0.6453,
+      "oracle_delta_if_removed": 0.0009000000000000119,
+      "reject_reason": "aggregate_unsafe",
+      "agg_delta_if_accept": 0.0023999999999999577
+    }
+  ],
+  "incremental_trace": [
+    {
+      "step": 1,
+      "idx": 2,
+      "name": "acc_2d1_050",
+      "agg_delta": 0.0,
+      "remaining": 26
+    },
+    {
+      "step": 2,
+      "idx": 5,
+      "name": "frenet_best",
+      "agg_delta": 0.0,
+      "remaining": 25
+    },
+    {
+      "step": 3,
+      "idx": 6,
+      "name": "frenet_par090_perp000",
+      "agg_delta": 0.0,
+      "remaining": 24
+    },
+    {
+      "step": 4,
+      "idx": 7,
+      "name": "frenet_par100_perp000",
+      "agg_delta": 0.0,
+      "remaining": 23
+    },
+    {
+      "step": 5,
+      "idx": 8,
+      "name": "frenet_par100_perp_neg010",
+      "agg_delta": 0.0,
+      "remaining": 22
+    },
+    {
+      "step": 6,
+      "idx": 9,
+      "name": "frenet_par090_perp020",
+      "agg_delta": 0.0,
+      "remaining": 21
+    },
+    {
+      "step": 7,
+      "idx": 10,
+      "name": "frenet_par080_perp020",
+      "agg_delta": 0.0,
+      "remaining": 20
+    },
+    {
+      "step": 8,
+      "idx": 12,
+      "name": "frenet_fast_par100",
+      "agg_delta": 0.0,
+      "remaining": 19
+    },
+    {
+      "step": 9,
+      "idx": 13,
+      "name": "frenet_slow_par100",
+      "agg_delta": 0.0,
+      "remaining": 18
+    },
+    {
+      "step": 10,
+      "idx": 16,
+      "name": "frenet_par070_perp_neg020",
+      "agg_delta": 0.0,
+      "remaining": 17
+    },
+    {
+      "step": 11,
+      "idx": 1,
+      "name": "acc_2d1_040",
+      "agg_delta": 9.999999999998899e-05,
+      "remaining": 16
+    },
+    {
+      "step": 12,
+      "idx": 17,
+      "name": "frenet_par120_perp_neg020",
+      "agg_delta": 0.0004999999999999449,
+      "remaining": 15
+    },
+    {
+      "step": 13,
+      "idx": 22,
+      "name": "latency_short_frenet_best_092",
+      "agg_delta": 0.0006000000000000449,
+      "remaining": 14
+    },
+    {
+      "step": 14,
+      "idx": 20,
+      "name": "frenet_slow_par070_perp020",
+      "agg_delta": 0.0010000000000000009,
+      "remaining": 13
+    },
+    {
+      "step": 15,
+      "idx": 3,
+      "name": "acc_2d1_056",
+      "agg_delta": 0.0014999999999999458,
+      "remaining": 12
+    }
+  ],
+  "oracle_orig": 0.7188,
+  "oracle_pruned": 0.7173,
+  "oracle_delta": -0.0014999999999999458,
+  "oracle_safe": true,
+  "safety_threshold_used": 0.0018,
+  "soft_hit_pruned_posthoc": 0.6486,
+  "kept_indices": [
+    0,
+    4,
+    11,
+    14,
+    15,
+    18,
+    19,
+    21,
+    23,
+    24,
+    25,
+    26
+  ],
+  "kept_names": [
+    "p0_2d1",
+    "acc_2d1_060",
+    "frenet_par110_perp_neg020",
+    "jerk_small_pos",
+    "jerk_small_neg",
+    "frenet_par120_perp020",
+    "frenet_fast_par120_perp_neg020",
+    "latency_short_frenet_best_085",
+    "latency_long_frenet_best_108",
+    "latency_long_frenet_best_115",
+    "latency_long_turn_neg_110",
+    "latency_short_turn_pos_090"
+  ],
+  "kept_pruned_specs": [
+    {
+      "name": "p0_2d1",
+      "idx": 0
+    },
+    {
+      "name": "acc_2d1_060",
+      "idx": 4
+    },
+    {
+      "name": "frenet_par110_perp_neg020",
+      "idx": 11
+    },
+    {
+      "name": "jerk_small_pos",
+      "idx": 14
+    },
+    {
+      "name": "jerk_small_neg",
+      "idx": 15
+    },
+    {
+      "name": "frenet_par120_perp020",
+      "idx": 18
+    },
+    {
+      "name": "frenet_fast_par120_perp_neg020",
+      "idx": 19
+    },
+    {
+      "name": "latency_short_frenet_best_085",
+      "idx": 21
+    },
+    {
+      "name": "latency_long_frenet_best_108",
+      "idx": 23
+    },
+    {
+      "name": "latency_long_frenet_best_115",
+      "idx": 24
+    },
+    {
+      "name": "latency_long_turn_neg_110",
+      "idx": 25
+    },
+    {
+      "name": "latency_short_turn_pos_090",
+      "idx": 26
+    }
+  ]
+}
