@@ -3,20 +3,21 @@ plan_id: 006
 based_on:
   - 004
   - 005
-finished_at: 2026-05-12T11:13:37+09:00
-status: partial
+finished_at: 2026-05-12T11:26:49+09:00
+status: all_complete
 exp_ids_completed:
   - E001_minimal-variant-e
 lb_exp_id: E001_minimal-variant-e
-lb_score: TBD
+lb_score: 0.6692
 lb_submitted_at: 2026-05-12T11:13:37+09:00
+lb_recovered_at: 2026-05-12T11:26:49+09:00
 ---
 
 # plan-006 results — Minimal Variant E LB Validation
 
 ## §1. 한 문장 결론
 
-> plan-005 의 통찰 "PB framework 의 진짜 엔진은 *27 후보 + physics_bias + soft averaging* 뿐" 을 OOF 에서 **0.6524** 로 측정 (plan-005 추정 0.6517 과 7bp 차이 — 추정 신뢰도 검증). **LB 점수 회수 대기** (carry-over open).
+> plan-005 의 통찰 "PB framework 의 진짜 엔진은 *27 후보 + physics_bias + soft averaging* 뿐" 을 OOF=**0.6524** + LB=**0.6692** 로 직접 검증. plan §0 명제 1 (`lb_score ≥ 0.6606`) **입증 ✓**. full LB 0.6806 대비 -1.14pp 손실로 95% framework 단순화 가능 — **시나리오 A** 채택.
 
 ## §2. 핵심 수치
 
@@ -67,25 +68,30 @@ n 합 = 10000 (assert 통과). worst 3 regime: 16 (0.2203), 17 (0.2584), 10 (0.4
 - top-5: `frenet_par120_perp_neg020`, `frenet_best`, `frenet_par100_perp000`, `frenet_par120_perp020`, `frenet_par110_perp_neg020`
 - 모두 `frenet_*` family (par 100~120% × perp -20~20% 의 8 변형 + best) — 의미: "현재 속도 그대로 20 step 진행한 frenet 좌표 + 약간의 lateral shift". 27 후보 중 *speed extrapolation* 류만 hot.
 
-## §3. plan-005 통찰 LB 입증 — 결론 보류
+## §3. plan-005 통찰 LB 입증 — 시나리오 A 채택
 
-`lb_score: TBD` (dacon dashboard 회수 대기). 회수 후 분기:
+**LB lb_score = 0.6692** (2026-05-12 11:26:49 KST 회수).
 
-- **시나리오 A** (`lb_score ≥ 0.6606`):
-  - plan-005 통찰 입증 — PB framework 의 95% 단순화 가능.
-  - 후속 plan-007 = 후보 다양화 / boundary corrector 재설계.
-- **시나리오 B** (`lb_score < 0.6606`):
-  - GRU/regime 의 OOF↔LB gap 이 noise floor 보다 큼.
-  - 후속 plan-007 = GRU/regime 의 *LB-only* lift 분석.
+- 명제 1: `lb_score ≥ 0.6606` (inclusive) → **0.6692 ≥ 0.6606 ✓ 입증**.
+- 명제 2: `lb_score < 0.6606` (strict) → 미발동.
+- 명제 3: 결과 anchor — 시나리오 A 채택.
 
-## §4. plan-004 full LB (0.6806) 와 비교 (가설)
+severe trigger 점검:
+- `lb_anomaly` (`|x − 0.6806| ≥ 0.05`): `|0.6692 − 0.6806| = 0.0114` < 0.05 → 미발동 ✓.
+- nominal caveat `[0.62, 0.72]` (§N+3 caveat 7): 0.6692 ∈ [0.62, 0.72] → 미발동 ✓.
 
-OOF→LB gap 가정 (plan-004 측정 +0.0207):
-- Variant E LB ≈ 0.6524 + 0.0207 = **~0.6731** (추정)
-- full LB = 0.6806 (측정)
-- 추정 LB diff = -0.0075 (Variant E 가 full 보다 0.75pp 낮음 추정)
+## §4. plan-004 full LB (0.6806) 와 비교 (측정)
 
-→ 추정값이 옳다면 `lb_score ≥ 0.6606` (= 0.6806 − 0.02) 합격 — 시나리오 A.
+| Metric | Variant E (plan-006) | full (plan-004) | Δ |
+|---|---|---|---|
+| OOF (soft) | 0.6524 | 0.6599 | -0.0075 |
+| LB | **0.6692** | 0.6806 | **-0.0114** |
+| OOF→LB gap | +0.0168 | +0.0207 | -0.0039 |
+
+핵심 관찰:
+- **gap variant 간 일관**: Variant E gap (+0.0168) 와 full gap (+0.0207) 의 차이는 -0.0039 (≈ 4 hits) — 거의 동일. plan-005 의 "OOF→LB gap 은 variant 무관" 추정이 검증됨.
+- **GRU + regime 의 LB 기여 ≈ +0.0114pp** (LB 단위). plan-005 의 OOF 기여 측정 +0.0075pp 와 거의 동일 — *out-of-sample* 에서 GRU/regime 이 *추가* 손실을 막지 못함. 즉 GRU + regime 의 LB 기여 ≈ OOF 기여 + noise.
+- → 후속 plan-007 = **시나리오 A 우선**: 후보 다양화 (A1) + corrector 재설계 (A2).
 
 ## §5. Decision-note 박제
 
@@ -105,4 +111,4 @@ OOF→LB gap 가정 (plan-004 측정 +0.0207):
 
 - 2026-05-12 11:13 KST: c5 — dacon-submit 성공 (`isSubmitted: True, detail: Success`).
 - 2026-05-12 11:13 KST: c6 — STAGE 4 synthesis. lb_score=TBD (carry-over).
-- (대기) c5.1: lb_score 회수 후 3 파일 frontmatter 동시 갱신 + status `all_complete`.
+- 2026-05-12 11:26 KST: c5.1 — 사용자 LB 회수 = **0.6692**. 3 파일 frontmatter 동시 갱신 + status `all_complete`. 시나리오 A 채택 (plan-005 통찰 LB 단위 입증).

@@ -1,12 +1,15 @@
 ---
 plan_id: 006
 generated: 2026-05-12T11:13:37+09:00
-status: partial (LB 회수 대기 — 시나리오 A/B 모두 박제)
+finalized: 2026-05-12T11:26:49+09:00
+status: all_complete — 시나리오 A 채택 (LB=0.6692 ≥ 0.6606 cutoff)
+scenario: A
+selected_priority: A1 (후보 다양화) > A2 (corrector 재설계)
 ---
 
 # plan-007 후보 (≥ 2)
 
-본 plan 의 LB 점수가 비동기 (carry-over) 인 상태에서 시나리오별 후보 박제. 점수 회수 후 우선순위 재배치 (plan-007 작성 시).
+**시나리오 A 채택** (LB=0.6692, plan-005 통찰 LB 단위 입증). 후속 plan-007 의 우선순위 = **A1 (후보 다양화) → A2 (corrector 재설계)**. 시나리오 B 후보 (B1/B2) 는 보존만 (재발동 가능성 낮음).
 
 ---
 
@@ -79,9 +82,10 @@ status: partial (LB 회수 대기 — 시나리오 A/B 모두 박제)
 
 ---
 
-## 우선순위 (LB 회수 후 결정)
+## 우선순위 (LB=0.6692 회수 후 결정 — 시나리오 A)
 
-- **A 시나리오**: A1 (후보 다양화) 우선 — 단순 + ROI 명확.
-- **B 시나리오**: B2 (hybrid binary search) 우선 — 측정 비용 < B1, 정보량 ≥ B1.
+- **A1 후보 다양화** (1순위, 채택) — worst regime 16/17/10 의 hit < 0.42 가 LB 손실의 주원인 추정. 27 → 35 후보로 high-speed/turn regime 커버. ROI 명확, 재학습 1회.
+- **A2 corrector 재설계** (2순위) — corrector lift +0.0274 (전체 lift 의 주력) → corrector 가 새 main target. residual block 추가 / multi-task loss.
+- (보존) B1/B2 — 시나리오 B 미발동, but `gap diff = -0.0039` 가 noise 인지 systemic 인지 검증하려면 미래 plan 에서 Variant A LB 1회 추가 측정 권장.
 
-LB 회수 후 1 후보 채택 → plan-007 작성.
+→ plan-007 = **A1 (후보 다양화)** 채택.

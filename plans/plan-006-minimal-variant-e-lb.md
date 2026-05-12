@@ -2,7 +2,7 @@
 plan_id: 006
 version: 2
 date: 2026-05-12 (Asia/Seoul)
-status: partial
+status: all_complete
 based_on:
   - 004
   - 005
@@ -11,7 +11,7 @@ based_on:
 scope: minimal-variant LB validation (no retrain — physics_bias + soft averaging only, 1 LB submission)
 exp_ids:
   - E001_minimal-variant-e
-lb_score: TBD
+lb_score: 0.6692
 ---
 
 # plan-006 v1 — Minimal Variant E LB Validation (physics_bias + soft averaging, no GRU, no regime)
@@ -45,8 +45,8 @@ lb_score: TBD
 - G0: STAGE 0 인프라 + plan-004/005 산출 검증 (재생성 fallback 포함)  [DONE 4cca05d]
 - G1: STAGE 1 — Variant E OOF hit (raw + corrected 둘 다) + per-regime 박제  [DONE 4cca05d]
 - G2: STAGE 2 — `submission.csv` 생성 + schema 검증  [DONE 20612f8]
-- G3: STAGE 3 — LB 자율 제출 + `lb_score` 회수  [DONE 54119b5] (partial — lb_score TBD carry-over)
-- G_final: STAGE 4 — synthesis + plan-007 후보 + 3 파일 frontmatter 동시 박제  [DONE 0511e94] (partial — lb_score TBD)
+- G3: STAGE 3 — LB 자율 제출 + `lb_score` 회수  [DONE 54119b5 → c5.1: lb_score=0.6692]
+- G_final: STAGE 4 — synthesis + plan-007 후보 + 3 파일 frontmatter 동시 박제  [DONE 0511e94 → c5.1: all_complete]
 
 ### Commit chain (next-up)
 
@@ -63,7 +63,7 @@ lb_score: TBD
 | G3 | gate | LB 점수 회수 (float, isSubmitted=True) + lb_log.md 박제 | [DONE 54119b5] (partial) |
 | c6 | synthesis | `analysis/plan-006/results.md` + `next_plan_candidates.md` (≥ 2 후보). spec @ §8 | [DONE 0511e94] |
 | G_final | gate | results.md + next plan 후보 ≥ 2 + 3 파일 frontmatter 동시 박제 | [DONE 0511e94] (partial) |
-| c5.1 | carry-over | (대기) lb_score 회수 후 3 파일 frontmatter TBD → `<float>` + status partial → all_complete + lb_log.md row append | [PENDING — user-driven] |
+| c5.1 | carry-over | lb_score=0.6692 회수 → 3 파일 frontmatter TBD → 0.6692 + status partial → all_complete + lb_log.md row append + 시나리오 A 입증 결론 박제 | [DONE <c5_1_hash>] |
 
 ### Plan-specific severe (WORKFLOW.md §12.3 default 위 추가분)
 
