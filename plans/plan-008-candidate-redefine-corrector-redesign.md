@@ -77,7 +77,7 @@ lb_score: null
 | c1.6 | docs | v2.6 spec 갱신 — Plan agent 검토 반영. (1) §7.1 LB 잔재 fix, (2) §6.0 sanity_baseline_27 신설 (family 효과 분리), (3) caveat #20 (oracle 0.85 낙관), (4) §6.2 assert 강화 (regime_bias_table 분산). spec @ §0/§0.5/§6.0/§6.2/§6.4/§6.6/§7.1/§7.7/§N+3/§N+4 | [DONE a52b984] |
 | c1.7 | docs | v2.7 spec 갱신 — plan-review-master 5-iter sweep (16 BLOCKER + 14 AMB fix) + §4.1 pruning auto-relaxation. spec @ §0/§0.5/§3/§4/§5/§6/§7/§N+3 #17/§N+4 | [DONE ce7366c] |
 | c2 | code | `analysis/plan-008/diagnostic.py` — STAGE 1 진단 (**oracle miss residual** + structural pruning containment + softmax diffusion + per-regime oracle sanity + ranking-vs-drift 분해). spec @ §4 | [DONE ebd4979] |
-| c2.5 | code | `src/pb_0_6822/selector.py` partial 수정 — CandidateSpec schema 확장 (Option A, 3 곳). spec @ §5.2.0 | [TODO] |
+| c2.5 | code | `src/pb_0_6822/selector.py` partial 수정 — CandidateSpec schema 확장 (Option A, 3 곳). spec @ §5.2.0 | [DONE 89f3b3f] — smoke 6 pass, dim (27,16) (27→32) ✓ |
 | G0 | gate | diagnostic.{json,md} 박제 + dominant cause(s) + prune list + margin 분포 + per-regime oracle gap | [TODO] |
 | c3 | code | `src/pb_0_6822/candidates_extended.py` — 5 family 후보 정의 모듈 (Family 4 drop, snap drop, fs_3d_binormal). spec @ §5.2 | [TODO] |
 | c4 | code | `analysis/plan-008/prune_and_redefine.py` — Step 2a (prune) + Step 2b (**Greedy set cover Strategy D**). spec @ §5 | [TODO] |
