@@ -1,0 +1,42 @@
+{
+  "sub_exp": "P1.F3",
+  "n_val": 2020,
+  "fold": 0,
+  "oof_soft_hit": 0.09801980198019802,
+  "oof_raw_hit": 0.09801980198019802,
+  "corrector_gain": 0.0,
+  "per_band_hit_after": {
+    "[0,0.5cm)": {
+      "n": 47,
+      "hit_before": 1.0,
+      "hit_after": 1.0,
+      "delta": 0.0
+    },
+    "[0.5,1cm)": {
+      "n": 151,
+      "hit_before": 1.0,
+      "hit_after": 1.0,
+      "delta": 0.0
+    },
+    "[1,1.5cm)": {
+      "n": 190,
+      "hit_before": 0.0,
+      "hit_after": 0.0,
+      "delta": 0.0
+    },
+    "[1.5,2cm)": {
+      "n": 193,
+      "hit_before": 0.0,
+      "hit_after": 0.0,
+      "delta": 0.0
+    },
+    "[2cm,inf)": {
+      "n": 1439,
+      "hit_before": 0.0,
+      "hit_after": 0.0,
+      "delta": 0.0
+    }
+  },
+  "elapsed_sec": 3.504478693008423,
+  "best_val_hit": 0.0980198085308075
+}

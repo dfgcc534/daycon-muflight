@@ -1,0 +1,240 @@
+{
+  "phase": "Phase 1.F Formula axis ablation",
+  "n_folds": 1,
+  "fold": 0,
+  "anchor": "P1.F0",
+  "anchor_oof_soft_hit": 0.6400990099009901,
+  "sub_exps": {
+    "P1.F0": {
+      "sub_exp": "P1.F0",
+      "n_val": 2020,
+      "fold": 0,
+      "oof_soft_hit": 0.6400990099009901,
+      "oof_raw_hit": 0.6400990099009901,
+      "corrector_gain": 0.0,
+      "per_band_hit_after": {
+        "[0,0.5cm)": {
+          "n": 692,
+          "hit_before": 1.0,
+          "hit_after": 1.0,
+          "delta": 0.0
+        },
+        "[0.5,1cm)": {
+          "n": 601,
+          "hit_before": 1.0,
+          "hit_after": 1.0,
+          "delta": 0.0
+        },
+        "[1,1.5cm)": {
+          "n": 349,
+          "hit_before": 0.0,
+          "hit_after": 0.0,
+          "delta": 0.0
+        },
+        "[1.5,2cm)": {
+          "n": 97,
+          "hit_before": 0.0,
+          "hit_after": 0.0,
+          "delta": 0.0
+        },
+        "[2cm,inf)": {
+          "n": 281,
+          "hit_before": 0.0,
+          "hit_after": 0.0,
+          "delta": 0.0
+        }
+      },
+      "elapsed_sec": 0.0,
+      "training": "X (F0 reuse from CANDIDATES[17])",
+      "delta_vs_anchor": 0.0
+    },
+    "P1.F1": {
+      "sub_exp": "P1.F1",
+      "n_val": 2020,
+      "fold": 0,
+      "oof_soft_hit": 0.6400990099009901,
+      "oof_raw_hit": 0.6400990099009901,
+      "corrector_gain": 0.0,
+      "per_band_hit_after": {
+        "[0,0.5cm)": {
+          "n": 692,
+          "hit_before": 1.0,
+          "hit_after": 1.0,
+          "delta": 0.0
+        },
+        "[0.5,1cm)": {
+          "n": 601,
+          "hit_before": 1.0,
+          "hit_after": 1.0,
+          "delta": 0.0
+        },
+        "[1,1.5cm)": {
+          "n": 349,
+          "hit_before": 0.0,
+          "hit_after": 0.0,
+          "delta": 0.0
+        },
+        "[1.5,2cm)": {
+          "n": 97,
+          "hit_before": 0.0,
+          "hit_after": 0.0,
+          "delta": 0.0
+        },
+        "[2cm,inf)": {
+          "n": 281,
+          "hit_before": 0.0,
+          "hit_after": 0.0,
+          "delta": 0.0
+        }
+      },
+      "elapsed_sec": 0.0,
+      "training": "X (F0 reuse from CANDIDATES[17])",
+      "skip_reason": "plan-007 Step 2/3 best params not pinned in repo — F0 reuse",
+      "fallback": "F0 reuse",
+      "delta_vs_anchor": 0.0
+    },
+    "P1.F2": {
+      "sub_exp": "P1.F2",
+      "n_val": 2020,
+      "fold": 0,
+      "oof_soft_hit": 0.6400990099009901,
+      "oof_raw_hit": 0.6400990099009901,
+      "corrector_gain": 0.0,
+      "per_band_hit_after": {
+        "[0,0.5cm)": {
+          "n": 692,
+          "hit_before": 1.0,
+          "hit_after": 1.0,
+          "delta": 0.0
+        },
+        "[0.5,1cm)": {
+          "n": 601,
+          "hit_before": 1.0,
+          "hit_after": 1.0,
+          "delta": 0.0
+        },
+        "[1,1.5cm)": {
+          "n": 349,
+          "hit_before": 0.0,
+          "hit_after": 0.0,
+          "delta": 0.0
+        },
+        "[1.5,2cm)": {
+          "n": 97,
+          "hit_before": 0.0,
+          "hit_after": 0.0,
+          "delta": 0.0
+        },
+        "[2cm,inf)": {
+          "n": 281,
+          "hit_before": 0.0,
+          "hit_after": 0.0,
+          "delta": 0.0
+        }
+      },
+      "elapsed_sec": 0.0,
+      "training": "X (F0 reuse from CANDIDATES[17])",
+      "skip_reason": "plan-007 Step 2/3 best params not pinned in repo — F0 reuse",
+      "fallback": "F0 reuse",
+      "delta_vs_anchor": 0.0
+    },
+    "P1.F3": {
+      "sub_exp": "P1.F3",
+      "n_val": 2020,
+      "fold": 0,
+      "oof_soft_hit": 0.09801980198019802,
+      "oof_raw_hit": 0.09801980198019802,
+      "corrector_gain": 0.0,
+      "per_band_hit_after": {
+        "[0,0.5cm)": {
+          "n": 47,
+          "hit_before": 1.0,
+          "hit_after": 1.0,
+          "delta": 0.0
+        },
+        "[0.5,1cm)": {
+          "n": 151,
+          "hit_before": 1.0,
+          "hit_after": 1.0,
+          "delta": 0.0
+        },
+        "[1,1.5cm)": {
+          "n": 190,
+          "hit_before": 0.0,
+          "hit_after": 0.0,
+          "delta": 0.0
+        },
+        "[1.5,2cm)": {
+          "n": 193,
+          "hit_before": 0.0,
+          "hit_after": 0.0,
+          "delta": 0.0
+        },
+        "[2cm,inf)": {
+          "n": 1439,
+          "hit_before": 0.0,
+          "hit_after": 0.0,
+          "delta": 0.0
+        }
+      },
+      "elapsed_sec": 3.504478693008423,
+      "best_val_hit": 0.0980198085308075,
+      "delta_vs_anchor": -0.5420792079207921
+    },
+    "P1.F4": {
+      "sub_exp": "P1.F4",
+      "n_val": 2020,
+      "fold": 0,
+      "oof_soft_hit": 0.03217821782178218,
+      "oof_raw_hit": 0.03217821782178218,
+      "corrector_gain": 0.0,
+      "per_band_hit_after": {
+        "[0,0.5cm)": {
+          "n": 9,
+          "hit_before": 1.0,
+          "hit_after": 1.0,
+          "delta": 0.0
+        },
+        "[0.5,1cm)": {
+          "n": 56,
+          "hit_before": 1.0,
+          "hit_after": 1.0,
+          "delta": 0.0
+        },
+        "[1,1.5cm)": {
+          "n": 129,
+          "hit_before": 0.0,
+          "hit_after": 0.0,
+          "delta": 0.0
+        },
+        "[1.5,2cm)": {
+          "n": 156,
+          "hit_before": 0.0,
+          "hit_after": 0.0,
+          "delta": 0.0
+        },
+        "[2cm,inf)": {
+          "n": 1670,
+          "hit_before": 0.0,
+          "hit_after": 0.0,
+          "delta": 0.0
+        }
+      },
+      "elapsed_sec": 1.9455769062042236,
+      "best_val_hit": 0.03217821940779686,
+      "final_coef": [
+        1.895058512687683,
+        -0.016965748742222786,
+        1.1876907348632812,
+        -0.1966119259595871,
+        0.005596584174782038,
+        0.9549168944358826
+      ],
+      "delta_vs_anchor": -0.6079207920792079
+    }
+  },
+  "axis_positive_threshold_0p005": false,
+  "max_delta_vs_anchor": 0.0,
+  "best_lever": "P1.F1",
+  "generated_at": "2026-05-13T05:31:39.313726+09:00"
+}
