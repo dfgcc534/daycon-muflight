@@ -18,7 +18,7 @@ based_on:
 followed_by:
   - 011.1 (LB carry-over; user manual dacon-submit)
   - 012 (TBD; candidates @ analysis/plan-011/next_plan_candidates.md)
-scope: 단일공식 + corrector path 의 *구체화 + 폭넓은 탐색*. plan-006 의 frenet_par120_perp_neg020 + plan-004 corrector LB 0.6692 baseline 위에 corrector 4 axis (Input × Loss × Arch × Formula) 폭넓은 ablation 으로 *진정한 ceiling* 측정 + lever attribution. Phase 0 diagnostics (재학습 0~minimal) → Phase 1 single-axis 25 sub-exp (1-fold approx, ★ 정보 핵심) → Phase 2 best-axis selection → Phase 3 pairwise 4 sub-exp (5-fold super-additive) → Phase 4 triple stack 1~2 sub-exp → 조건부 Phase 5 iterative / Phase 6 inference augment / Phase 7 synthesis. LB 제출 0 회 (plan-009.1 carry-over 패턴 답습) — plan-011.1 carry-over.
+scope: 단일공식 + corrector path 의 *구체화 + 폭넓은 탐색*. plan-006 의 frenet_par120_perp_neg020 + plan-004 corrector LB 0.6692 baseline 위에 corrector 4 axis (Input × Loss × Arch × Formula) 폭넓은 ablation 으로 *진정한 ceiling* 측정 + lever attribution. Phase 0 diagnostics (재학습 0~minimal) → Phase 1 single-axis 24 sub-exp + F0 reuse (= 표기 25 의 unique 실행은 24; 1-fold approx, ★ 정보 핵심) → Phase 2 best-axis selection → Phase 3 pairwise 4 sub-exp + 3~4 solo prep (5-fold super-additive) → Phase 4 triple stack 1~2 sub-exp → 조건부 Phase 5 iterative / Phase 6 inference augment / Phase 7 synthesis. LB 제출 0 회 (plan-009.1 carry-over 패턴 답습) — plan-011.1 carry-over.
 exp_ids:
   - H010_phase0-diagnostics           # G0 — D001 oracle simulation + plan-006 reproduce + decomp 재측정
   - H011_phase1-loss-ablation         # G1.L — P1.L0~L7 (loss axis 8 sub-exp)
@@ -57,7 +57,7 @@ lb_score: null
 ### 합격 기준 (G-gate sequence)
 
 - **G0** (Phase 0 diagnostics): D001 oracle simulation (perfect gate ceiling) + plan-006 reproduce (raw single formula OOF ∈ [0.627, 0.637]) + plan-005 corrector_decomp 재측정 + `analysis/plan-011/preflight.json` 생성. 위반 시 `preflight_artifact_missing` severe.
-- **G1** (Phase 1 single-axis ablation, ★ 정보 핵심): 4 axis 모두 완료 — L axis 8 sub-exp + In axis 5 sub-exp + M axis 7 sub-exp + F axis 4 sub-exp (F0 reuse). 1-fold approx (fold=0). 각 axis 의 *best lever* 식별. (a) 모든 24 sub-exp informational 완료 (fail 없음 — attribution 목적). (b) 4 axis 중 *최소 2 axis* 에서 +0.005 marginal OOF gain (single-formula + corrector path 의 *부정 방지*). 위반 시 `phase1_no_lever_positive` severe.
+- **G1** (Phase 1 single-axis ablation, ★ 정보 핵심): 4 axis 모두 완료 — L axis 8 sub-exp + In axis 5 sub-exp + M axis 7 sub-exp + F axis 4 sub-exp (F0 reuse). 1-fold approx (fold=0). 각 axis 의 *best lever* 식별. (a) 모든 24 sub-exp informational 완료 (fail 없음 — attribution 목적). (b) 4 axis 중 *최소 2 axis* 에서 +0.005 marginal OOF gain — axis-level aggregation 함수 = `max(ΔOOF_i for sub_exp_i in axis where sub_exp_i ≠ anchor) ≥ 0.005` (= "axis 안 *어느 한 sub-exp 라도* anchor 대비 +0.005 이면 그 axis 는 positive"). single-formula + corrector path 의 *부정 방지*. 위반 시 `phase1_no_lever_positive` severe.
 - **G2** (Phase 3 pairwise 5-fold): L̂ + In̂, L̂ + M̂, L̂ + F̂, In̂ + M̂ (4 pair). (a) `oof_soft_hit ≥ G1 best + 0.003` (super-additive 입증). (b) 4 pair 중 *최소 1 pair* additive 또는 super-additive (= 결합 OOF ≥ 두 단독 OOF 의 합 − base). 위반 시 `super_additive_fail` warn.
 - **G3** (Phase 4 triple stack): L̂ + In̂ + M̂ (P4.1). (a) `oof_soft_hit ≥ G2 best + 0.003`. (b) (조건부) F̂ ΔOOF ≥ +0.005 시 P4.2 (L̂ + In̂ + M̂ + F̂) 추가. 위반 시 `triple_stack_marginal` warn.
 - **G4** (Phase 5 iterative, **조건부**): G3 best OOF > 0.69 진입 조건. L̂ + In̂ + M̂ + Z3 iterative (3-step, per-step cap=3mm, parameter 공유). (a) `oof_soft_hit ≥ G3 + 0.005`. (b) `[1, 1.5cm) hit_after ≥ 0.20`. (c) iter_gap (train OOF − val OOF) ≤ 0.05. 위반 시 `iterative_divergence` severe.
@@ -101,11 +101,11 @@ lb_score: null
 ### Plan-specific severe (WORKFLOW.md §12.3 default 위 추가분)
 
 - `preflight_artifact_missing` — G0 의 `preflight.json` 미생성 또는 plan-006 reproduce 실패 (|measured − 0.6320| > 0.005)
-- `phase1_no_lever_positive` — G1 의 4 axis 중 *어느 axis 도* +0.005 marginal 없음 (= single-formula + corrector path 자체 부정)
+- `phase1_no_lever_positive` — G1 의 4 axis 중 *어느 axis 도* +0.005 marginal 없음 (= single-formula + corrector path 자체 부정). severity=**severe** 이지만 §9.3 의 autonomous recovery 옵션 (a) Phase 3 skip, G_final 직접 진입 또는 (b) Phase 5 iterative 단독 진입 으로 *halt 아닌 path-pivot* — 사용자 escalate 불필요.
 - `iterative_divergence` — G4 의 iter_gap > 0.05 또는 [1,1.5cm) < 0.10
 - `single_formula_residue` — selector 가 단일공식 외 다른 candidate 사용한 evidence (cand pool size > 1 또는 score variance > 1e-10 in non-F4 sub-exp)
 - `frozen_gru_drift` — In-C frozen plan-004 GRU encoder parameter 변경 detected (state_dict diff > 0)
-- `gate_collapse` — P1.L2 (C008 gate) 의 gate output 이 모든 sample 에서 < 0.05 또는 > 0.95 (gate 학습 실패)
+- `gate_collapse` — P1.L2 (C008 gate-asymmetric loss) **또는 P1.M1 (GateHeadCorrector arch)** 의 gate output 이 모든 sample 에서 < 0.05 또는 > 0.95 (gate 학습 실패). retry 옵션 (bias init bump +2.0 → +3.0; λ_destructive 8 → 4) 은 두 sub-exp 모두 적용 가능.
 - (v1.1 제거 유지) `lb_quota_exhausted` — LB 제출 0 회 정책으로 trigger 부재
 
 ### Plan-specific paths (WORKFLOW.md §12.5/§12.6 default 위 추가/제외)
@@ -270,7 +270,7 @@ lb_score: null
 - main metric: **5-fold concat OOF soft hit @ 1cm** (Phase 3+) 또는 **1-fold OOF soft hit** (Phase 1)
 - soft hit = `base.search_temperature(corrected, scores, true)["metrics"]["hit"]`
 - per-band hit_after: `[0, 0.5)`, `[0.5, 1)`, `[1, 1.5)`, `[1.5, 2)`, `[2, ∞)` (plan-005 corrector_decomp schema)
-- corrector_oracle_gain = `corrected_oracle_hit − raw_oracle_hit`
+- corrector_oracle_gain = `corrected_hit − raw_hit` (K=1 단일공식 환경에서 "oracle" 은 *유일 candidate* 와 동일 — multi-candidate context 의 best-of-K 개념 아님. 표기상의 잔재이며 actual 계산은 "보정 전 hit − 보정 후 hit" 의 부호 반대 = `corrected − raw`)
 - ΔOOF (lever attribution) = `OOF_with_lever − OOF_anchor` per sub-exp
 
 ### §3.4 Anchor 정의 (Phase 1 의 모든 ablation 의 기준점)
@@ -281,6 +281,11 @@ lb_score: null
 - F0 (Formula anchor): frenet_par120_perp_neg020 (CANDIDATES[17])
 
 **Anchor combo (= P1.L0 = P1.IA = P1.M0 = P1.F0)** = plan-006 baseline reproduce (corrected OOF 0.6491 ± 0.005).
+
+> *Anchor 두 값의 구분 박제* (§4.1 의 `anchor_oof_5fold: 0.6524` 와 `oof_argmax_hit_corrected_expected: 0.6491` 의 관계):
+> - **0.6491** = plan-006 §5.5 의 `oof_argmax_hit_corrected` (= 본 plan G0 reproduce *pass* 기준). drift threshold ±0.005 의 base.
+> - **0.6524** = plan-005 5-fold soft hit oof (corrected, *argmax 없이* search_temperature top-1) — `corrector_oracle_gain` 의 `delta` 계산 시 anchor (= D001 oracle simulation 의 base). pass/fail 기준 아님.
+> - 두 값은 *다른 metric* 이므로 일치 강제 안 함. drift_threshold (±0.005) 는 `0.6491 base` 의 `oof_argmax_hit_corrected_measured` 에만 적용.
 
 ---
 
@@ -350,11 +355,44 @@ lb_score: null
 ```bash
 python -m analysis.plan-011.preflight \
   --root data \
-  --plan-005-corrected-oof <path> \
-  --plan-005-raw-scores <path> \
-  --plan-006-checkpoint runs/baseline/F001_variant-e/... \
-  --out analysis/plan-011/preflight.json
+  --plan-005-corrected-oof analysis/plan-005/corrector_decomp_oof_corrected.npz \
+  --plan-005-raw-scores    analysis/plan-005/corrector_decomp_oof_raw_scores.npz \
+  --plan-006-checkpoint    runs/baseline/F001_variant-e/checkpoint_best.pt \
+  --plan-006-config        configs/plan-006-variant-e.yaml \
+  --out                    analysis/plan-011/preflight.json
 ```
+
+> *plan-005 npz 경로 확정* (자율 결정 — 산출물명 plan-005 §6.3 의 default name 따름; 부재 시 동일 dir 내 매칭으로 fallback).
+> *plan-006 checkpoint* = plan-006 §5.5 의 Variant E (frenet_par120_perp_neg020) best checkpoint.
+
+#### §4.2.1 D001 perfect_gate_oof_5fold 알고리즘 (self-contained spec)
+
+```
+INPUT (npz file → numpy array 추출):
+  corrected_oof_pred: (N, 3) ← `--plan-005-corrected-oof` npz 의 `pred_pos` key
+                                (= plan-005 corrector_decomp 의 5-fold OOF corrected predicted pos).
+  raw_oof_pred:       (N, 3) ← `--plan-005-raw-scores` npz 의 `pred_pos` key
+                                (= "raw_scores" 라는 파일명 잔재; 실제 저장 내용은 raw predicted pos.
+                                 npz key 가 다르면 `argmax_pos` 또는 `top1_pos` 로 fallback 검색).
+  truth_pos:          (N, 3) ← data/train.csv 의 ground truth final position (sample_id matching).
+  R_HIT = 0.01 (m)
+PROCEDURE:
+  err_raw       = ‖raw_oof_pred       − truth_pos‖₂                # (N,)
+  err_corrected = ‖corrected_oof_pred − truth_pos‖₂                # (N,)
+  raw_hit       = err_raw       ≤ R_HIT                           # (N,) bool
+  corrected_hit = err_corrected ≤ R_HIT                           # (N,) bool
+  destructive   = raw_hit ∧ ¬corrected_hit                         # (N,) bool — "보정 안 했으면 hit 였는데 보정해서 miss"
+  # perfect-gate simulation: 위 destructive sample 만 raw 로 되돌림 (= gate 가 destructive 를 완벽히 식별 + skip)
+  pred_perfect  = where(destructive, raw_oof_pred, corrected_oof_pred)   # (N, 3)
+  err_perfect   = ‖pred_perfect − truth_pos‖₂                       # (N,)
+  perfect_gate_oof_5fold = mean(err_perfect ≤ R_HIT)                # scalar in [0, 1]
+  # tie 케이스 (err == R_HIT 정확히): ≤ 으로 hit (관행).
+  n_destructive_samples = sum(destructive)
+```
+
+`perfect_gate_oof_5fold` = preflight.json 의 D001 entry 의 `perfect_gate_oof_5fold` field.
+`delta = perfect_gate_oof_5fold − anchor_oof_5fold` (= "destructive samples 완벽 식별 시 회복 가능 ceiling").
+`go_no_go_threshold = 0.66` — `perfect_gate_oof_5fold ≥ 0.66` 시 `c008_path_enabled = true`.
 
 ### §4.3 G0 합격
 
@@ -395,30 +433,77 @@ def huber_loss(pred, target, beta=0.005):
 def asymmetric_loss(pred, target, raw_hit_mask, corrected_pos, lambda_destructive=8.0):
     """L2 (C008) + L3 (C009): asymmetric loss penalizing destructive moves.
 
-    raw_hit_mask: (B,) bool — True if raw candidate (before delta) already hit
-    corrected_pos: (B, 3) — cand + delta_applied (cap=0.006)
+    pred: (B, 3) — corrector raw delta output (BEFORE gate, BEFORE cap). loss 미분 path.
+    target: (B, 3) — uncapped residual (= true_pos − cand_pos).
+    raw_hit_mask: (B,) bool — True if raw candidate (before delta) already hit (err ≤ R_HIT=0.01).
+    corrected_pos: (B, 3) — caller pre-computes as `cand + cap6mm(gate * pred)`
+        - gate: (B, 1) ∈ [0,1] (L2 only — sigmoid of GateHead; for L3 gate ≡ 1)
+        - cap6mm(x) = x * min(1, 0.006 / ‖x‖₂)  (plan-010 Z1 cap @ 6mm; outside this fn — caller responsibility)
+        corrected_pos 는 미분 path 아님 (destructive mask 판정용 detached input).
+    lambda_destructive: float — destructive sample 의 **총** 페널티 배수 (= replacement, NOT additive).
+        destructive 케이스 loss = lambda_destructive × base_loss (default 8.0 → ×8).
+        normal 케이스 loss     = base_loss.
+        gate_collapse 시 retry: lambda_destructive 4.0 (= ×4).
     """
     base_loss = huber_loss(pred, target)  # (B,)
     err_after = torch.norm(corrected_pos - target, dim=1)
     corrected_miss = (err_after > 0.01)  # R_HIT
     destructive = raw_hit_mask & corrected_miss  # (B,) bool
-    penalty = base_loss * lambda_destructive
-    return torch.where(destructive, base_loss + penalty, base_loss)
+    # ★ replacement (multiplicative substitution), NOT additive — destructive 시 base_loss × lambda 로 *대체*.
+    return torch.where(destructive, base_loss * lambda_destructive, base_loss)
 
 
 def frenet_anisotropic_loss(pred_local, target_local, w_par=1.0, w_perp=1.0, w_bi=0.1):
     """L4 (C010): Frenet local-frame anisotropic. pred_local/target_local: (B, 3) in (t, n, b).
 
+    caller pre-converts world→Frenet via build_frenet_basis() (Frenet basis @ end_idx, self-contained spec below).
     decision-note: spec-default — w_bi=0.1 (plan-005 binormal 0.0064 / parallel 0.0451 ≈ 1/7).
+
+    L4 적용 정책 (★ Z1 huber 와의 결합):
+      - 본 fn 은 *replacement* 가 아닌 *additive auxiliary loss* 로 사용.
+      - L4 sub-exp 총 loss = `huber_loss(pred, target) + lambda_aniso * frenet_anisotropic_loss(pred_local, target_local)`
+      - lambda_aniso default = 1.0 (huber 와 동등 weight; spec-default).
+      - 이유: Z1 의 huber 는 *world frame* L1-like robust loss → 기본 학습 신호. C010 의 anisotropic 은
+        *Frenet frame* 의 binormal capacity 축소 (w_bi=0.1) 를 통한 *추가 regularization*. 둘은 보완적.
     """
     diff = pred_local - target_local
     return w_par * diff[:, 0]**2 + w_perp * diff[:, 1]**2 + w_bi * diff[:, 2]**2
 
 
-def physics_conservation_loss(delta, recent_acc, recent_jerk, typical_jerk_step=0.004):
+def build_frenet_basis(trajectory_x, end_idx):
+    """Self-contained Frenet basis spec (caller helper for L4).
+
+    trajectory_x: (B, T, 3) world coords. end_idx: (B,) int — last observation index.
+    Returns (R_world_to_local: (B, 3, 3)) — rows = (t̂, n̂, b̂).
+      - velocity v = trajectory_x[:, end_idx] − trajectory_x[:, end_idx − 1]
+      - accel    a = v − (trajectory_x[:, end_idx − 1] − trajectory_x[:, end_idx − 2])
+      - t̂ = v / ‖v‖
+      - n̂ = (a − (a·t̂) t̂) / ‖·‖   (perpendicular component of accel)
+      - b̂ = t̂ × n̂
+    Degenerate ‖v‖ < 1e-6 or ‖n‖ < 1e-6 → fallback identity basis (caller skips L4 contribution).
+    pred_local = R_world_to_local @ pred_world (matrix-vector; pred_world = corrector delta in world frame).
+    """
+    ...
+
+
+def physics_conservation_loss(delta, recent_acc, typical_jerk_step=0.004):
     """L5: CPhy-ML — kinematically implausible delta 에 페널티.
 
-    delta: (B, 3), recent_acc/recent_jerk: (B, 3).
+    Units & shapes (모든 양 = step-domain, meter per step^n; horizon h=1 implicit):
+      delta:       (B, 3) — corrector output per-step displacement (m/step). caller 가 raw delta (m at horizon=2)
+                            를 step-domain 으로 변환: `delta_step = delta / horizon` 후 본 fn 호출.
+      recent_acc:  (B, 3) — last-step inter-frame acceleration (m per step²):
+                            recent_acc = (x_T − x_{T-1}) − (x_{T-1} − x_{T-2})  computed by caller.
+      typical_jerk_step: float (m per step³) — plan-005 median |jerk_step| ≈ 0.004.
+    Penalty (★ self-consistent 단일 식):
+      jerk_per_step = delta_step − recent_acc                       # (B, 3); 단위 m/step³ (= step-domain jerk proxy)
+      norm          = ‖jerk_per_step‖₂                              # (B,);    m/step³
+      excess        = max(0, norm − typical_jerk_step)               # (B,);    m/step³
+      penalty       = excess²                                         # (B,);    m²/step⁶
+    Returns: (B,) — per-sample penalty, caller weights with λ=0.5 in L5.
+
+    Note: recent_jerk 인자 폐기 (이전 spec 의 dead argument). jerk 자체는 본 식의 `delta - recent_acc` 로
+    자연스럽게 *implied* 됨 (= "delta 의 변화 = next acc 추정, jerk = next acc − prev acc").
     """
     delta_jerk_norm = torch.norm(delta - recent_acc, dim=1)
     penalty = torch.clamp(delta_jerk_norm - typical_jerk_step, min=0.0) ** 2
@@ -426,34 +511,54 @@ def physics_conservation_loss(delta, recent_acc, recent_jerk, typical_jerk_step=
 
 
 def bell_shape_weight(err, R_HIT=0.01, sigma=0.005):
-    """L6: Gaussian-shaped weight centered at R_HIT. (B,) → (B,)."""
+    """L6: Gaussian-shaped weight centered at R_HIT. (B,) → (B,).
+
+    `err` 정의 = `‖cand + cap6mm(delta) − target‖₂` (= corrected_pos 의 err, plan-010 z1 cap 적용 후).
+    Caller computes err and passes (B,) tensor; this fn returns weight (B,) ∈ (0, 1].
+
+    P1.L6 적용 식 (★ wrapper-level total loss spec):
+        corrected_pos = cand + cap6mm(delta)              # caller
+        err           = ‖corrected_pos − target‖₂          # caller (B,)
+        w             = bell_shape_weight(err, σ=0.005)    # (B,)
+        per_sample    = huber_loss(pred, target)           # (B,) m² units (per-sample sum-of-squares)
+        total_loss    = (w * per_sample).mean()            # scalar — err 가 R_HIT 근방 sample 우선 학습.
+    σ=0.005m 의 의미: err = R_HIT 일 때 w=1.0; err = R_HIT ± 5mm 일 때 w ≈ e⁻¹ ≈ 0.37.
+    far miss (err >> R_HIT) → w ≈ 0 → 영향 적음 (= "near-hit 집중 학습" 의도).
+    """
     return torch.exp(-((err - R_HIT) / sigma) ** 2)
 
 
 def hit_aware_hinge(corrected_pos, target, R_HIT=0.01, smooth=0.005):
-    """L7: smooth hinge — max(0, err - R_HIT)² with smooth approx.
+    """L7: smooth hinge — squared smoothed-hinge (m² units, dimensional-compatible with huber).
+
+    spec-default 결정: *squared* form (docstring 의 "max(0, err-R_HIT)²" 박제).
+    smooth approx: `(softplus(excess/smooth) * smooth)²` — softplus 로 양의 hinge linearization
+    후 squared 적용 → smooth 한 quadratic hinge. units = m² (huber 의 sum-of-squares 와 동일 차원).
+    excess < 0 (= 이미 hit) → softplus 가 ≈ 0 → loss 거의 0.
+    excess > 0 (= miss) → ≈ excess² (linear hinge 의 squared 와 점근적 일치).
 
     corrected_pos: (B, 3), target: (B, 3). 미분 가능.
     """
     err = torch.norm(corrected_pos - target, dim=1)
     excess = err - R_HIT
-    return F.softplus(excess / smooth) * smooth  # smooth approx of max(0, x)
+    linear_hinge = F.softplus(excess / smooth) * smooth  # smooth approx of max(0, x), units = m
+    return linear_hinge ** 2                              # squared → units = m² (huber 와 동차)
 ```
 
 ### §5.2 Phase 1.L wrapper (`analysis/plan-011/phase1_loss_ablation.py`)
 
 8 sub-exp 일괄 실행 (fixed In-A + M0 + F0, fold=0, ~10min/sub-exp):
 
-| sub-exp | loss config |
-|---|---|
-| P1.L0 (anchor) | plan-004 default (MSE + far=0.04 + easy=0.20 + env_loss_weight=0.05 + apply_scale=0.75 + boundary [0.7, 1.7cm]) |
-| P1.L1 | Z1 minimum: uncapped target + huber(β=0.005) + far=0.5 + easy=0 + env_loss_weight=0 + apply_scale=1 + boundary [0.7, 1.7cm] |
-| **P1.L2** (★ 조건부 D001 ≥ 0.66) | Z1 + C008 gate (sigmoid head, bias init +2.0) + asymmetric loss (λ=8) |
-| P1.L3 | Z1 + C009 (asymmetric loss only, gate 없이) |
-| **P1.L4** | Z1 + C010 Frenet anisotropic (w_par=1, w_perp=1, w_bi=0.1) |
-| P1.L5 | Z1 + L5 physics conservation (jerk penalty λ=0.5) |
-| P1.L6 | Z1 + L6 bell-shape weight (σ=0.005) |
-| P1.L7 | Z1 + L7 hit-aware smooth hinge (combined: huber × 0.5 + hinge × 0.5) |
+| sub-exp | loss config | wrapper-level total loss 식 |
+|---|---|---|
+| P1.L0 (anchor) | plan-004 default | `mse_cap_truncated + far*0.04 + easy*0.20 + env*0.05` (plan-004 그대로) |
+| P1.L1 | Z1 minimum: uncapped target + huber(β=0.005) + far=0.5 + easy=0 + env_loss_weight=0 + apply_scale=1 + boundary [0.7, 1.7cm] | `huber_loss(pred, target).mean()` |
+| **P1.L2** (★ 조건부 D001 ≥ 0.66) | Z1 + C008 gate (sigmoid head, bias init +2.0) + asymmetric loss (λ=8). corrector arch = **GateHeadCorrector (M1) + `aux["raw_delta"]` 노출 변형** (아래 ★ 박제) | `asymmetric_loss(aux["raw_delta"], target, raw_hit_mask, corrected_pos=cand+cap6mm(delta), λ=8.0).mean()` |
+| P1.L3 | Z1 + C009 (asymmetric loss only, gate 없이) | `asymmetric_loss(pred, target, raw_hit_mask, corrected_pos, λ=8.0).mean()` (gate ≡ 1) |
+| **P1.L4** | Z1 + C010 Frenet anisotropic (w_par=1, w_perp=1, w_bi=0.1) | `huber_loss(pred, target).mean() + 1.0 * frenet_anisotropic_loss(pred_local, target_local).mean()` (λ_aniso=1.0, additive) |
+| P1.L5 | Z1 + L5 physics conservation (jerk penalty λ=0.5) | `huber_loss(pred, target).mean() + 0.5 * physics_conservation_loss(pred / horizon, recent_acc).mean()` (caller scales delta→step domain) |
+| P1.L6 | Z1 + L6 bell-shape weight (σ=0.005) | `(bell_shape_weight(err) * huber_loss(pred, target)).mean()` where `err = ‖cand + cap6mm(pred) − target‖₂` |
+| P1.L7 | Z1 + L7 hit-aware smooth hinge | `0.5 * huber_loss(pred, target).mean() + 0.5 * hit_aware_hinge(corrected_pos, target).mean()` (둘 다 m² units, equal weight) |
 
 ### §5.3 산출 (per sub-exp)
 
@@ -467,6 +572,21 @@ def hit_aware_hinge(corrected_pos, target, R_HIT=0.01, smooth=0.005):
 - 8 sub-exp 모두 informational 완료 (fail 없음 — attribution 목적)
 - 최소 1 sub-exp 가 P1.L0 anchor 대비 +0.005 marginal OOF
 - best L̂ 식별 (max ΔOOF)
+
+> *P1.L2 단일-axis 박제* (Loss + Arch joint 의 의도적 묶음):
+> P1.L2 는 *형식상* L axis sub-exp 이지만 GateHeadCorrector (M1 arch) 를 사용하므로 Loss + Arch *joint* change.
+> 이는 §1.2 narrative ("C008 = gate head + asymmetric loss 의 *단일 motivation cluster*") 의 의도적 묶음.
+> *attribution-clean* 의 관점에서는 *L axis 안의 component 가 gate-loss 묶음* 으로 한 단위; M axis 의 M1 (gate only,
+> no asymmetric loss) 와 비교해서 *gate-only contribution* (M1) vs *gate+asymmetric contribution* (P1.L2) 분리 가능.
+> Phase 3 P3.2 (L̂=L2 + M̂=M1) 시 mechanism overlap 가 명시적 risk → §10.5 `mechanism_overlap_flag` 박제 + decoupling
+> 변형 sub-exp 옵션 (예: L̂=L3 (asymmetric only, no gate) + M̂=M1 으로 mechanism 분리) 사용 가능.
+>
+> *Z1 base bleed caveat* (P1.L0 anchor vs P1.L1 base vs P1.L2~L7 builds):
+> L1 = "Z1 minimum" 자체가 anchor L0 대비 6 결함 (B1+A2+C1+C2+D1+E1) fix → P1.L0 vs P1.L1 ΔOOF 가 *Z1 contribution* 의 직접 측정.
+> L2~L7 은 L1 위에 single component (gate / asymmetric / Frenet / physics / bell / hinge) 추가 → ΔOOF(L_i vs L0) 는
+> *Z1 + component* 의 합산 효과. *component-only* contribution = `ΔOOF(L_i vs L1)` 으로 별도 보고.
+> `phase1_loss_summary.json` 에 `delta_vs_anchor` (L0 base) + `delta_vs_z1` (L1 base) 두 컬럼 박제. attribution §2 표
+> (analysis/plan-011/phase1_attribution.md) 도 둘 다 표시.
 
 ### §5.5 G1.L fail handling
 
@@ -485,17 +605,35 @@ def hit_aware_hinge(corrected_pos, target, R_HIT=0.01, smooth=0.005):
 ```python
 # Input adapters
 class TrajectoryStatsFeature(nn.Module):
-    """In-B: hand-crafted trajectory statistics (no learning, 20-dim)."""
+    """In-B: hand-crafted trajectory statistics (no learning, 20-dim).
+
+    Self-contained spec (20-dim breakdown, all 단위 = step-domain, ε=1e-6 for div-by-zero):
+      Let v_t = x_{t+1} − x_t (T−1 vectors), a_t = v_{t+1} − v_t (T−2 vectors),
+          j_t = a_{t+1} − a_t (T−3 vectors), s_t = ‖v_t‖ (T−1 scalars).
+      Frenet basis per t: t̂_t = v_t / max(‖v_t‖, ε); n̂_t = (a_t − (a_t·t̂_t) t̂_t) / max(‖·‖, ε).
+      a_par_t  = a_t · t̂_t   (parallel component)
+      a_perp_t = a_t · n̂_t   (perpendicular component)
+      cos_t    = (v_t · v_{t+1}) / max(‖v_t‖ ‖v_{t+1}‖, ε)
+      κ_t      = ‖a_perp_t‖ / max(‖v_t‖², ε)
+    20 dim (index [0~19]):
+      [0~3]   speed:        mean(s), std(s), s_last (= s_{T-2}), max(s)                         (4)
+      [4~6]   acc_norm/v:   mean(‖a‖/s), std(‖a‖/s), max(‖a‖/s)                                  (3)
+      [7~8]   a_par/v:      mean(a_par/s), std(a_par/s)                                         (2)
+      [9~11]  a_perp/v:     mean(a_perp/s), std(a_perp/s), max(a_perp/s)                        (3)
+      [12~14] jerk:         mean(‖j‖), std(‖j‖), max(‖j‖)                                       (3)
+      [15~17] turn_cos:     mean(cos), std(cos), cos_last (= cos_{T-3})                          (3)
+      [18~19] curvature:    mean(κ), max(κ)                                                      (2)
+    Returns: (N, 20) float32 tensor.
+
+    Caller wire-in: 본 모듈은 stateless (no learnable param). caller 는 `module(traj)` 형태로 호출.
+    표준 nn.Module 패턴 — `def forward` 가 `compute` 위임:
+    """
+    def forward(self, trajectory_x):
+        return self.compute(trajectory_x)
+
     def compute(self, trajectory_x):
-        # trajectory_x: [N, T, 3] world coords
-        # 4 + 3 + 2 + 3 + 3 + 3 + 2 = 20 dim
-        # speed: mean/std/last/max (4)
-        # acc_norm/speed: mean/std/max (3)
-        # acc_par/speed: mean/std (2)
-        # acc_perp/speed: mean/std/max (3)
-        # jerk: mean/std/max (3)
-        # turn_cos: mean/std/last (3)
-        # curvature: mean/max (2)
+        # trajectory_x: [N, T, 3] world coords. 위 spec 그대로 계산.
+        # (구현 디테일 = inline pseudo-code per docstring; numpy/torch 양쪽 가능.)
         ...
 
 class FrozenGRUEncoder(nn.Module):
@@ -518,11 +656,20 @@ class TrajectoryCNNEncoder(nn.Module):
     ...
 
 class MultiParseInput(nn.Module):
-    """In-F: raw + Savitzky-Golay smoothing + EMA smoothing (3 parse 평균).
+    """In-F: raw + Savitzky-Golay smoothing + EMA smoothing.
 
-    spec @ notes/prior-ideas.md §3 MTP."""
-    def parse(self, trajectory_x, end_idx):
-        # 3 parse 각각 cf 계산 → mean
+    Single source-of-truth 학습 정책 (★ §13.2 P6.2 + §N+3 caveat #6 와 *완전 동기*):
+      - **학습 시**: epoch 매 batch 마다 3 parse 중 *random 1 개* 선택 (augmentation).
+        cf = make_candidate_features(parse_k(trajectory_x, end_idx))  where k ~ Uniform{raw, SG, EMA}
+        매 step batch 단위 random — sample 단위 아님 (batch 일관성).
+      - **추론 시**: 3 parse 모두 forward → cf 단위로 평균 (deterministic ensemble).
+        cf = mean([make_cf(raw), make_cf(SG), make_cf(EMA)])
+      - parameter: window=5, order=2 (SG), alpha=0.6 (EMA) — §13.2 P6.2 와 동일.
+    """
+    def parse(self, trajectory_x, end_idx, mode="train"):
+        # mode ∈ {"train", "inference"} — 위 docstring 의 정책에 따라 분기.
+        # train: random 1 parse augment
+        # inference: 3 parse cf 평균
         ...
 ```
 
@@ -537,6 +684,10 @@ class MultiParseInput(nn.Module):
 | **P1.IC** | + frozen plan-004 GRU hidden 32-dim |
 | P1.ID | + CNN encoder 64-dim (learnable) |
 | P1.IF | + multi-parse (raw + SG + EMA) inference + train |
+
+> *IE 결번 박제*: §1.6 의 `plan-010 Z6 e2e (G4 조건부)` 가 plan-011 의 `P1.IE` 위치에 매핑되지만 *본 plan 의 scope X*.
+> 이유: Z6 e2e 는 GRU encoder + corrector 전체 *non-frozen joint 재학습* 으로 plan-010 (depth) path 의 산출이며, plan-011 (breadth)
+> 의 4-axis ablation 의 *single-axis isolation 의도* 와 충돌 (Input axis 만 변경이 아닌 selector 까지 함께 변경). IE 는 plan-012 후보로 carry-over.
 
 ### §6.3 산출
 
@@ -559,6 +710,19 @@ class MultiParseInput(nn.Module):
 
 ### §7.1 corrector_redesign_v2.py — Architecture variants
 
+> *Unified forward return contract* (모든 M0~M6 + L 축 사용 corrector class 통일):
+> ```
+> forward(cf, encoder_emb=None) -> tuple[delta: Tensor (B, 3), aux: dict]
+> ```
+> - `delta`: 모든 sub-exp 의 *최종 corrector output* (world frame, m). caller 는 `cand + cap6mm(delta)` 로 corrected_pos 구성.
+> - `aux: dict` (sub-exp 별 *부산물* 박제 — 비어 있어도 OK):
+>   - `gate: (B, 1) ∈ [0, 1]`     (M1, L2 에서만; 다른 곳 None)
+>   - `logsigma: (B, 3)`           (M5 GMM 에서만; NLL 계산용)
+>   - `bin_probs: list[(B, K)]`    (M3 BinClassifier 에서만; 진단용)
+>   - `direction, magnitude`       (M2 SplitHead 에서만; 진단용)
+> - trainer (analysis/plan-011/phase1_*.py) 는 `aux` 의 key 존재 여부로 loss path 분기 (M5: `gmm_nll_loss(aux['logsigma'], delta, target)`; L2/M1: `aux['gate']` 통계 기록; otherwise: huber/asymmetric 등).
+> - M0 (anchor) 도 `return delta, {}` 로 contract 통일 — 분기 단순화.
+
 ```python
 class GateHeadCorrector(v1.RedesignedCorrectionNet):
     """M1: TinyCorrectionNet + gate head (C008 structural).
@@ -580,7 +744,9 @@ class GateHeadCorrector(v1.RedesignedCorrectionNet):
         # ... stem + blocks (parent)
         raw_delta = self.delta(h)
         gate = torch.sigmoid(self.gate_head(h))  # (B, 1)
-        return gate * raw_delta, gate
+        delta = gate * raw_delta
+        # ★ raw_delta 노출 — P1.L2 의 asymmetric_loss(pred=raw_delta) 호출용 (gate double-application 회피).
+        return delta, {"gate": gate, "raw_delta": raw_delta}
 
 
 class SplitHeadCorrector(v1.RedesignedCorrectionNet):
@@ -601,19 +767,20 @@ class SplitHeadCorrector(v1.RedesignedCorrectionNet):
         # ... stem + blocks
         direction = F.normalize(self.direction_head(h), dim=-1)
         magnitude = self.magnitude_head(h)
-        return direction * magnitude  # (B, 3)
+        delta = direction * magnitude  # (B, 3)
+        return delta, {"direction": direction, "magnitude": magnitude}
 
 
 class BinClassifierCorrector(v1.RedesignedCorrectionNet):
-    """M3: bin classification head (60 bins × 1mm = ±3cm coverage)."""
+    """M3: bin classification head — 3 × bin_dim factorized (1D per axis).
+
+    ★ spec-default (확정): factorized 3-axis (`bin_heads`) 만 사용. joint bin^3 head (60³=216K logits) 는
+    explosion 으로 사용 X — 본 클래스에 정의 없음.
+    """
     def __init__(self, dim_cf, hidden=64, dim_encoder=0, bin_dim=60, bin_size=0.001):
         super().__init__(dim_cf=dim_cf, hidden=hidden, dim_encoder=dim_encoder)
         self.delta = None
-        self.bin_head = nn.Sequential(
-            nn.LayerNorm(hidden), nn.Linear(hidden, hidden // 2), nn.GELU(),
-            nn.Linear(hidden // 2, bin_dim ** 3),  # ★ 주의: bin^3 폭주 — 1D × 3 axis 로 factorize
-        )
-        # Better: 3 × bin_dim heads (factorized)
+        # 3 × bin_dim heads (factorized — joint bin^3 폭주 회피)
         self.bin_heads = nn.ModuleList([
             nn.Sequential(
                 nn.LayerNorm(hidden), nn.Linear(hidden, hidden // 2), nn.GELU(),
@@ -622,29 +789,76 @@ class BinClassifierCorrector(v1.RedesignedCorrectionNet):
         ])
         self.bin_size = bin_size
         self.bin_dim = bin_dim
-        self.bin_centers = torch.linspace(-bin_dim/2 * bin_size, bin_dim/2 * bin_size, bin_dim)
+        # register_buffer 로 state_dict 포함 + device 자동 이동 (매 forward 재생성 X)
+        bin_centers = torch.linspace(-bin_dim / 2 * bin_size, bin_dim / 2 * bin_size, bin_dim, dtype=torch.float32)
+        self.register_buffer("bin_centers", bin_centers)
 
     def forward(self, cf, encoder_emb=None):
         # ... stem + blocks
         # Per-axis softmax: expected delta = Σ prob_i × bin_center_i
         delta_per_axis = []
+        bin_probs = []
         for head in self.bin_heads:
             logits = head(h)  # (B, bin_dim)
             prob = F.softmax(logits, dim=-1)
-            expected = (prob * self.bin_centers.to(prob.device)).sum(dim=-1)
+            expected = (prob * self.bin_centers).sum(dim=-1)  # buffer 이미 device 동기
             delta_per_axis.append(expected)
-        return torch.stack(delta_per_axis, dim=-1)  # (B, 3)
+            bin_probs.append(prob)
+        delta = torch.stack(delta_per_axis, dim=-1)  # (B, 3)
+        return delta, {"bin_probs": bin_probs}
 
 
 class IterativeRefinementCorrector(nn.Module):
-    """M4: 3-step iterative refinement (parameter shared). spec @ plan-010 §7.1."""
-    # ... plan-010 reuse
+    """M4 / Phase 5 Z3: 3-step iterative refinement (parameter shared).
+
+    Self-contained inline spec (plan-010 §7.1 의 Z3 module reuse; 본 클래스 = wrapper):
+    - base_corrector: `v1.RedesignedCorrectionNet(dim_cf=base_dim_cf + 8, hidden=64, dim_encoder=...)` —
+      stem.in_features = `dim_cf + 8` 로 인스턴스화 (step_idx_emb concat 수용). wrapper `__init__` 에서 직접 생성.
+      parameter 공유 — n_steps 회 동일 weight 반복 호출.
+    - n_steps: int (default 3)
+    - per_step_cap: float (default 0.003 m = 3mm; cap6mm 의 1/2)
+    - step_idx_emb: nn.Embedding(n_steps, dim_step_emb=8) — 매 step 의 idx 를 임베드해 cf 와 concat.
+      step_idx_emb 의 init = N(0, 0.02), bias 없음. step_idx_emb output 은 cf 와 같은 dim 으로 broadcast
+      되도록 dim_step_emb=8 을 dim_cf 에 단순 concat → 입력 dim 이 dim_cf+8 로 늘어남
+      (base_corrector 의 stem.in_features 도 dim_cf+8 로 정의 — wrapper 가 책임).
+    - forward 절차:
+        cand_t = cand_0 (P1.F0 anchor pos)
+        for t in range(n_steps):
+            cf_t = concat([cf_base(cand_t), step_idx_emb(t).expand(B, -1)], dim=-1)  # (B, dim_cf + 8)
+            delta_t = base_corrector(cf_t, encoder_emb)          # (B, 3) world frame
+            delta_t = delta_t * min(1, per_step_cap / ‖delta_t‖) # per-step cap
+            cand_t = cand_t + delta_t
+        return cand_t − cand_0   # 누적 delta (caller 는 cand_0 + return → corrected_pos)
+    - loss: 매 step 의 cand_t 와 target 의 err 를 stage-wise penalize (huber, weight = [1, 1, 1] uniform).
+
+    Unified contract bridge (§7.1 의 `forward(cf, encoder_emb=None) -> (delta, aux)` 호환):
+      M4 wrapper 가 corrector class 로 사용될 때:
+        def forward(self, cf, encoder_emb=None):
+            # cf 안에 cand_0 정보 포함 (P1.F0 anchor pos 는 caller 가 cf 의 candidate-relative 항목으로 인코딩).
+            # 본 wrapper 는 iterative refinement 의 *누적 delta* 만 반환 (unified contract).
+            accumulated_delta = self._refine(cf, encoder_emb, n_steps=self.n_steps)  # (B, 3)
+            aux = {"per_step_deltas": list_of_step_deltas}  # (B, 3) × n_steps, stage-wise loss 진단용
+            return accumulated_delta, aux
+      caller 측 = `delta, aux = model(cf)` → corrected_pos = cand_0 + cap6mm(delta).
+      stage-wise loss = trainer 가 `aux["per_step_deltas"]` 를 받아 매 step 의 corrected_pos_t 와 target 의 huber 합산.
+    """
+    # implementation: plan-010 §7.1 의 RedesignedIterativeRefiner reuse (import as v1_iter)
 
 
 class GMMCorrector(v1.RedesignedCorrectionNet):
     """M5: probabilistic — μ + diagonal Σ output. Loss = NLL.
 
-    Inference: expected delta = μ (or μ + samples for uncertainty)."""
+    Inference: expected delta = μ (or μ + samples for uncertainty).
+
+    NLL closed form (per-axis diagonal Gaussian, batch-summed):
+        nll_per_sample = 0.5 * Σ_axis (((target_axis − mu_axis) / sigma_axis) ** 2 + 2 * logsigma_axis)
+                       = 0.5 * Σ_axis ((target_axis − mu_axis)² * exp(−2 * logsigma_axis) + 2 * logsigma_axis)
+        # const term (log(2π) per axis) omitted — constant per sample, doesn't affect gradient.
+        return nll_per_sample.mean()
+    logsigma clamp [-6.0, 0.0] → sigma ∈ [e⁻⁶, 1] ≈ [2.5e-3 m, 1 m]:
+      - lower bound 2.5mm: 학습 초기 σ → 0 폭주 방지 (residual 0.005m order 의 1/2 scale).
+      - upper bound 1m  : σ → ∞ trivial 회피 (delta 가 의미 있는 m-scale 내).
+    """
     def __init__(self, dim_cf, hidden=64, dim_encoder=0):
         super().__init__(dim_cf=dim_cf, hidden=hidden, dim_encoder=dim_encoder)
         self.delta = None
@@ -661,15 +875,27 @@ class GMMCorrector(v1.RedesignedCorrectionNet):
         # ... stem + blocks
         mu = self.mu_head(h)
         logsigma = self.logsigma_head(h).clamp(min=-6.0, max=0.0)  # numerical stability
-        return mu, logsigma
+        # inference 시 expected delta = mu; trainer 는 aux['logsigma'] 로 NLL 계산
+        return mu, {"logsigma": logsigma}
+
+
+def gmm_nll_loss(mu, logsigma, target):
+    """GMM NLL closed form (diagonal Gaussian, per-sample sum-over-axes, batch-mean).
+    mu: (B, 3), logsigma: (B, 3) clamped to [-6, 0], target: (B, 3).
+    Returns scalar.
+    """
+    inv_var = torch.exp(-2.0 * logsigma)           # 1/σ²
+    sq_err  = (target - mu) ** 2                    # (B, 3)
+    nll     = 0.5 * (sq_err * inv_var + 2.0 * logsigma).sum(dim=1)  # (B,)
+    return nll.mean()
 
 
 class WiderShallowCorrector(v1.RedesignedCorrectionNet):
     """M6: depth=1, hidden=256. small data 적합 추정."""
     def __init__(self, dim_cf, hidden=256, dim_encoder=0):
         super().__init__(dim_cf=dim_cf, hidden=hidden, dim_encoder=dim_encoder)
-        # remove second residual block
-        self.blocks = v1.ResidualMLPBlock(hidden)  # depth=1
+        # depth=1 — 부모 forward 가 self.blocks 를 iterable 가정 시 ModuleList 으로 wrap 필수.
+        self.blocks = nn.ModuleList([v1.ResidualMLPBlock(hidden)])
 ```
 
 ### §7.2 Phase 1.M wrapper
@@ -704,10 +930,25 @@ class WiderShallowCorrector(v1.RedesignedCorrectionNet):
 
 ```python
 class PerSampleMLPFormula(nn.Module):
-    """F3: per-sample coefficient regression (plan-007 Step 4).
+    """F3: per-sample coefficient regression (plan-007 Step 4 reuse).
 
-    MLP outputs (par_i, perp_i) for each sample → frenet candidate with per-sample coefs."""
-    def __init__(self, in_dim, hidden=32):
+    MLP outputs (par_i, perp_i) for each sample → frenet candidate with per-sample coefs.
+
+    in_dim = 12 (self-contained spec, plan-007 Step 4 carry-over):
+      - last-step motion (6): speed, prev_speed_ratio, acc_norm/speed, acc_par/speed, acc_perp/speed, turn_cos
+      - jerk stats (3): jerk_mean, jerk_std, jerk_max
+      - curvature (2): curvature_mean, curvature_max
+      - z_scale (1): vertical motion scale
+    feature 추출 = `make_ctx_features(trajectory_x, end_idx)` (analysis/plan-011/ctx_features.py, plan-007 reuse).
+
+    Candidate position 식 (★ F3 self-contained spec):
+      F3 는 F0 anchor (frenet_par120_perp_neg020) 의 (par=1.20, perp=−0.20) 만 *per-sample 가변*.
+      나머지 4 coef = F0 default 고정: k_d1=1.94, k_d2=0.0, k_jerk=0.0, k_time=1.0.
+      Candidate position 계산 = LearnableSingleCandidate.forward 의 식 그대로 (§8.1 의 cand_pos 식),
+      coef vector = `(k_d1=1.94, k_d2=0.0, par_i, perp_i, k_jerk=0.0, k_time=1.0)` per sample i.
+      즉 F3 는 F4 의 *2-coef 만 학습 + 4-coef 고정* 변형. 학습 loss 도 F4 와 동일 (hit-aware + F0 prox term).
+    """
+    def __init__(self, in_dim=12, hidden=32):
         super().__init__()
         self.net = nn.Sequential(
             nn.LayerNorm(in_dim),
@@ -720,23 +961,88 @@ class PerSampleMLPFormula(nn.Module):
             self.net[-1].bias[1] = -0.20
 
     def forward(self, ctx_features):
-        # ctx_features: (B, in_dim) — same as plan-007 mlp_coeff input
+        # ctx_features: (B, 12) — see in_dim docstring above
         return self.net(ctx_features)  # (B, 2) → par, perp per sample
 
 
 class LearnableSingleCandidate(nn.Module):
     """F4: data-driven learnable candidate (Idea 2 from 코드공유-upgrade.md).
 
-    Learn (d1, d2, par, perp, jerk, time_scale) as single 6-dim parameter via soft-min loss.
-    Initialized to F0 (frenet_par120_perp_neg020).
+    Learn 6 scalar coefficients as a single nn.Parameter via *hit-aware loss*
+    (NOT soft-min — K=1 환경에서 soft-min over candidates 는 vacuous).
+    Initialized to F0 anchor (frenet_par120_perp_neg020 → par=1.20, perp=-0.20).
+
+    F4 학습 loss spec (K=1 fix, 코드공유-upgrade.md "Idea 2" 의 soft-min 표현 폐기):
+        cand_pos = self(p0, ...)
+        # 1) hit-aware base — huber + smooth squared hinge (L7 와 동일 형태)
+        loss_hit = huber_loss(cand_pos − p0_truth) + hit_aware_hinge(cand_pos, p0_truth)
+        # 2) F0 anchor prox term — 6-dim coef 의 init drift 억제 (over-fit 방지)
+        loss_prox = lambda_prox * ‖self.coef − init_coef‖²       (lambda_prox = 0.01)
+        total = loss_hit.mean() + loss_prox
+    diversity reg 없음 (1 candidate). soft-min 항 없음 (1 candidate → softmin = identity).
     """
-    def __init__(self, init_coef=(1.94, 0.0, 1.10, -0.20, 0.0, 1.0)):
+    def __init__(self, init_coef=(1.94, 0.0, 1.20, -0.20, 0.0, 1.0)):
+        # 6-dim parameter: (k_d1, k_d2, k_par, k_perp, k_jerk, k_time)
+        #   k_d1   = last-velocity multiplier (init 1.94 ≈ plan-006 F0 anchor 측정 fit; horizon=2 의 trivial 'h=2' 가 아님 —
+        #            F0 anchor 의 *실제 학습된 effective multiplier* 가 plan-006 source code 에서 1.94 로 박제됨).
+        #   k_d2   = last-acc multiplier (init 0.0 — disabled by default, F0 anchor)
+        #   k_par  = parallel scale on Frenet t̂ (init 1.20 = F0 anchor 박제)
+        #   k_perp = perpendicular scale on Frenet n̂ (init −0.20 = F0 anchor 박제)
+        #   k_jerk = jerk-term scale on jerk_world (init 0.0)
+        #   k_time = horizon time-scale exponent (init 1.0; t^k_time scaling, F0 anchor)
+        #
+        # ★ F4 init = F0 reproduce 검증 (P1.F0 reuse 와 numerical 일치 보장):
+        #   preflight (G0) 시 F4 init 으로 candidate 생성 → P1.F0 의 frenet_par120_perp_neg020 candidate 와
+        #   per-sample distance ≤ 1e-4 m 확인 (≥ 1e-4 시 init_coef 의 k_d1 또는 k_time 재캘리브 필요).
+        #   이 검증은 §4.2.1 D001 알고리즘 직후 1줄 추가 (`f4_init_vs_f0_max_dist: <float>`, threshold 1e-4 m).
         super().__init__()
         self.coef = nn.Parameter(torch.tensor(init_coef, dtype=torch.float32))
 
-    def forward(self, p0, d1, d2, acc_par, acc_perp, jerk, horizon=2):
-        # Generate candidate via current_coef × motion_terms
-        ...
+    def forward(self, p0, v_last, a_last, jerk_last, t_hat, n_hat, b_hat, horizon=2, coef=None):
+        """Generate single learnable candidate position.
+
+        Args:
+          p0:        (B, 3) last observed position (world).
+          v_last:    (B, 3) last inter-frame velocity (world).
+          coef:      (B, 6) optional per-sample coef override (F3 use case).
+                     None → self.coef (shape (6,)) broadcast (F4 default).
+                     (B, 6) → per-sample coef (F3 PerSampleMLPFormula output 주입).
+                     ★ F3 호출 chain: par_perp_i = PerSampleMLPFormula(ctx_features)  # (B, 2)
+                                    coef_i = torch.stack([1.94, 0.0, par_i, perp_i, 0.0, 1.0], dim=-1)  # (B, 6)
+                                    cand_pos = LearnableSingleCandidate.forward(..., coef=coef_i)
+                     (즉 F3 는 LearnableSingleCandidate 인스턴스를 *coef 비활성화* 모드로 호출.
+                      spec-default 결정: F3 trainer 는 `self.coef.requires_grad_(False)` 로 frozen — optimizer 제외보다 가독성·재현성 우선.)
+          a_last:    (B, 3) last inter-frame acceleration (world).
+          jerk_last: (B, 3) last jerk (world).
+          t_hat, n_hat, b_hat: (B, 3) Frenet basis at p0 (from build_frenet_basis).
+          horizon:   int (default 2 — h step prediction).
+        Returns:
+          cand_pos:  (B, 3) candidate world position.
+
+        Formula (Idea 2, frenet_par120_perp_neg020 extension):
+          term_d1   = self.coef[0] * v_last * (horizon ** self.coef[5])         # extrapolated velocity drift
+          term_d2   = self.coef[1] * a_last * (horizon ** self.coef[5]) ** 2 / 2  # accel quadratic term
+          term_par  = self.coef[2] * (t_hat * (a_last * t_hat).sum(-1, keepdim=True))   # parallel-acc projected
+          term_perp = self.coef[3] * (n_hat * (a_last * n_hat).sum(-1, keepdim=True))   # perpendicular-acc projected
+          term_jerk = self.coef[4] * jerk_last * (horizon ** self.coef[5]) ** 3 / 6
+          cand_pos  = p0 + term_d1 + term_d2 + term_par + term_perp + term_jerk
+        """
+        h = horizon
+        # F4 default: c = self.coef (broadcast to (B, 6) via implicit). F3: c = coef (B, 6).
+        c = coef if coef is not None else self.coef.unsqueeze(0).expand(v_last.shape[0], -1)
+        # c shape: (B, 6) — per-sample (F3) 또는 broadcast (F4).
+        time_pow1 = h ** c[..., 5:6]   # (B, 1)
+        time_pow2 = time_pow1 ** 2
+        time_pow3 = time_pow1 ** 3
+        term_d1 = c[..., 0:1] * v_last * time_pow1
+        term_d2 = c[..., 1:2] * a_last * time_pow2 / 2.0
+        proj_par = (a_last * t_hat).sum(-1, keepdim=True)
+        proj_perp = (a_last * n_hat).sum(-1, keepdim=True)
+        term_par = c[..., 2:3] * t_hat * proj_par
+        term_perp = c[..., 3:4] * n_hat * proj_perp
+        term_jerk = c[..., 4:5] * jerk_last * time_pow3 / 6.0
+        cand_pos = p0 + term_d1 + term_d2 + term_par + term_perp + term_jerk
+        return cand_pos
 ```
 
 ### §8.2 Phase 1.F wrapper
@@ -749,7 +1055,7 @@ class LearnableSingleCandidate(nn.Module):
 | **P1.F1** | CMA-ES tuned 6 vars (plan-007 Step 2 best_params reuse) |
 | P1.F2 | basis ablation best (plan-007 Step 3 8 vars reuse) |
 | **P1.F3** | per-sample MLP coefficient regression (plan-007 Step 4 reuse) |
-| **P1.F4** | learnable single candidate (Idea 2, soft-min loss + diversity reg) |
+| **P1.F4** | learnable single candidate (Idea 2 변형 — K=1 fix: hit-aware loss + F0 anchor prox term, soft-min/diversity reg 폐기) |
 
 ### §8.3 산출
 
@@ -788,6 +1094,15 @@ class LearnableSingleCandidate(nn.Module):
 
 - 4 axis ablation 모두 완료 (24 sub-exp)
 - 최소 2 axis 에서 +0.005 marginal OOF (single-formula + corrector path 의 *부정 방지*)
+  - axis-level aggregation 함수 = `max(ΔOOF_i for sub_exp_i in axis where sub_exp_i ≠ anchor) ≥ 0.005` (§0.5 G1 (b) 와 일치)
+  - **L axis 특수 규칙** (Z1 base bleed 명문화):
+    - `axis-positive` 판정 = `max(delta_vs_anchor for L2~L7) ≥ 0.005` (= L0 base).
+    - 별도 보고: `delta_vs_z1` (= L1 base) — *component-only contribution*.
+    - 판정 분기:
+      (a) `max(delta_vs_anchor) ≥ 0.005` AND `max(delta_vs_z1) ≥ 0.003` → **component lever positive** (component 자체로 +0.003 이상 — Z1 외 추가 신호).
+      (b) `max(delta_vs_anchor) ≥ 0.005` AND `max(delta_vs_z1) < 0.003` → **Z1-dominant lever** (Z1 minimum 자체가 main contribution — L1 을 L̂ 로 채택).
+      (c) `max(delta_vs_anchor) < 0.005` → **L axis no-positive** (`loss_axis_no_lever_positive` warn).
+    - Phase 3 entry 시 L̂ 식별: case (a) → `argmax(delta_vs_z1)` 의 sub-exp; case (b) → L1.
 
 ### §9.3 G1 fail handling
 
@@ -799,14 +1114,25 @@ class LearnableSingleCandidate(nn.Module):
 
 ## §10. STAGE 3 (Phase 3) — Pairwise Combinations (G2)
 
-### §10.1 4 pair (5-fold)
+### §10.1 4 pair (5-fold) + 3~4 solo-5fold prep
 
-| sub-exp | combo | 진입 조건 |
-|---|---|---|
-| **P3.1** | L̂ + In̂ | 항상 |
-| **P3.2** | L̂ + M̂ | 항상 |
-| **P3.3** | L̂ + F̂ | F̂ ≠ F0 (P1.F 에서 ΔOOF > 0) |
-| **P3.4** | In̂ + M̂ | 항상 |
+> super-additive 식 (§10.5) 의 `oof_lever_a`, `oof_lever_b` 는 5-fold 측정값. Phase 1 1-fold 와 직접 합산 불가
+> → Phase 3 entry 시 *solo lever 5-fold 재측정* 필수.
+
+| sub-exp | spec | 진입 조건 | 비용 |
+|---|---|---|---|
+| **P3.0a** | anchor combo (L0+IA+M0+F0) 5-fold | 항상 (preflight 의 0.6491 reproduce 와 분리 5-fold 측정) | ~50min |
+| **P3.0b** | L̂ solo 5-fold | 항상 | ~50min |
+| **P3.0c** | In̂ solo 5-fold | 항상 | ~50min |
+| **P3.0d** | M̂ solo 5-fold | 항상 | ~50min |
+| **P3.0e** | F̂ solo 5-fold | F̂ ≠ F0 (P1.F 에서 ΔOOF > 0) | ~50min |
+| **P3.1** | L̂ + In̂ | 항상 | ~50min |
+| **P3.2** | L̂ + M̂ | 항상 | ~50min |
+| **P3.3** | L̂ + F̂ | F̂ ≠ F0 | ~50min |
+| **P3.4** | In̂ + M̂ | 항상 | ~50min |
+
+총 5-fold 재실행 = 4 prep (P3.0a~d) + 4 pair = **8 × ~50min = ~400min** (F̂ 진입 시 +1 prep + 1 pair = 10 × ~50min = ~500min).
+§N+1 wall-time 회계 update 필요.
 
 ### §10.2 5-fold OOF 강제
 
@@ -825,6 +1151,10 @@ class LearnableSingleCandidate(nn.Module):
 ### §10.5 super-additive 분류
 
 ```python
+# oof_anchor = anchor combo (= P1.L0=IA=M0=F0) 의 *5-fold concat OOF* (Phase 3 시 reproduce, 단일 값)
+# oof_lever_a, oof_lever_b = Phase 3 entry 시 *5-fold concat OOF* (Phase 1 의 1-fold 값 reuse 금지 —
+#   Phase 1 1-fold 와 Phase 3 5-fold 의 fold-set 다르므로 직접 합산 불가).
+# oof_pair = Phase 3 의 L̂+In̂ etc. 5-fold concat OOF.
 delta_pair = oof_pair − oof_anchor
 delta_solo_sum = (oof_lever_a − oof_anchor) + (oof_lever_b − oof_anchor)
 if delta_pair > delta_solo_sum + 0.003:
@@ -834,6 +1164,18 @@ elif abs(delta_pair - delta_solo_sum) <= 0.003:
 else:
     cls = "sub-additive"
 ```
+
+> *caveat — lever 독립성*: P3.2 (L̂ + M̂) 의 경우 L̂ = L2 (C008 gate-asymmetric loss) + M̂ = M1 (GateHead arch) 가
+> *같은 mechanism (gate)* 의 다른 면을 누르는 sub-case 가능. 그 경우 super-additive 식의 *독립 가정* 위반 — `delta_pair` 가
+> `delta_solo_sum` 보다 작게 측정되어도 mechanism collision 으로 해석 (= sub-additive 가 *진짜 sub-additive 가 아님*).
+> Phase 3 산출 `phase3_summary.json` 의 entry 마다 `mechanism_overlap_flag: bool` (L axis pick 과 M axis pick 가
+> 둘 다 gate-관련 lever 면 true) 추가, attribution 보고서 §9.7 caveat 검증에 포함.
+>
+> *decoupling 변형 sub-exp (mechanism_overlap_flag=true 시 진입)*:
+>   P3.2' = L̂=**L3** (C009 asymmetric loss only, gate 없이) + M̂=M1 (GateHead arch) — mechanism 분리 변형.
+>   진입 조건: `mechanism_overlap_flag(P3.2) == true` AND L3 ΔOOF 가 §9.2 의 axis-positive 임계 통과.
+>   비용: +1 5-fold sub-exp (~50min). super-additive 분류 시 P3.2 와 P3.2' 둘 다 보고 → 진짜 mechanism overlap
+>   분리 결과로 attribution 명확화. plan-011.1 carry-over 후보 1순위.
 
 ### §10.6 G2 fail handling
 
@@ -905,13 +1247,16 @@ P4 best 위 Z3 iterative:
 
 ### §13.2 spec
 
-**P6.1 — TTA rotation 4**:
+**P6.1 — TTA rotation 4** (★ entry condition: corrector output = *world frame* only.
+L4 (Frenet anisotropic loss) 가 학습 단계에서만 local frame 활용했어도 forward output 은 world frame 이므로 P6.1 적용 OK.
+그러나 만약 corrector arch 자체가 Frenet local 출력 (= forward 가 (t,n,b) 좌표계 delta 반환) 으로 바뀐 변형 시
+P6.1 skip 또는 회전 시점을 world-domain reconstruct 후 적용 필수.):
 ```python
 # 추론 시 입력 XY 평면 회전 (0°, 90°, 180°, 270°) × 모델 forward × 역회전 평균
 # Z축 (중력) 건드리지 않음 — 물리적 대칭성
 for theta in [0, 90, 180, 270]:
     x_rot = rotate_xy(test_x, theta)
-    delta_rot = model(x_rot)
+    delta_rot = model(x_rot)               # world frame output (entry condition)
     delta = rotate_xy_inverse(delta_rot, theta)
     deltas.append(delta)
 final_delta = mean(deltas)
@@ -920,6 +1265,9 @@ final_delta = mean(deltas)
 **P6.2 — Multi-parse inference**:
 ```python
 # 추론 시 입력 raw + SG smoothing + EMA smoothing 3 parse × 모델 forward × 평균
+# ★ 학습 시 P6.2 와 동일 parameter (window=5, order=2, alpha=0.6) 사용 강제 — §6 In-F (MultiParseInput) 학습 단계의
+#   3 parse augment 정책과 *완전 동기*. 학습-추론 mismatch 시 distribution shift.
+#   학습 시 정책 (§N+3 caveat #6): "epoch 매 batch 마다 3 parse 중 *random 1개* sample (augment)" — 추론 시는 "3 parse 평균" (deterministic ensemble).
 x_raw = test_x
 x_sg = savgol_filter(test_x, window=5, order=2, axis=time)
 x_ema = ema_smooth(test_x, alpha=0.6)
@@ -1034,15 +1382,27 @@ with Pool(processes=24) as pool:
 
 
 # GPU multi-stream (Phase 1 의 sub-exp 4-way 병렬)
+# ★ 각 sub-exp 는 *서로 다른 모델 + 다른 optimizer* — backward graph 격리되어 race-free.
+#   단 optimizer step 의 stream 동기화는 명시적으로 처리해야 함 (CUDA spec).
 import torch
 streams = [torch.cuda.Stream() for _ in range(4)]
-models = [build_model(cfg) for cfg in batch_of_4_subexp_configs]
+models     = [build_model(cfg)     for cfg in batch_of_4_subexp_configs]
+optimizers = [build_optimizer(m, cfg) for m, cfg in zip(models, batch_of_4_subexp_configs)]
 
 for batch in shared_dataloader:
-    for i, (model, stream) in enumerate(zip(models, streams)):
+    # 1) forward + backward on independent streams (parallel)
+    for i, (model, optimizer, stream) in enumerate(zip(models, optimizers, streams)):
         with torch.cuda.stream(stream):
-            loss = model(batch)
-            loss.backward()
+            optimizer.zero_grad(set_to_none=True)
+            loss = model(batch)              # 모델 i 의 loss (자체 graph)
+            loss.backward()                  # 모델 i 의 param.grad 만 누적
+    # 2) stream barrier — 4 backward 완료 보장
+    for stream in streams:
+        stream.synchronize()
+    # 3) optimizer step on default stream (각 모델 param 은 disjoint → race-free)
+    for optimizer in optimizers:
+        optimizer.step()
+    # 4) (선택) 전체 device 동기 — logging / next batch 의 dataloader prefetch 시점 일관
     torch.cuda.synchronize()
 
 
@@ -1100,12 +1460,13 @@ torch.backends.cudnn.benchmark = False
 | c10 (P1.F wrapper) | phase1_formula_ablation.py (4 sub-exp + F0 reuse) | ~15 min |
 | c11 (P1.F exec) | 4 sub-exp × ~12min (per-sample MLP 학습 포함) | ~50 min |
 | c12 (attribution) | phase1_attribution.md (4 axis 표 + best 선정) | ~20 min |
-| c13 (P3 pairwise) | phase3 4 pair × ~50min (5-fold) | ~200 min |
+| c13a (P3 solo-prep) | phase3 4~5 solo lever 5-fold (P3.0a~e) × ~50min | ~200~250 min |
+| c13b (P3 pairwise) | phase3 4 pair × ~50min (5-fold) | ~200 min |
 | c14 (P4 triple) | phase4 1~2 sub-exp × ~60min | ~120 min |
 | c15 (P5 iterative, 조건부) | phase5 iterative × ~70min | ~70 min |
 | c16 (P6 augment, 조건부) | phase6 TTA + multi-parse × ~30min | ~30 min |
 | c17 (synthesis) | results.md + next_plan_candidates.md + 3 파일 frontmatter sync + plan-011.1 instruction | ~30 min |
-| **합계** | (조건부 G4/G5 포함) | **~12.7 hr** (조건부 skip 시 ~11 hr) |
+| **합계** | (조건부 G4/G5 포함, P3.0 solo-prep 추가분 +200~250min) | **~16 hr** (조건부 skip 시 ~14.3 hr; F̂ 진입 시 +50 min) |
 
 ### §N+1.2 시나리오 B — 4-way GPU multi-stream (★ 권장, Phase 1 + Phase 3 병렬)
 
@@ -1117,30 +1478,30 @@ torch.backends.cudnn.benchmark = False
 | Phase 1.M (7 sub-exp) | 100 min | **~32 min** | |
 | Phase 1.F (4 sub-exp) | 50 min | **~17 min** | |
 | Phase 2 (attribution) | 20 min | 20 min (분석) | — |
-| Phase 3 (4 pair × 5-fold) | 200 min | **~50 min** | 4 pair 동시 + per-pair 순차 5-fold |
+| Phase 3 (4~5 solo-prep + 4 pair × 5-fold) | 400~450 min | **~100~115 min** | 4-way 동시 + per-task 순차 5-fold |
 | Phase 4 (1~2 stack × 5-fold) | 120 min | **~60 min** | 5-fold 병렬 |
 | Phase 5 (조건부) | 70 min | **~35 min** | 5-fold 병렬 |
 | Phase 6 (조건부) | 30 min | 30 min | 추론만 |
 | Phase 7 (synthesis) | 30 min | 30 min | — |
 | 코드 작성 (c1/c3/c4/c6/c8/c10) | 105 min | 105 min | — |
-| **합계** | ~12.7 hr | **~7.2 hr** (조건부 포함) | **~5.5 hr 단축** |
+| **합계** | ~16 hr | **~8.4 hr** (조건부 포함, P3.0 solo-prep 반영) | **~7.6 hr 단축** |
 
 ### §N+1.3 시나리오 C — sub-exp 병렬 + 5-fold 병렬 (max parallelization)
 
 | Phase | 시나리오 B | 시나리오 C (+ 5-fold 병렬) |
 |---|---|---|
 | Phase 1 (24 sub-exp) | ~94 min | ~94 min (1-fold approx, 변경 없음) |
-| Phase 3 (4 pair × 5-fold) | 50 min | **~20 min** (4 pair 동시 + 각 pair 5-fold 동시) |
+| Phase 3 (4 solo-prep + 4 pair × 5-fold) | 100~115 min | **~40 min** (8 task 동시 + 각 task 5-fold 동시) |
 | Phase 4 | 60 min | **~15 min** (5-fold 동시) |
 | Phase 5 | 35 min | **~12 min** (5-fold 동시) |
 | Phase 6/7 + 코드 | 165 min | 165 min |
-| **합계** | ~7.2 hr | **~5.0 hr** (조건부 포함) |
+| **합계** | ~8.4 hr | **~5.5 hr** (조건부 포함, P3.0 solo-prep 반영) |
 
 ### §N+1.4 권장
 
 - **시나리오 B 채택** — 안정성 (multi-stream) + 단축 (~5.5 hr) 균형
 - 시나리오 C 진입 조건: 시나리오 B 의 Phase 3 OOM 없이 안정 작동 확인 후
-- decision-note 박제: `decision-note: parallel-execution — scenario B (4-way GPU multi-stream + CPU 24-worker data prep) 채택, wall-time ~12.7h → ~7.2h`
+- decision-note 박제: `decision-note: parallel-execution — scenario B (4-way GPU multi-stream + CPU 24-worker data prep) 채택, wall-time ~16h (P3.0 solo-prep 포함) → ~8.4h`
 
 ---
 
@@ -1162,7 +1523,7 @@ torch.backends.cudnn.benchmark = False
 
 5. **frozen GRU encoder 의 task mismatch risk**: plan-004 GRU 는 27-후보 ranking 학습. 단일공식 + corrector 의 task feature 와 다를 가능성 — P1.IC (frozen) vs P1.ID (CNN learnable) 비교가 *feature relevance 검증*.
 
-6. **multi-parse (In-F) 의 학습 비용**: SG/EMA smoothing 은 *deterministic* — 학습 시 random parse 선택 augmentation 또는 3 parse 평균 inference. spec 은 후자 (학습 cost ~동일, 추론 cost ×3).
+6. **multi-parse (In-F) 의 학습 정책 (★ single source-of-truth)**: SG/EMA smoothing 은 deterministic. spec 결정 = **학습 시 random 1 parse augment** (batch 일관성, sample 단위 아님), **추론 시 3 parse cf 평균** (deterministic ensemble). 학습 cost ~동일, 추론 cost ×3. §6.1 MultiParseInput / §13.2 P6.2 / 본 caveat 3 곳 동기 — 다른 정책 (예: 학습 시 3 parse 평균) 채택 시 3 곳 동시 수정.
 
 7. **iterative refinement 의 발산 risk (Phase 5)**: per_step_cap 3mm × 3 step = 9mm 누적. 매 step 방향 재학습 → noise 누적. step_idx embedding + parameter 공유 + huber loss 세 안정장치. `iterative_divergence` 시 옵션 a (step ↑ cap ↓) 자동 retry.
 
@@ -1200,7 +1561,8 @@ torch.backends.cudnn.benchmark = False
 
 ## §N+4. 변경 이력
 
-- v1 (2026-05-13): 초안 — plan-010 의 depth (defect fix) 와 *상호 보완 breadth* (4 axis × ~25 single-axis ablation). notes/코드공유-upgrade.md 의 C008/C009/C010/D001 후보 + notes/prior-ideas.md 의 Physics conservation + Multi-parse + notes/mosquito-trajectory-ideas.md 의 TTA + GMM 통합. Phase 0~7, G0~G_final 7 gate, commit chain c1~c17 + G4/G5 조건부. LB 제출 0 회 (plan-010.1 carry-over 패턴). §15 병렬 실행 정책 신설 (server CPU 48 core + GPU 1 device:0 기준, Phase 1 sub-exp 4-way GPU multi-stream + Phase 3+ 5-fold ProcessPoolExecutor 분할, wall-time ~12.7h → ~7.2h 시나리오 B 권장). caveat #20~#22 (parallel reproducibility / GPU memory / anchor invariance) 추가.
+- v1 (2026-05-13): 초안 — plan-010 의 depth (defect fix) 와 *상호 보완 breadth* (4 axis × ~25 single-axis ablation). notes/코드공유-upgrade.md 의 C008/C009/C010/D001 후보 + notes/prior-ideas.md 의 Physics conservation + Multi-parse + notes/mosquito-trajectory-ideas.md 의 TTA + GMM 통합. Phase 0~7, G0~G_final 7 gate, commit chain c1~c17 + G4/G5 조건부. LB 제출 0 회 (plan-010.1 carry-over 패턴). §15 병렬 실행 정책 신설 (server CPU 48 core + GPU 1 device:0 기준, Phase 1 sub-exp 4-way GPU multi-stream + Phase 3+ 5-fold ProcessPoolExecutor 분할). caveat #20~#22 (parallel reproducibility / GPU memory / anchor invariance) 추가.
+- v1 plan-review 7 iter 결과 반영 (2026-05-13): Phase 3 super-additive 식의 5-fold 정합을 위해 P3.0a~e solo-prep 항목 추가 (5-fold lever 단독 재실행 ~200~250min 가산) → wall-time 회계 갱신 ~12.7h → ~16h (시나리오 A), ~7.2h → ~8.4h (시나리오 B). 4-axis 의 loss/arch component spec 자족성 보강 (asymmetric loss replacement multiplier, physics conservation units 일치, GMM NLL closed form 박제, M4 IterativeRefinementCorrector unified forward contract, F3 PerSampleMLPFormula 와 LearnableSingleCandidate coef-override chain). P1.L2 의 GateHead+asymmetric loss joint 명시 + Phase 3 P3.2' decoupling 변형 sub-exp 신설.
 
 ---
 
