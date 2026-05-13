@@ -33,6 +33,8 @@ detail_next_plan: analysis/plan-011/next_plan_candidates.md
 
 Phase 1 24 sub-exp 완료. 0/4 axes strict +0.005 통과 (In axis ID 가장 근접 +0.00495). G1 (b) FAIL → autonomous option a (Phase 3+ skip + G_final 직접 진입). best Phase = In axis ID. LB readout = plan-011.1 carry-over.
 
+**v1.1 post-G_final amendment**: F3/F4 cand formula parity fix 적용. F4 = 0.6431 (+0.0030 vs F0), F axis 진정한 측정 회복. *2 axes (In ID, F F4) sub-threshold positive direction* — P3.1/P3.3 informational 진행 가능성 plan-011.1 carry-over 박제.
+
 ## 주요 산출
 
 - `analysis/plan-011/preflight.json` — G0 결과 (D001=0.6570 < 0.66, c008 disabled).

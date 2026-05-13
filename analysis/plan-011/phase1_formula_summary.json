@@ -142,99 +142,99 @@
       "sub_exp": "P1.F3",
       "n_val": 2020,
       "fold": 0,
-      "oof_soft_hit": 0.09801980198019802,
-      "oof_raw_hit": 0.09801980198019802,
+      "oof_soft_hit": 0.6361386138613861,
+      "oof_raw_hit": 0.6361386138613861,
       "corrector_gain": 0.0,
       "per_band_hit_after": {
         "[0,0.5cm)": {
-          "n": 47,
+          "n": 683,
           "hit_before": 1.0,
           "hit_after": 1.0,
           "delta": 0.0
         },
         "[0.5,1cm)": {
-          "n": 151,
+          "n": 602,
           "hit_before": 1.0,
           "hit_after": 1.0,
           "delta": 0.0
         },
         "[1,1.5cm)": {
-          "n": 190,
+          "n": 357,
           "hit_before": 0.0,
           "hit_after": 0.0,
           "delta": 0.0
         },
         "[1.5,2cm)": {
-          "n": 193,
+          "n": 104,
           "hit_before": 0.0,
           "hit_after": 0.0,
           "delta": 0.0
         },
         "[2cm,inf)": {
-          "n": 1439,
+          "n": 274,
           "hit_before": 0.0,
           "hit_after": 0.0,
           "delta": 0.0
         }
       },
-      "elapsed_sec": 3.504478693008423,
-      "best_val_hit": 0.0980198085308075,
-      "delta_vs_anchor": -0.5420792079207921
+      "elapsed_sec": 1.1036467552185059,
+      "best_val_hit": 0.6361386179924011,
+      "delta_vs_anchor": -0.003960396039603964
     },
     "P1.F4": {
       "sub_exp": "P1.F4",
       "n_val": 2020,
       "fold": 0,
-      "oof_soft_hit": 0.03217821782178218,
-      "oof_raw_hit": 0.03217821782178218,
+      "oof_soft_hit": 0.6430693069306931,
+      "oof_raw_hit": 0.6430693069306931,
       "corrector_gain": 0.0,
       "per_band_hit_after": {
         "[0,0.5cm)": {
-          "n": 9,
+          "n": 703,
           "hit_before": 1.0,
           "hit_after": 1.0,
           "delta": 0.0
         },
         "[0.5,1cm)": {
-          "n": 56,
+          "n": 596,
           "hit_before": 1.0,
           "hit_after": 1.0,
           "delta": 0.0
         },
         "[1,1.5cm)": {
-          "n": 129,
+          "n": 346,
           "hit_before": 0.0,
           "hit_after": 0.0,
           "delta": 0.0
         },
         "[1.5,2cm)": {
-          "n": 156,
+          "n": 97,
           "hit_before": 0.0,
           "hit_after": 0.0,
           "delta": 0.0
         },
         "[2cm,inf)": {
-          "n": 1670,
+          "n": 278,
           "hit_before": 0.0,
           "hit_after": 0.0,
           "delta": 0.0
         }
       },
-      "elapsed_sec": 1.9455769062042236,
-      "best_val_hit": 0.03217821940779686,
+      "elapsed_sec": 0.16762185096740723,
+      "best_val_hit": 0.643069326877594,
       "final_coef": [
-        1.895058512687683,
-        -0.016965748742222786,
-        1.1876907348632812,
-        -0.1966119259595871,
-        0.005596584174782038,
-        0.9549168944358826
+        1.9742792844772339,
+        -0.005688054487109184,
+        1.1960220336914062,
+        -0.1967075914144516,
+        0.0019045134540647268,
+        0.9939658045768738
       ],
-      "delta_vs_anchor": -0.6079207920792079
+      "delta_vs_anchor": 0.002970297029702973
     }
   },
   "axis_positive_threshold_0p005": false,
-  "max_delta_vs_anchor": 0.0,
-  "best_lever": "P1.F1",
-  "generated_at": "2026-05-13T05:31:39.313726+09:00"
+  "max_delta_vs_anchor": 0.002970297029702973,
+  "best_lever": "P1.F4",
+  "generated_at": "2026-05-13T17:29:47.607764+09:00"
 }

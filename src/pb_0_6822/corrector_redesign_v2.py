@@ -535,13 +535,24 @@ class PerSampleMLPFormula(nn.Module):
 
 
 class LearnableSingleCandidate(nn.Module):
-    """F4: 6-coef learnable candidate (Idea 2 변형, K=1 fix).
+    """F4: 6-coef learnable candidate — selector.make_candidates canonical frenet 식과 parity.
 
     init_coef = (k_d1, k_d2, k_par, k_perp, k_jerk, k_time).
-    F0 anchor approx: (1.94, 0.0, 1.20, -0.20, 0.0, 1.0).
+    F0 anchor (CANDIDATES[17] = frenet_par120_perp_neg020) numerically exact:
+      (d1=1.98, d2=0.0, par=1.20, perp=-0.20, jerk=0.0, time_scale=1.0)
+
+    Canonical formula (selector.make_candidates 그대로):
+      v_scale   = (horizon / 2) * time_scale
+      acc_scale = (horizon / 2)² * time_scale²
+      cand = p0
+             + d1   * v_scale   * v_last        (last velocity vector)
+             + d2   * v_scale   * v_prev        (prev velocity vector)
+             + par  * acc_scale * acc_par_vec   (acc · t̂) t̂
+             + perp * acc_scale * acc_perp_vec  (acc - acc_par_vec)
+             + jerk * acc_scale * jerk_vec      (acc - prev_acc)
     """
 
-    def __init__(self, init_coef=(1.94, 0.0, 1.20, -0.20, 0.0, 1.0)):
+    def __init__(self, init_coef=(1.98, 0.0, 1.20, -0.20, 0.0, 1.0)):
         super().__init__()
         self.coef = nn.Parameter(torch.tensor(init_coef, dtype=torch.float32))
 
@@ -549,34 +560,40 @@ class LearnableSingleCandidate(nn.Module):
         self,
         p0: torch.Tensor,
         v_last: torch.Tensor,
-        a_last: torch.Tensor,
-        jerk_last: torch.Tensor,
-        t_hat: torch.Tensor,
-        n_hat: torch.Tensor,
-        b_hat: torch.Tensor,
+        v_prev: torch.Tensor,
+        acc_par_vec: torch.Tensor,
+        acc_perp_vec: torch.Tensor,
+        jerk_vec: torch.Tensor,
         horizon: float = 2.0,
         coef: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
-        """Generate single candidate world position.
+        """Generate single candidate world position (selector parity).
 
-        coef: (B, 6) per-sample override (F3 use case). None → broadcast self.coef.
+        Args:
+          p0:           (B, 3) last observed position.
+          v_last:       (B, 3) = x_T − x_{T−1}.
+          v_prev:       (B, 3) = x_{T−1} − x_{T−2}.
+          acc_par_vec:  (B, 3) = (acc · t̂) t̂ where acc=v_last−v_prev, t̂=v_last/‖v_last‖.
+          acc_perp_vec: (B, 3) = acc − acc_par_vec.
+          jerk_vec:     (B, 3) = acc − prev_acc where prev_acc = v_prev − (x_{T−2} − x_{T−3}).
+          horizon:      int (default 2).
+          coef:         (B, 6) per-sample override (F3). None → broadcast self.coef.
         """
-        h = horizon
         if coef is None:
-            c = self.coef.unsqueeze(0).expand(v_last.shape[0], -1)  # (B, 6)
+            c = self.coef.unsqueeze(0).expand(v_last.shape[0], -1)
         else:
             c = coef
-        time_pow1 = h ** c[..., 5:6]
-        time_pow2 = time_pow1 ** 2
-        time_pow3 = time_pow1 ** 3
-        term_d1 = c[..., 0:1] * v_last * time_pow1
-        term_d2 = c[..., 1:2] * a_last * time_pow2 / 2.0
-        proj_par = (a_last * t_hat).sum(-1, keepdim=True)
-        proj_perp = (a_last * n_hat).sum(-1, keepdim=True)
-        term_par = c[..., 2:3] * t_hat * proj_par
-        term_perp = c[..., 3:4] * n_hat * proj_perp
-        term_jerk = c[..., 4:5] * jerk_last * time_pow3 / 6.0
-        return p0 + term_d1 + term_d2 + term_par + term_perp + term_jerk
+        half_h = horizon / 2.0
+        v_scale = half_h * c[..., 5:6]                    # (B, 1)
+        acc_scale = (half_h ** 2) * (c[..., 5:6] ** 2)    # (B, 1)
+        return (
+            p0
+            + c[..., 0:1] * v_scale * v_last
+            + c[..., 1:2] * v_scale * v_prev
+            + c[..., 2:3] * acc_scale * acc_par_vec
+            + c[..., 3:4] * acc_scale * acc_perp_vec
+            + c[..., 4:5] * acc_scale * jerk_vec
+        )
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -636,9 +653,16 @@ if __name__ == "__main__":
     par_perp = f3(torch.randn(B, 12))
     print(f"  F3 (par, perp): {tuple(par_perp.shape)}")
     f4 = LearnableSingleCandidate()
+    v_last_t = torch.randn(B, 3); v_prev_t = torch.randn(B, 3)
+    acc_t = v_last_t - v_prev_t
+    tangent_t = v_last_t / (torch.norm(v_last_t, dim=-1, keepdim=True) + 1e-6)
+    acc_par_t = (acc_t * tangent_t).sum(-1, keepdim=True) * tangent_t
+    acc_perp_t = acc_t - acc_par_t
+    jerk_t = torch.randn(B, 3)
     cand = f4(
-        p0=torch.randn(B, 3), v_last=torch.randn(B, 3), a_last=torch.randn(B, 3),
-        jerk_last=torch.randn(B, 3), t_hat=R[:, 0], n_hat=R[:, 1], b_hat=R[:, 2],
+        p0=torch.randn(B, 3),
+        v_last=v_last_t, v_prev=v_prev_t,
+        acc_par_vec=acc_par_t, acc_perp_vec=acc_perp_t, jerk_vec=jerk_t,
     )
     print(f"  F4 cand_pos: {tuple(cand.shape)}")
 

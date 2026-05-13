@@ -45,27 +45,34 @@ SEED_BASE = 20260513
 
 
 def prepare_motion_terms(x_seq: np.ndarray):
-    """v_last, a_last, jerk_last at end_idx=10 (step-domain).
+    """selector.make_candidates parity 를 보장하는 motion terms 추출.
 
-    Returns dict of (N, 3) numpy arrays + Frenet basis (N, 3, 3).
+    Returns dict of (N, 3) numpy arrays — selector.make_candidates 와 *동일한* 변수 정의.
     """
     END = 10
-    v_last = x_seq[:, END] - x_seq[:, END - 1]
-    v_prev = x_seq[:, END - 1] - x_seq[:, END - 2]
-    a_last = v_last - v_prev
-    v_pp = x_seq[:, END - 2] - x_seq[:, END - 3]
-    a_prev = v_prev - v_pp
-    jerk_last = a_last - a_prev
+    EPS = 1e-6
     p0 = x_seq[:, END]
-    R, _ = v2.build_frenet_basis(torch.from_numpy(x_seq), torch.tensor([END] * len(x_seq)))
+    v_last = x_seq[:, END] - x_seq[:, END - 1]                       # = motion_terms d1
+    v_prev = x_seq[:, END - 1] - x_seq[:, END - 2]                   # = make_candidates d2
+    acc = v_last - v_prev                                             # = motion_terms acc
+    v_pp = x_seq[:, END - 2] - x_seq[:, END - 3]
+    prev_acc = v_prev - v_pp
+    jerk_vec = acc - prev_acc                                         # = make_candidates jerk
+
+    # Frenet projections (selector.make_candidates 와 동일):
+    speed = np.linalg.norm(v_last, axis=1, keepdims=True) + EPS
+    tangent = v_last / speed                                          # t̂ = v_last / ‖v_last‖
+    acc_par_scalar = (acc * tangent).sum(axis=1, keepdims=True)
+    acc_par_vec = acc_par_scalar * tangent                            # (acc · t̂) t̂
+    acc_perp_vec = acc - acc_par_vec
+
     return {
         "p0": p0.astype(np.float32),
         "v_last": v_last.astype(np.float32),
-        "a_last": a_last.astype(np.float32),
-        "jerk_last": jerk_last.astype(np.float32),
-        "t_hat": R[:, 0].cpu().numpy(),
-        "n_hat": R[:, 1].cpu().numpy(),
-        "b_hat": R[:, 2].cpu().numpy(),
+        "v_prev": v_prev.astype(np.float32),
+        "acc_par_vec": acc_par_vec.astype(np.float32),
+        "acc_perp_vec": acc_perp_vec.astype(np.float32),
+        "jerk_vec": jerk_vec.astype(np.float32),
     }
 
 
@@ -97,19 +104,22 @@ def train_F3(data_tr: dict, data_va: dict, motion_tr: dict, motion_va: dict, arg
 
     # 12-dim ctx features (간이 — make_ctx_features 없이 motion-based inline)
     def make_ctx(motion):
-        v = motion["v_last"]; a = motion["a_last"]; j = motion["jerk_last"]
+        v = motion["v_last"]
+        acc_par = motion["acc_par_vec"]
+        acc_perp = motion["acc_perp_vec"]
+        a = acc_par + acc_perp                                            # full acc vector
+        j = motion["jerk_vec"]
         s = np.linalg.norm(v, axis=1, keepdims=True) + 1e-6
-        a_par = (a * (v / s)).sum(axis=1, keepdims=True)
-        a_perp_vec = a - a_par * (v / s)
-        a_perp = np.linalg.norm(a_perp_vec, axis=1, keepdims=True)
+        a_par_n = np.linalg.norm(acc_par, axis=1, keepdims=True)
+        a_perp_n = np.linalg.norm(acc_perp, axis=1, keepdims=True)
         a_norm = np.linalg.norm(a, axis=1, keepdims=True)
         jn = np.linalg.norm(j, axis=1, keepdims=True)
-        turn_cos = np.full_like(s, 0.0)  # placeholder; not critical
+        turn_cos = np.full_like(s, 0.0)  # placeholder
         ctx = np.concatenate([
-            s, s, a_norm / s, a_par / s, a_perp / s, turn_cos,         # 6
-            jn, jn, jn,                                                  # 3 (jerk stats: same value, placeholder)
-            jn, jn,                                                       # 2 (curvature placeholder)
-            np.zeros_like(s)                                              # 1 z_scale placeholder
+            s, s, a_norm / s, a_par_n / s, a_perp_n / s, turn_cos,       # 6
+            jn, jn, jn,                                                   # 3
+            jn, jn,                                                       # 2
+            np.zeros_like(s),                                             # 1
         ], axis=1)
         return ctx.astype(np.float32)
 
@@ -119,12 +129,26 @@ def train_F3(data_tr: dict, data_va: dict, motion_tr: dict, motion_va: dict, arg
     ctx_tr_t = to_t(ctx_tr); ctx_va_t = to_t(ctx_va)
     truth_tr = to_t(data_tr["truth"]); truth_va = to_t(data_va["truth"])
     p0_tr = to_t(motion_tr["p0"]); p0_va = to_t(motion_va["p0"])
-    v_tr = to_t(motion_tr["v_last"]); v_va = to_t(motion_va["v_last"])
-    a_tr = to_t(motion_tr["a_last"]); a_va = to_t(motion_va["a_last"])
-    j_tr = to_t(motion_tr["jerk_last"]); j_va = to_t(motion_va["jerk_last"])
-    t_tr = to_t(motion_tr["t_hat"]); t_va = to_t(motion_va["t_hat"])
-    n_tr = to_t(motion_tr["n_hat"]); n_va = to_t(motion_va["n_hat"])
-    b_tr = to_t(motion_tr["b_hat"]); b_va = to_t(motion_va["b_hat"])
+    vl_tr = to_t(motion_tr["v_last"]); vl_va = to_t(motion_va["v_last"])
+    vp_tr = to_t(motion_tr["v_prev"]); vp_va = to_t(motion_va["v_prev"])
+    apa_tr = to_t(motion_tr["acc_par_vec"]); apa_va = to_t(motion_va["acc_par_vec"])
+    ape_tr = to_t(motion_tr["acc_perp_vec"]); ape_va = to_t(motion_va["acc_perp_vec"])
+    jv_tr = to_t(motion_tr["jerk_vec"]); jv_va = to_t(motion_va["jerk_vec"])
+
+    def build_coef(par_perp):
+        """F3 의 (par, perp) per-sample → 6-coef (1.98, 0.0, par, perp, 0.0, 1.0)."""
+        return torch.stack([
+            torch.full_like(par_perp[:, 0], 1.98),  # ★ CANDIDATES[17].d1 = 1.98 (canonical)
+            torch.zeros_like(par_perp[:, 0]),
+            par_perp[:, 0],
+            par_perp[:, 1],
+            torch.zeros_like(par_perp[:, 0]),
+            torch.ones_like(par_perp[:, 0]),
+        ], dim=-1)  # (B, 6)
+
+    def cand_from_f4(p0, vl, vp, apa, ape, jv, coef):
+        return f4_helper(p0=p0, v_last=vl, v_prev=vp, acc_par_vec=apa,
+                          acc_perp_vec=ape, jerk_vec=jv, horizon=2.0, coef=coef)
 
     opt = torch.optim.AdamW(f3.parameters(), lr=args.lr, weight_decay=1e-4)
     N_train = ctx_tr_t.shape[0]
@@ -137,19 +161,11 @@ def train_F3(data_tr: dict, data_va: dict, motion_tr: dict, motion_va: dict, arg
         for start in range(0, N_train, args.batch):
             sel_ = perm[start:start + args.batch]
             ctx_b = ctx_tr_t[sel_]
-            par_perp = f3(ctx_b)                       # (B, 2)
-            # build coef = (1.94, 0.0, par_i, perp_i, 0.0, 1.0)
-            coef = torch.stack([
-                torch.full_like(par_perp[:, 0], 1.94),
-                torch.zeros_like(par_perp[:, 0]),
-                par_perp[:, 0],
-                par_perp[:, 1],
-                torch.zeros_like(par_perp[:, 0]),
-                torch.ones_like(par_perp[:, 0]),
-            ], dim=-1)  # (B, 6)
-            cand_pos = f4_helper(
-                p0=p0_tr[sel_], v_last=v_tr[sel_], a_last=a_tr[sel_], jerk_last=j_tr[sel_],
-                t_hat=t_tr[sel_], n_hat=n_tr[sel_], b_hat=b_tr[sel_], horizon=2.0, coef=coef,
+            par_perp = f3(ctx_b)
+            coef = build_coef(par_perp)
+            cand_pos = cand_from_f4(
+                p0_tr[sel_], vl_tr[sel_], vp_tr[sel_],
+                apa_tr[sel_], ape_tr[sel_], jv_tr[sel_], coef,
             )
             err = (cand_pos - truth_tr[sel_]).pow(2).sum(dim=1)
             loss = err.mean()
@@ -163,15 +179,8 @@ def train_F3(data_tr: dict, data_va: dict, motion_tr: dict, motion_va: dict, arg
         f3.eval()
         with torch.no_grad():
             par_perp = f3(ctx_va_t)
-            coef = torch.stack([
-                torch.full_like(par_perp[:, 0], 1.94),
-                torch.zeros_like(par_perp[:, 0]),
-                par_perp[:, 0],
-                par_perp[:, 1],
-                torch.zeros_like(par_perp[:, 0]),
-                torch.ones_like(par_perp[:, 0]),
-            ], dim=-1)
-            cand_pos_va = f4_helper(p0_va, v_va, a_va, j_va, t_va, n_va, b_va, 2.0, coef)
+            coef = build_coef(par_perp)
+            cand_pos_va = cand_from_f4(p0_va, vl_va, vp_va, apa_va, ape_va, jv_va, coef)
             err_va = torch.norm(cand_pos_va - truth_va, dim=1)
             hit = float((err_va <= R_HIT).float().mean())
 
@@ -189,12 +198,8 @@ def train_F3(data_tr: dict, data_va: dict, motion_tr: dict, motion_va: dict, arg
     f3.eval()
     with torch.no_grad():
         par_perp = f3(ctx_va_t)
-        coef = torch.stack([
-            torch.full_like(par_perp[:, 0], 1.94), torch.zeros_like(par_perp[:, 0]),
-            par_perp[:, 0], par_perp[:, 1],
-            torch.zeros_like(par_perp[:, 0]), torch.ones_like(par_perp[:, 0]),
-        ], dim=-1)
-        cand_pos_va = f4_helper(p0_va, v_va, a_va, j_va, t_va, n_va, b_va, 2.0, coef).cpu().numpy()
+        coef = build_coef(par_perp)
+        cand_pos_va = cand_from_f4(p0_va, vl_va, vp_va, apa_va, ape_va, jv_va, coef).cpu().numpy()
     err = np.linalg.norm(cand_pos_va - data_va["truth"], axis=1)
     return {
         "sub_exp": "P1.F3", "n_val": int(len(err)), "fold": FOLD_VAL,
@@ -218,14 +223,20 @@ def train_F4(data_tr: dict, data_va: dict, motion_tr: dict, motion_va: dict, arg
     def to_t(arr): return torch.from_numpy(arr).to(DEVICE)
     truth_tr = to_t(data_tr["truth"]); truth_va = to_t(data_va["truth"])
     p0_tr = to_t(motion_tr["p0"]); p0_va = to_t(motion_va["p0"])
-    v_tr = to_t(motion_tr["v_last"]); v_va = to_t(motion_va["v_last"])
-    a_tr = to_t(motion_tr["a_last"]); a_va = to_t(motion_va["a_last"])
-    j_tr = to_t(motion_tr["jerk_last"]); j_va = to_t(motion_va["jerk_last"])
-    t_tr = to_t(motion_tr["t_hat"]); t_va = to_t(motion_va["t_hat"])
-    n_tr = to_t(motion_tr["n_hat"]); n_va = to_t(motion_va["n_hat"])
-    b_tr = to_t(motion_tr["b_hat"]); b_va = to_t(motion_va["b_hat"])
+    vl_tr = to_t(motion_tr["v_last"]); vl_va = to_t(motion_va["v_last"])
+    vp_tr = to_t(motion_tr["v_prev"]); vp_va = to_t(motion_va["v_prev"])
+    apa_tr = to_t(motion_tr["acc_par_vec"]); apa_va = to_t(motion_va["acc_par_vec"])
+    ape_tr = to_t(motion_tr["acc_perp_vec"]); ape_va = to_t(motion_va["acc_perp_vec"])
+    jv_tr = to_t(motion_tr["jerk_vec"]); jv_va = to_t(motion_va["jerk_vec"])
 
-    opt = torch.optim.AdamW(f4.parameters(), lr=args.lr * 0.1, weight_decay=1e-4)  # smaller lr (6 param)
+    # F0 init verification — coef = (1.98, 0.0, 1.20, -0.20, 0.0, 1.0) 가 CANDIDATES[17] 와 정확히 일치
+    f4.eval()
+    with torch.no_grad():
+        cand_init = f4(p0_va, vl_va, vp_va, apa_va, ape_va, jv_va, 2.0)
+        init_err = torch.norm(cand_init - to_t(data_va["cand"]), dim=1).max().item()
+    print(f"  [F4] init parity check: max(cand_init − F0 anchor) = {init_err:.2e} m (expected ~0)")
+
+    opt = torch.optim.AdamW(f4.parameters(), lr=args.lr * 0.1, weight_decay=1e-4)
     init_coef = f4.coef.detach().clone()
     N_train = p0_tr.shape[0]
     best_hit, best_state, wait = -1.0, None, 0
@@ -236,8 +247,8 @@ def train_F4(data_tr: dict, data_va: dict, motion_tr: dict, motion_va: dict, arg
         total, n = 0.0, 0
         for start in range(0, N_train, args.batch):
             sel_ = perm[start:start + args.batch]
-            cand_pos = f4(p0_tr[sel_], v_tr[sel_], a_tr[sel_], j_tr[sel_],
-                          t_tr[sel_], n_tr[sel_], b_tr[sel_], horizon=2.0)
+            cand_pos = f4(p0_tr[sel_], vl_tr[sel_], vp_tr[sel_],
+                          apa_tr[sel_], ape_tr[sel_], jv_tr[sel_], 2.0)
             err = (cand_pos - truth_tr[sel_]).pow(2).sum(dim=1)
             loss = err.mean() + 0.01 * (f4.coef - init_coef).pow(2).sum()
             opt.zero_grad(set_to_none=True)
@@ -248,7 +259,7 @@ def train_F4(data_tr: dict, data_va: dict, motion_tr: dict, motion_va: dict, arg
 
         f4.eval()
         with torch.no_grad():
-            cand_pos_va = f4(p0_va, v_va, a_va, j_va, t_va, n_va, b_va, 2.0)
+            cand_pos_va = f4(p0_va, vl_va, vp_va, apa_va, ape_va, jv_va, 2.0)
             err_va = torch.norm(cand_pos_va - truth_va, dim=1)
             hit = float((err_va <= R_HIT).float().mean())
 
@@ -265,7 +276,7 @@ def train_F4(data_tr: dict, data_va: dict, motion_tr: dict, motion_va: dict, arg
     f4.load_state_dict(best_state)
     f4.eval()
     with torch.no_grad():
-        cand_pos_va = f4(p0_va, v_va, a_va, j_va, t_va, n_va, b_va, 2.0).cpu().numpy()
+        cand_pos_va = f4(p0_va, vl_va, vp_va, apa_va, ape_va, jv_va, 2.0).cpu().numpy()
     err = np.linalg.norm(cand_pos_va - data_va["truth"], axis=1)
     return {
         "sub_exp": "P1.F4", "n_val": int(len(err)), "fold": FOLD_VAL,

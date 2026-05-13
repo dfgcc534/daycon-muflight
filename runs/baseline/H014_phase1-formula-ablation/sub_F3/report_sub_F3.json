@@ -2,41 +2,41 @@
   "sub_exp": "P1.F3",
   "n_val": 2020,
   "fold": 0,
-  "oof_soft_hit": 0.09801980198019802,
-  "oof_raw_hit": 0.09801980198019802,
+  "oof_soft_hit": 0.6361386138613861,
+  "oof_raw_hit": 0.6361386138613861,
   "corrector_gain": 0.0,
   "per_band_hit_after": {
     "[0,0.5cm)": {
-      "n": 47,
+      "n": 683,
       "hit_before": 1.0,
       "hit_after": 1.0,
       "delta": 0.0
     },
     "[0.5,1cm)": {
-      "n": 151,
+      "n": 602,
       "hit_before": 1.0,
       "hit_after": 1.0,
       "delta": 0.0
     },
     "[1,1.5cm)": {
-      "n": 190,
+      "n": 357,
       "hit_before": 0.0,
       "hit_after": 0.0,
       "delta": 0.0
     },
     "[1.5,2cm)": {
-      "n": 193,
+      "n": 104,
       "hit_before": 0.0,
       "hit_after": 0.0,
       "delta": 0.0
     },
     "[2cm,inf)": {
-      "n": 1439,
+      "n": 274,
       "hit_before": 0.0,
       "hit_after": 0.0,
       "delta": 0.0
     }
   },
-  "elapsed_sec": 3.504478693008423,
-  "best_val_hit": 0.0980198085308075
+  "elapsed_sec": 1.1036467552185059,
+  "best_val_hit": 0.6361386179924011
 }

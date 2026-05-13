@@ -25,7 +25,7 @@ plan_011_1_carry_over: true
 | L axis best lever | L3 (asym, gate=1) | -0.0114 vs L0 (NEGATIVE) |
 | In axis best lever | **ID (CNN encoder)** | +0.00495 vs IA (★ 가장 근접 positive) |
 | M axis best lever | M1 (GateHead, tied with M0) | 0 vs M0 |
-| F axis best lever | F0 (anchor, no swap) | 0 (formula_swap_marginal) |
+| F axis best lever | **F4 (LearnableSingleCandidate ★ v1.1 post-fix)** | **+0.0030** (positive direction, strict 0.005 미달) |
 | LB | TBD | submission @ `runs/baseline/H012_phase1-input-ablation/sub_ID/submission.csv` |
 | LB 추정 (proxy via plan-006 OOF→LB gap +0.0201) | ~0.665 | plan-006 baseline 0.6692 보다 *낮은* 추정 |
 
@@ -103,6 +103,17 @@ submission 생성 = `analysis/plan-011/generate_submission.py` — full train (1
 
 ## §10. 변경 이력
 
-- 2026-05-13: 초안 — Phase 1 G1 complete (autonomous Phase 3+ skip).
+- 2026-05-13 v1: 초안 — Phase 1 G1 complete (autonomous Phase 3+ skip).
   - 24 sub-exp 실험 완료 (L=8, In=4 IC skip, M=7, F=5 F1/F2 fallback + F3/F4 broken).
   - autonomous option a → G_final 직접 진입, plan-012 carry-over.
+- 2026-05-13 v1.1 amendment (post-G_final spot-fix): F3/F4 cand formula parity fix 적용 후 재실행.
+  - **bug fix**: `LearnableSingleCandidate.forward` 식이 selector.make_candidates 와 numerical 일치 (v_scale=h/2·time_scale, acc_scale=(h/2)²·time_scale², d2 multiplies v_prev not a_last, par/perp 는 acc_par_vec/acc_perp_vec 직접 곱).
+  - init_coef = (1.98, 0.0, 1.20, -0.20, 0.0, 1.0) — CANDIDATES[17].d1=1.98 정정 (이전 1.94 → 0.04 magnitude offset 해소).
+  - F4 init parity 검증: max(cand_init − F0 anchor) = 1.39e-05 m (numerical noise only) ✓.
+  - 재실행 결과:
+    - F0 = 0.6401 (anchor, unchanged)
+    - F3 = 0.6361 (-0.0040 vs F0; per-sample MLP regression 가 단순 F0 fix 보다 낮음)
+    - **F4 = 0.6431 (+0.0030 vs F0)** — *positive direction*, F axis best lever 재판정.
+  - F̂ 결정 갱신: **F4** (learnable 6-coef, +0.0030) — 이전 F0 fix (no swap) 대체.
+  - G1 status 재평가: F axis 가 +0.0030 도달 (strict 0.005 미달 but informational positive); In axis +0.00495 + F axis +0.0030 = **2 sub-thresh positive 신호** — 4 axis 중 2 axis 가 positive direction. G1 (b) strict 통과 여전 미달이지만 *조건부 P3.3 (L̂+F̂) 진행 의미* 가능.
+  - 추가 carry-over: plan-011.1 추가 옵션 — P3.1 (L̂+In̂) + P3.3 (L̂+F̂) 5-fold 진행 후 super-additive 검증.
