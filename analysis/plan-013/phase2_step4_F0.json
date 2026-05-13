@@ -1,0 +1,15 @@
+{
+  "exp_id": "H032_phase2-step4-F0",
+  "status": "deferred",
+  "config_intended": {
+    "use_in_ic": true,
+    "use_step4": "F0_only",
+    "use_25_cand": false
+  },
+  "delta_oof": null,
+  "delta_oof_threshold_positive_lever": 0.005,
+  "positive_lever": false,
+  "defer_reason": "Step 4 F0_only 의 충실 구현은 plan-007 mlp_coeff.py 의 8 basis_terms 산출 framework 위에서 가능. plan-013 의 'frozen reuse only' 와 simplified pipeline 의 architectural gap — c5 scope 초과.",
+  "carry_over_to_plan_013_1": "plan-007 basis_terms framework 를 integrated_v3 로 통합 후 Step 4 F0_only 5-fold 재측정.",
+  "fallback_path": "§0.5 L95 phase2_no_positive_lever autonomous recovery — Phase 3 = best G1 baseline 단독 submission."
+}
