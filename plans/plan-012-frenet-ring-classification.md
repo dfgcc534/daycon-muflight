@@ -87,8 +87,8 @@ lb_score: null
 | c2 | code | `src/pb_0_6822/ring_classifier.py` — 3 codebook generator + 3D shape + classifier head (7 logit) + regression head (3D, per-mode offset) + L7 hinge loss. spec @ §4 | [DONE] (5697c9a — 19/19 smoke pass, 88/88 regression pass) |
 | c3 | code+exp | `analysis/plan-012/preflight.py` — F0 raw hit + oracle ceiling per codebook + K-Means anchor 산출 + plan-006 reproduce. spec @ §5 | [DONE] (9a89795 — F0 산식 spot-fix, 6/6 essential pass) |
 | G0 | gate | `preflight.json` 생성 + K-Means cluster 박제 + 3 oracle ceilings + reproduce drift ≤ 0.005 | [DONE] (9a89795 — F0 hit@1cm=0.6320, oracles 0.74~0.78, kmeans min cluster 113, reproduce skipped_no_checkpoint informational) |
-| c4 | code+exp | `analysis/plan-012/phase1_bakeoff.py` — 3 sub-exp E0a/E0b/E0c 학습 + winner 결정 + winner_id 박제. spec @ §6 | [TODO] |
-| G1 | gate | 3 sub-exp 박제 + winner OOF ≥ 0.6450 (또는 baseline_below_anchor warn) | [TODO] |
+| c4 | code+exp | `analysis/plan-012/phase1_bakeoff.py` — 3 sub-exp E0a/E0b/E0c 학습 + winner 결정 + winner_id 박제. spec @ §6 | [DONE] (fc74e58 — winner=E0a tie-break, 3 sub-exp 박제) |
+| G1 | gate | 3 sub-exp 박제 + winner OOF ≥ 0.6450 (또는 baseline_below_anchor warn) | [DONE+warn] (fc74e58 — winner_oof=0.6416 < 0.6450 + DCM=0.00037 < 0.002 → baseline_below_anchor warn, §6.3 fallback) |
 | c5 | code | `analysis/plan-012/phase2_core.py` — wrapper for E1~E5 on winner. spec @ §7 | [TODO] |
 | c6 | exp | Phase 2.E1 — Frame swap (조건부: winner ∈ {E0b Frenet, E0c K-Means} 이면 Frenet vs world; winner = E0a Absolute 이면 skip per `frame_axis_n/a`) | [TODO] |
 | c7 | exp | Phase 2.E2 — Codebook K density swap (winner 의 K=5/7/9/13, 4 sub-exp) | [TODO] |
