@@ -107,7 +107,7 @@ lb_score: null
 | G_final | gate | synthesis + plan-013 후보 + 3 파일 sync + plan-012.1 instruction | [DONE] (5886ff6 — plan-013 Candidate A/B/C 박제, default = C corrector+hybrid 합체; 3 파일 sync; plan-012.1 manual dacon-submit instruction) |
 | c17 | code | device auto-detect (cuda if available) + CPU baseline 박제 (`_cpu.json/_cpu.csv`) | [DONE] (78d1d12 — GPU 연결 후 spec-default 재실행 준비) |
 | c18 | exp | phase1~4 GPU spec-faithful re-run (epochs=50/batch=256/patience=5) — paradigm plateau 확정 | [DONE] (ff1e578 — G1 OOF 0.6411 / G4 best 0.6350 anchor 0.6344, all G-gate 정성적 동일, E8 r0 prior 는 GPU NEGATIVE = CPU noise) |
-| c19 | analysis | results.md + plan-012.results.md + plan-012.md frontmatter GPU re-run 결과 sync | [PROGRESS] |
+| c19 | analysis | results.md + plan-012.results.md + plan-012.md frontmatter GPU re-run 결과 sync | [DONE] (dbbe7e2) |
 
 ### Plan-specific severe (WORKFLOW.md §12.3 default 위 추가분)
 
