@@ -89,13 +89,13 @@ lb_score: null
 | G0 | gate | `preflight.json` 생성 + K-Means cluster 박제 + 3 oracle ceilings + reproduce drift ≤ 0.005 | [DONE] (9a89795 — F0 hit@1cm=0.6320, oracles 0.74~0.78, kmeans min cluster 113, reproduce skipped_no_checkpoint informational) |
 | c4 | code+exp | `analysis/plan-012/phase1_bakeoff.py` — 3 sub-exp E0a/E0b/E0c 학습 + winner 결정 + winner_id 박제. spec @ §6 | [DONE] (fc74e58 — winner=E0a tie-break, 3 sub-exp 박제) |
 | G1 | gate | 3 sub-exp 박제 + winner OOF ≥ 0.6450 (또는 baseline_below_anchor warn) | [DONE+warn] (fc74e58 — winner_oof=0.6416 < 0.6450 + DCM=0.00037 < 0.002 → baseline_below_anchor warn, §6.3 fallback) |
-| c5 | code | `analysis/plan-012/phase2_core.py` — wrapper for E1~E5 on winner. spec @ §7 | [TODO] |
-| c6 | exp | Phase 2.E1 — Frame swap (조건부: winner ∈ {E0b Frenet, E0c K-Means} 이면 Frenet vs world; winner = E0a Absolute 이면 skip per `frame_axis_n/a`) | [TODO] |
-| c7 | exp | Phase 2.E2 — Codebook K density swap (winner 의 K=5/7/9/13, 4 sub-exp) | [TODO] |
-| c8 | exp | Phase 2.E3 — Temperature scan (argmax + {0.01, 0.03, 0.1, 0.3, 1.0}, 6 sub-exp) | [TODO] |
-| c9 | exp | Phase 2.E4 — Loss swap (L7 hinge vs distance regression, 2 sub-exp) | [TODO] |
-| c10 | exp | Phase 2.E5 — Reg head on/off (classifier only soft-mean vs classifier + reg head, 2 sub-exp). ★ hybrid 가치 측정 | [TODO] |
-| G2 | gate | 5 axis informational 완료 + 최소 1 axis +0.005 ΔOOF | [TODO] |
+| c5 | code | `analysis/plan-012/phase2_core.py` — wrapper for E1~E5 on winner. spec @ §7 | [DONE] (e6837df — phase2_core.py + ring_classifier_train.py helper 추출) |
+| c6 | exp | Phase 2.E1 — Frame swap (조건부: winner ∈ {E0b Frenet, E0c K-Means} 이면 Frenet vs world; winner = E0a Absolute 이면 skip per `frame_axis_n/a`) | [SKIP] (winner=E0a → frame_axis_n/a) |
+| c7 | exp | Phase 2.E2 — Codebook K density swap (winner 의 K=5/7/9/13, 4 sub-exp) | [DONE] (e6837df — 3 추가 sub-exp K=5/9/13, max ΔOOF=+0.0010 K=13) |
+| c8 | exp | Phase 2.E3 — Temperature scan (argmax + {0.01, 0.03, 0.1, 0.3, 1.0}, 6 sub-exp) | [DONE] (e6837df — 5 추가 sub-exp, max ΔOOF=+0.0015 τ=0.01 ★ best lever) |
+| c9 | exp | Phase 2.E4 — Loss swap (L7 hinge vs distance regression, 2 sub-exp) | [DONE] (e6837df — 1 추가 sub-exp no_hinge, ΔOOF=+0.0005) |
+| c10 | exp | Phase 2.E5 — Reg head on/off (classifier only soft-mean vs classifier + reg head, 2 sub-exp). ★ hybrid 가치 측정 | [DONE] (e6837df — 1 추가 sub-exp reg_off, ΔOOF=-0.0030; reg_head informational 유용) |
+| G2 | gate | 5 axis informational 완료 + 최소 1 axis +0.005 ΔOOF | [DONE+severe-recovered] (e6837df — 0 positive axes, phase2_no_positive_lever severe → autonomous recovery option (a) Phase 3 informational + G_final path-pivot) |
 | c11 | code | `analysis/plan-012/phase3_aux.py` — wrapper for E6~E8. spec @ §8 | [TODO] |
 | c12 | exp | Phase 3.E6 — Boundary sample weighting on/off (2 sub-exp) | [TODO] |
 | c13 | exp | Phase 3.E7 — Scorer arch (full Attn-GRU vs last-step MLP, 2 sub-exp) ★ 시계열 input 가치 | [TODO] |
