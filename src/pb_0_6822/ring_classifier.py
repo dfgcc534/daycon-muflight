@@ -488,36 +488,69 @@ def hybrid_predict(
 
 # ──────────────────────────────────────────────────────────────────────────────
 # F0 단일공식 — frenet_par120_perp_neg020 (plan-006 CANDIDATES[17])
-# §1.4.1 spec inline 박제: par_coef=1.20, perp_coef=-0.20, binorm_coef=0.00
+#
+# corrector_redesign_v2.LearnableSingleCandidate (init_coef = 1.98, 0.0, 1.20,
+# -0.20, 0.0, 1.0) 와 numerically exact:
+#   cand = p0 + d1·v_last + d2·v_prev + par·acc_par_vec + perp·acc_perp_vec
+#          + jerk·jerk_vec
+# horizon=2, time_scale=1 → v_scale = acc_scale = 1.
+#
+# (decision-note: spec-default — plan §1.4.1 의 박제 식 (par·v_par, perp·v_perp,
+# binorm·v_binorm 만) 은 단순화되어 plan-006 CANDIDATES[17] 와 mismatch. 본 실제
+# 식이 plan-006 의 source-of-truth. F0 raw hit 측정 시 본 식 사용. plan §1.4.1
+# spot-fix 는 추후 §0.5 sync 시 처리.)
 # ──────────────────────────────────────────────────────────────────────────────
 
 
 def f0_predict_frenet_par120_perp_neg020(
     trajectory_x: np.ndarray,
     end_idx: int | None = None,
+    d1_coef: float = 1.98,
+    d2_coef: float = 0.0,
     par_coef: float = 1.20,
     perp_coef: float = -0.20,
-    binorm_coef: float = 0.0,
+    jerk_coef: float = 0.0,
+    horizon: float = 2.0,
+    time_scale: float = 1.0,
 ) -> np.ndarray:
     """F0 = frenet_par120_perp_neg020. Returns (N, 3) F0_pred_world.
 
-    end_idx default = T-1 (= 마지막 관측 step).
+    cand = p0 + d1·v_scale·v_last + d2·v_scale·v_prev
+              + par·acc_scale·acc_par_vec + perp·acc_scale·acc_perp_vec
+              + jerk·acc_scale·jerk_vec
+    where v_scale = (horizon/2)·time_scale, acc_scale = (horizon/2)²·time_scale².
     """
     assert trajectory_x.ndim == 3 and trajectory_x.shape[-1] == 3
     T = trajectory_x.shape[1]
     if end_idx is None:
         end_idx = T - 1
-    assert end_idx >= 2, "end_idx >= 2 required"
+    assert end_idx >= 3, "end_idx >= 3 required (need x[end-3] for prev_acc)"
 
-    v = trajectory_x[:, end_idx] - trajectory_x[:, end_idx - 1]                            # (N, 3)
-    R_wfn = build_frenet_basis_3d(trajectory_x, end_idx)                                   # (N, 3, 3)
-    # world → frenet
-    v_frenet = np.einsum("nij,nj->ni", R_wfn.transpose(0, 2, 1), v)                         # (N, 3)
+    p0 = trajectory_x[:, end_idx]                                                            # (N, 3)
+    v_last = p0 - trajectory_x[:, end_idx - 1]                                               # (N, 3)
+    v_prev = trajectory_x[:, end_idx - 1] - trajectory_x[:, end_idx - 2]                     # (N, 3)
+    prev_v = trajectory_x[:, end_idx - 2] - trajectory_x[:, end_idx - 3]                     # (N, 3)
+    acc = v_last - v_prev
+    prev_acc = v_prev - prev_v
+    jerk_vec = acc - prev_acc
 
-    delta_frenet = np.stack(
-        [par_coef * v_frenet[:, 0], perp_coef * v_frenet[:, 1], binorm_coef * v_frenet[:, 2]],
-        axis=-1,
+    v_norm = np.linalg.norm(v_last, axis=-1, keepdims=True)
+    safe_v_norm = np.where(v_norm < EPS, np.ones_like(v_norm), v_norm)
+    t_hat = v_last / safe_v_norm
+    acc_par_scalar = np.sum(acc * t_hat, axis=-1, keepdims=True)
+    acc_par_vec = acc_par_scalar * t_hat
+    acc_perp_vec = acc - acc_par_vec
+
+    half_h = horizon / 2.0
+    v_scale = half_h * time_scale
+    acc_scale = (half_h ** 2) * (time_scale ** 2)
+
+    F0 = (
+        p0
+        + d1_coef * v_scale * v_last
+        + d2_coef * v_scale * v_prev
+        + par_coef * acc_scale * acc_par_vec
+        + perp_coef * acc_scale * acc_perp_vec
+        + jerk_coef * acc_scale * jerk_vec
     )
-    delta_world = np.einsum("nij,nj->ni", R_wfn, delta_frenet)                              # (N, 3)
-    F0_pred_world = trajectory_x[:, end_idx] + delta_world
-    return F0_pred_world.astype(np.float64)
+    return F0.astype(np.float64)

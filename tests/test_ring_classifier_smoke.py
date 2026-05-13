@@ -220,13 +220,14 @@ def test_hybrid_predict_r0_prior():
 
 
 def test_f0_predict_frenet_par120_perp_neg020():
-    # 직선 운동: par_coef=1.20 → 다음 step 위치 = x[end] + 1.20 * v_par * t̂
+    # 등속 직선 운동 (acc=0, prev_acc=0): F0 = p0 + d1·v_last = p0 + 1.98·v_last
+    # x[:, i, 0] = i * 0.01 → v_last = 0.01, acc = 0
     x = np.zeros((3, 5, 3), dtype=np.float64)
     for i in range(5):
-        x[:, i, 0] = i * 0.01  # +x 직선 운동, speed=0.01
+        x[:, i, 0] = i * 0.01
     F0 = rc.f0_predict_frenet_par120_perp_neg020(x)
-    # v_par = 0.01, par=1.20, perp=0 → delta_x = 0.012
-    expected_x = 4 * 0.01 + 1.20 * 0.01
+    # end_idx = 4, p0 = 0.04, v_last = 0.01 → F0_x = 0.04 + 1.98*0.01 = 0.0598
+    expected_x = 0.04 + 1.98 * 0.01
     assert np.allclose(F0[:, 0], expected_x, atol=1e-9)
     assert np.allclose(F0[:, 1], 0.0, atol=1e-9)
     assert np.allclose(F0[:, 2], 0.0, atol=1e-9)
