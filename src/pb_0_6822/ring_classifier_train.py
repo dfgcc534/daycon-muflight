@@ -13,7 +13,7 @@ import torch
 from src.pb_0_6822 import ring_classifier as rc
 
 
-DEVICE = torch.device("cpu")
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 def run_sub_exp(

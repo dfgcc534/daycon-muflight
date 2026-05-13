@@ -26,7 +26,7 @@ from src.pb_0_6822 import ring_classifier as rc                       # noqa: E4
 from src.pb_0_6822 import ring_classifier_train as rct                # noqa: E402
 from src.pb_0_6822 import selector as base                            # noqa: E402
 
-DEVICE = torch.device("cpu")
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 def train_one_fold(
