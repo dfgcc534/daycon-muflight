@@ -85,8 +85,8 @@ lb_score: null
 | c1 | docs | `plans/plan-012-frenet-ring-classification.md` v1 작성 | [DONE] (e1f08eb — 2D ring spec, 후속 v2 로 대체) |
 | c1.1 | docs | v2 spec replacement — codebook bake-off + 3D + classifier+reg head hybrid (★ paradigm shift per user direction) | [DONE] (9a16c97 + 93db3fc plan-review-master 5-iter hardening) |
 | c2 | code | `src/pb_0_6822/ring_classifier.py` — 3 codebook generator + 3D shape + classifier head (7 logit) + regression head (3D, per-mode offset) + L7 hinge loss. spec @ §4 | [DONE] (5697c9a — 19/19 smoke pass, 88/88 regression pass) |
-| c3 | code+exp | `analysis/plan-012/preflight.py` — F0 raw hit + oracle ceiling per codebook + K-Means anchor 산출 + plan-006 reproduce. spec @ §5 | [TODO] |
-| G0 | gate | `preflight.json` 생성 + K-Means cluster 박제 + 3 oracle ceilings + reproduce drift ≤ 0.005 | [TODO] |
+| c3 | code+exp | `analysis/plan-012/preflight.py` — F0 raw hit + oracle ceiling per codebook + K-Means anchor 산출 + plan-006 reproduce. spec @ §5 | [DONE] (9a89795 — F0 산식 spot-fix, 6/6 essential pass) |
+| G0 | gate | `preflight.json` 생성 + K-Means cluster 박제 + 3 oracle ceilings + reproduce drift ≤ 0.005 | [DONE] (9a89795 — F0 hit@1cm=0.6320, oracles 0.74~0.78, kmeans min cluster 113, reproduce skipped_no_checkpoint informational) |
 | c4 | code+exp | `analysis/plan-012/phase1_bakeoff.py` — 3 sub-exp E0a/E0b/E0c 학습 + winner 결정 + winner_id 박제. spec @ §6 | [TODO] |
 | G1 | gate | 3 sub-exp 박제 + winner OOF ≥ 0.6450 (또는 baseline_below_anchor warn) | [TODO] |
 | c5 | code | `analysis/plan-012/phase2_core.py` — wrapper for E1~E5 on winner. spec @ §7 | [TODO] |
