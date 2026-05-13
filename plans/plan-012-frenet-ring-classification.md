@@ -96,11 +96,11 @@ lb_score: null
 | c9 | exp | Phase 2.E4 — Loss swap (L7 hinge vs distance regression, 2 sub-exp) | [DONE] (e6837df — 1 추가 sub-exp no_hinge, ΔOOF=+0.0005) |
 | c10 | exp | Phase 2.E5 — Reg head on/off (classifier only soft-mean vs classifier + reg head, 2 sub-exp). ★ hybrid 가치 측정 | [DONE] (e6837df — 1 추가 sub-exp reg_off, ΔOOF=-0.0030; reg_head informational 유용) |
 | G2 | gate | 5 axis informational 완료 + 최소 1 axis +0.005 ΔOOF | [DONE+severe-recovered] (e6837df — 0 positive axes, phase2_no_positive_lever severe → autonomous recovery option (a) Phase 3 informational + G_final path-pivot) |
-| c11 | code | `analysis/plan-012/phase3_aux.py` — wrapper for E6~E8. spec @ §8 | [TODO] |
-| c12 | exp | Phase 3.E6 — Boundary sample weighting on/off (2 sub-exp) | [TODO] |
-| c13 | exp | Phase 3.E7 — Scorer arch (full Attn-GRU vs last-step MLP, 2 sub-exp) ★ 시계열 input 가치 | [TODO] |
-| c14 | exp | Phase 3.E8 — r=0 logit prior 강도 (0 / +0.5 / +1.0, 3 sub-exp) | [TODO] |
-| G3 | gate | aux ablation 완료 (informational) | [TODO] |
+| c11 | code | `analysis/plan-012/phase3_aux.py` — wrapper for E6~E8. spec @ §8 | [DONE] (294148e) |
+| c12 | exp | Phase 3.E6 — Boundary sample weighting on/off (2 sub-exp) | [DONE] (294148e — bweight_on ΔOOF=+0.0000, no effect) |
+| c13 | exp | Phase 3.E7 — Scorer arch (full Attn-GRU vs last-step MLP, 2 sub-exp) ★ 시계열 input 가치 | [DONE] (294148e — last_step_mlp ΔOOF=-0.0025, GRU 약간 유용) |
+| c14 | exp | Phase 3.E8 — r=0 logit prior 강도 (0 / +0.5 / +1.0, 3 sub-exp) | [DONE] (294148e — r=+0.5/+1.0 둘 다 ΔOOF=+0.0020 ★ overall best lever) |
+| G3 | gate | aux ablation 완료 (informational) | [DONE] (294148e — informational complete; overall best = E8 r=0 +0.5 ΔOOF=+0.0020) |
 | c15 | code+exp | `analysis/plan-012/phase4_final.py` — best stack 5-fold + submission. spec @ §9 | [TODO] |
 | G4 | gate | 5-fold OOF ≥ G1 winner + 0.005 + submission.csv 박제 | [TODO] |
 | c16 | analysis | `analysis/plan-012/results.md` + `next_plan_candidates.md` (≥ 3 후보) + 3 파일 frontmatter sync + plan-012.1 instruction. spec @ §10 | [TODO] |
