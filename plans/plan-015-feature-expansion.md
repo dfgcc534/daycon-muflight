@@ -1,6 +1,6 @@
 ---
 plan_id: 015
-version: 2.1 (spec patch — plan-review-master iter 1 fix 6건. (1) §1 Feature A residual modal switch 단일화 = `displacement_F0[s] = F0_pred[s] − X[:, s]` (F0 가 향하는 방향, sign convention 명시) + F0_pred 산출식 inline + edge case zero-fill. (2) §1 Feature C dim 모순 제거 = τ=1,2 2 stream 단일화 (26D cumulative), 39D / τ=3 표현 삭제. (3) §3.3 G0 (b) feature dim 도출식 박제 (A 단독 12D / B 단독 10D / C 단독 18D / D 단독 15D, cumulative 12/13/26/32). (4) anchor inheritance 단일화 = immediate prior stage G_(n-1) cumulative OOF (marginal 도 동일 inheritance, negative 시 G_final 직행). (5) §3.1 baseline 0.6425 reduction = 5-fold concat hit@1cm (fold-mean 아님) 명시. (6) §1 Feature B step-local Frenet basis 산출식 + edge case (degenerate motion → world ẑ post-orthogonalize) + acc 정의 (raw acc 사용) 박제. v2 → v2.1.)
+version: 2.2 (spec patch — plan-review-master iter 2 fix 6건. (1) §1 Feature C τ=2 step indices 산출 모순 fix: `range(3, 11, 2)`=[3,5,7,9] 4 step + pad rule indices[0] 반복 prepend → [3,3,3,5,7,9]. (2) §3.2 sub-exp matrix base column anchor inheritance 모순 fix: G2/G3/G4 base = "G_(n-1) cumulative (positive/marginal inherited), negative → G_final 직행" §0.5 v2.1 spec 정합. (3) §0.5 Quick Ref C feature dim 39D → 26D 갱신 (stale). (4) §1 Feature D stat 정의 명료화: cosine + Δspeed 2 stat × 3 pair = 6D (Δangle 은 cosine 의 monotone mapping 으로 제외). (5) §1 Feature B edge case 단일화: world ẑ post-orthogonalize 단일 선택 (acc 0 fallback OR 옵션 제외). (6) B/C/D narrative 가설 motivation 박제 (회수율 sub-failure 매핑 — plan-005 binormal evidence / wingbeat aliasing / long-range pairwise gap). v2.1 → v2.2.)
 date: 2026-05-14 (Asia/Seoul)
 status: spec
 based_on:
@@ -49,8 +49,8 @@ lb_score: null
 
 - **A** F0 prior residual 직접 input — per-step `(obs[t] − F0_pred[t])` 3D concat. +3D (9D → 12D).
 - **B** Frenet binormal axis 분리 — `perp_norm/speed` (1D) → `normal_norm/speed` + `binormal_norm/speed` (2D). +1D (12D → 13D when A applied).
-- **C** Multi-scale stride — base feature 를 τ ∈ {1, 2, 3} stride 로 3 stream concat. +(현재 dim × 2) (13D → 39D when A+B applied).
-- **D** Pairwise cross-step interaction — step t vs t-2 / t-4 의 cosine similarity + Δspeed + Δangle. +6D (or stream 형태).
+- **C** Multi-scale stride — base feature 를 τ ∈ {1, 2} 2 stream concat (τ=3 step 부족으로 제외, §1 v2.1 단일화). 13D × 2 stream = **26D when A+B applied**.
+- **D** Pairwise cross-step interaction — step t vs t-2 / t-4 의 cosine similarity + Δspeed (Δangle 은 cosine 의 monotone mapping 이므로 제외, v2.2 단일화). 3 pair × 2 stat = **+6D**.
 
 ### G-gates (정량 spec @ §3.3)
 
@@ -89,6 +89,7 @@ lb_score: null
 | c1 | docs | v1 draft — feature spec (A/B/C/D) 박제 | [DONE] de3131b |
 | **c2** | docs | **v2 spec patch — §3 expand: 순차 ablation + Δ+band 합격기준 + exp_id naming + STAGE §4~§9 추가** | [DONE] f195da4 |
 | c2.1 | docs | **v2.1 spec patch — plan-review-master iter 1 fix 6건.** (1) §1 Feature A residual modal switch 단일화 (displacement_F0 sign convention). (2) §1 Feature C dim 모순 제거 (26D cumulative, τ=1,2 2 stream). (3) §3.3 G0 (b) feature dim 도출식 박제. (4) anchor inheritance 단일화 (immediate prior cumulative). (5) §3.1 baseline reduction = 5-fold concat hit. (6) §1 Feature B Frenet basis 산출식 + edge case 박제. v2 → v2.1 | [DONE] 0c53cd9 |
+| c2.2 | docs | **v2.2 spec patch — plan-review-master iter 2 fix 6건.** (1) §1 Feature C τ=2 step indices `range(3,11,2)`=[3,5,7,9] 4 step + pad rule 박제. (2) §3.2 sub-exp matrix base column anchor inheritance 정합화 (G_(n-1) cumulative, negative → G_final). (3) §0.5 Quick Ref C feature 39D → 26D 갱신. (4) §1 Feature D stat 정의 명료화 (cosine + Δspeed 2 stat × 3 pair = 6D, Δangle 제외). (5) §1 Feature B edge case 단일화 (world ẑ post-ortho). (6) B/C/D narrative 가설 motivation 박제. v2.1 → v2.2 | [TODO] |
 | c3 | code+exp | STAGE 0 (G0) — preflight: plan-014 baseline 5-fold reproduce + feature dim sanity | [TODO] |
 | c4 | code+exp | STAGE 1 (G1, E1) — feature A only (F0 residual direct), 5-fold OOF | [TODO] |
 | c5 | exp | STAGE 2 (G2, E2) — A+B (F0 residual + binormal split), 5-fold OOF | [TODO] |
@@ -117,6 +118,7 @@ lb_score: null
 
 #### B. Frenet binormal axis 분리
 
+- **가설 (회수율 sub-failure 매핑)**: 현 `perp_norm/speed` 1D 는 normal + binormal magnitude 의 *RMS-합* 으로 두 방향 정보 손실. plan-005 진단 = binormal axis 의 error 0.64cm (normal axis 4.51cm 의 1/7). **두 방향의 magnitude 가 다른 정보를 담음** → split 시 corrector 가 binormal-driven sample (소수지만 specific 한 회수 후보) 을 정밀 회수 가능. plan-014 G2 oracle ceiling 도 Frenet-orthogonal codebook 이 최고 (0.8248) → Frenet basis 의 정밀한 분해가 회수율 개선의 직접 신호.
 - **정의 (v2 명료화 spec)**: 현 `perp_norm/speed` (1D, normal+binormal magnitude 합) 을 `normal_norm/speed` (1D) + `binormal_norm/speed` (1D) 2D 로 split.
 - **dim**: +1D net (split 후 9D 의 (5) 자리 1D → 2D 로 늘어남, 9D − 1D + 2D = 10D 단독 / A+B cumulative = 13D)
 - **step-local Frenet basis 산출 (n̂_s, b̂_s)**:
@@ -125,7 +127,7 @@ lb_score: null
   - `acc_perp_vec_s = acc_s − (acc_s · t̂_s)·t̂_s` (= acc 의 perp plane projection)
   - `n̂_s = acc_perp_vec_s / (‖acc_perp_vec_s‖ + ε)` — normal direction
   - `b̂_s = t̂_s × n̂_s` — binormal direction (오른손 법칙)
-  - **edge case** (`‖v_s‖ < ε_basis = 1e-6` 또는 `‖acc_perp_vec_s‖ < ε_basis`): degenerate motion → `n̂_s = world ẑ` post-orthogonalize (plan-014 §A.1 carry). 또는 acc_normal/binormal 모두 0 fallback.
+  - **edge case** (degenerate motion, v2.2 단일화): `‖v_s‖ < ε_basis = 1e-6` 또는 `‖acc_perp_vec_s‖ < ε_basis` 시 → `n̂_s = world ẑ` post-orthogonalize (`n̂_s ← n̂_s − (n̂_s · t̂_s)·t̂_s`, 재정규화). plan-014 §A.1 carry. (acc_normal/binormal 0 fallback 옵션 제외 — basis 구성 후 정상 산출.)
 - **feature split 산출**:
   - `acc_normal = acc_perp_vec_s · n̂_s` (= `‖acc_perp_vec_s‖` 자체, scalar 부호 + magnitude. n̂ 정의상 양수.)
   - `acc_binormal = acc_s · b̂_s` (raw acc 의 b̂_s 성분 scalar. 부호 sign 보존)
@@ -136,20 +138,26 @@ lb_score: null
 
 #### C. Multi-scale stride features
 
+- **가설 (회수율 sub-failure 매핑)**: 현 9D feature 는 step gap 1 (40ms) 의 high-frequency kinematic signal 만 추출. 모기 wingbeat 같은 short-period oscillation 은 step gap 1 에서 aliased noise 로 보이지만, step gap 2 (80ms) 에서 *integrated maneuver* signal 로 분리 가능. plan-014 G4 E7 (LastStep MLP −0.005) = 6-step BiGRU 자체는 가치 있지만, *동일 stride* 만 사용 → 시간 scale 분리 안 됨. 2 stride concat = encoder 가 dual-scale 패턴 동시 학습.
 - **정의 (v2 단일화 spec)**: A+B 적용 후 13D base feature 를 stride τ ∈ {1, 2} 2 stream 계산 → per-step concat = **26D**. (τ=3 stride 는 11-step trajectory 에서 step 수 부족으로 제외.)
 - **dim**: per-step 13D × 2 stream = **26D** (A+B+C cumulative)
-- **구현**: `make_seq_features` 에서 step indices 산출 2 set:
-  - τ=1 (기존): `range(max(3, end_idx-5), end_idx+1)` → 6 step, step gap 1, end_idx=10 시 [5,6,7,8,9,10]
-  - τ=2: `range(max(3, end_idx-10), end_idx+1, 2)` → 6 step, step gap 2, end_idx=10 시 [0,2,4,6,8,10] (실제 max(3,0)=3 이므로 [3, 4, 6, 8, 10] 5 step, pad first 1 회 → indices[0] 반복 prepend)
-  - 각 τ 마다 per-step 13D feature 산출 후 *동일 step position* (6개) 끼리 axis=-1 concat → per-step 26D. 시간 alignment 는 BiGRU 가 학습.
-- **edge case** (τ=2 의 step 부족): pad rule = 첫 step index 반복 prepend (plan-014 §A.1 pad rule carry).
+- **구현**: `make_seq_features` 에서 step indices 산출 2 set (v2.2 단일화, python `range` 실 결과 박제):
+  - **τ=1 (기존)**: `list(range(max(3, end_idx-5), end_idx+1, 1))` → end_idx=10 시 `[5, 6, 7, 8, 9, 10]` (6 step, gap 1)
+  - **τ=2**: `list(range(max(3, end_idx-10), end_idx+1, 2))` → end_idx=10 시 `max(3, 0)=3` → `range(3, 11, 2)` = `[3, 5, 7, 9]` (4 step). **pad rule**: 6 step 보다 부족 시 `indices = [indices[0]] * (6 − len(indices)) + indices` (plan-014 §A.1 carry) → `[3, 3, 3, 5, 7, 9]` (6 step).
+  - 각 τ stream 의 per-step 13D feature (A+B 적용) 산출 후 *동일 position* (6개 step slot) 끼리 axis=-1 concat → per-step 26D.
+  - 시간 alignment: τ=1 의 step `s` 와 τ=2 의 동일 position step (다른 시간) 가 같은 BiGRU input vector 의 절반씩 — BiGRU 가 시간축 학습으로 흡수.
 
 #### D. Pairwise cross-step interaction
 
-- **정의**: per-step feature 에 cross-step pairwise 추가. step t 와 t-2 / t-4 의 cosine similarity + Δspeed + Δangle.
-- **dim**: +6D (3 pair × 2 stat) per-step = 26D + 6D = 32D when A+B+C applied
-- **구현**: per-step `s` 에서 `v[s], v[s-2], v[s-4]` 의 3 velocity vector. pair (s, s-2), (s, s-4), (s-2, s-4) 3 pair × cosine + Δspeed = 6D 추가.
-- **edge case**: s=3, 4 일 때 s-4 미정의 → 첫 valid step (s=5) 의 값 forward fill.
+- **가설 (회수율 sub-failure 매핑)**: BiGRU 은 sequential pairwise 패턴은 학습하지만, *long-range pairwise* (t vs t-4) 의 explicit signal 은 6-step hidden state 안 implicit 표현 → corrector 가 *직접 보기* 어려움. plan-014 G4 E7 (LastStep MLP −0.005, 시계열 가치 입증) carry — BiGRU 가 충분 표현력 가지지만 *long-range pairwise gap* 은 explicit feature 로 보완 시 추가 회수.
+- **정의 (v2.2 명료화)**: per-step feature 에 cross-step pairwise 추가. velocity vector pair 3개 × stat 2개 = **6D**. (이전 본문의 "Δangle" 는 cosine similarity 와 중복 정보이므로 *제외* — Δangle = acos(cosine similarity) 이라 단조 mapping.)
+- **dim**: +6D (3 pair × 2 stat = 6D) per-step = 26D + 6D = **32D when A+B+C applied**
+- **stat 2개** (per pair):
+  - `cosine_similarity(v[s_a], v[s_b])` = `v[s_a] · v[s_b] / (‖v[s_a]‖·‖v[s_b]‖ + ε)`
+  - `Δspeed = ‖v[s_a]‖ − ‖v[s_b]‖`
+- **3 pair** (per-step `s` 의 velocity `v[s] = X[:, s] − X[:, s−1]` 기준):
+  - `(s, s-2)`, `(s, s-4)`, `(s-2, s-4)`
+- **edge case**: s=3, 4 일 때 s-4 < 0 → 해당 pair stat 0 fill (즉 v[s-4] 미정의 시 cosine=0, Δspeed=0). baseline `end_idx=10` + step indices `[5,6,7,8,9,10]` 기준 모든 step 에서 s-4 ≥ 1 valid → edge case 발생 안 함.
 
 ---
 
@@ -196,12 +204,12 @@ lb_score: null
 | stage | sub-exp | feature config | dim | base |
 |---|---|---|---|---|
 | G1 | **E1** (A) | F0 residual direct | 12D | plan-014 best_stack |
-| G2 | **E2** (A+B) | + binormal split | 13D | G1 (if Δ ≥ +0.005) or G0 (if G1 negative) |
-| G3 | **E3** (A+B+C) | + multi-scale stride (τ=1,2 stream) | 26D | G2 (if Δ ≥ +0.005) |
-| G4 | **E4** (A+B+C+D) | + pairwise cross-step | 32D | G3 (if Δ ≥ +0.005) |
+| G2 | **E2** (A+B) | + binormal split | 13D | **G1 cumulative** (positive/marginal 모두 inherited). G1 negative → G2 skip → G_final 직행 |
+| G3 | **E3** (A+B+C) | + multi-scale stride (τ=1,2 stream) | 26D | **G2 cumulative** (positive/marginal). G2 negative → G3 skip → G_final 직행 |
+| G4 | **E4** (A+B+C+D) | + pairwise cross-step | 32D | **G3 cumulative** (positive/marginal). G3 negative → G4 skip → G_final 직행 |
 | G5 | **best** | cumulative best (max ΔOOF over G0/G1/G2/G3/G4) | varies | G_final 의 submission base |
 
-**Drop rule** (v2 patch 결정): 만약 G_n 의 ΔOOF < 0 (negative), 해당 feature drop + 그 feature 까지 cumulative 해서 다음 stage 추가 진행 *skip* → G_final 직행 (= 이전 best stage 가 best_stack 으로 채택).
+**Drop rule** (v2 patch 결정): 만약 G_n 의 ΔOOF < 0 (negative), 해당 stage feature drop + **G_(n+1)~G_4 모든 후속 stage skip** → G_final 직행. best = G_(n−1) cumulative (해당 stage 직전의 cumulative OOF) — 그 stage 의 config 가 best_stack 으로 채택.
 
 (예: G2 (A+B) 가 G1 (A) 대비 -0.003 이면 → B drop + C/D 시도 skip → best = G1 (A only).)
 
