@@ -1,6 +1,6 @@
 ---
 plan_id: 014
-version: 3.4 (spec patch — Ablation lever source-of-truth 박제. §2.1.B.1 새 sub-section: 11 ablation lever (E0a/E0b/E0c + E1~E8) 의 plan-012 source line reference + plan-014 baseline 위 적용 방식. anchor 함수 `ring_classifier.py:39-128`, F0 산식 :512-565, hit-aware hinge :380-389, hybrid_combined_loss :410-454, LastStepMLPScorer :342-372, hybrid_predict r0_prior :464-490, boundary mask `phase3_aux.py:57-61` 다 reference.)
+version: 3.5 (spec patch — Submission output format 박제. §2.1.C Dataset/IO 에 submission row 추가: `runs/baseline/<exp_id>/submission.csv` columns `id/x/y/z`, id order = `data/sample_submission.csv`, 6 decimals (`f"{val:.6f}"`), float64 dtype, NaN/Inf 금지. source = `src/submit.py:204-231` `write_submission` (utility, import OK).)
 date: 2026-05-14 (Asia/Seoul)
 status: spec
 based_on:
@@ -116,6 +116,7 @@ G0 preflight  →  G1 module + smoke  →  G2 Phase 1 bake-off  →  G3 Phase 2 
 | c3.2 | docs | **v3.2 spec patch — Input feature 상세.** `make_seq_features` 정의 박제: shape `(N, 6, 9)`, 6 step indices `range(max(3, end_idx-5), end_idx+1)` (pad if <6), per-step 9 dim = `turn_model_features_from_context` 8 dim (speed / prev_speed-ratio / acc_norm-ratio / acc_par-ratio / perp_norm-ratio / jerk_norm-ratio / turn_cos / curvature) + direction 1 dim. source = `src/pb_0_6822/selector.py:280-294 + 406-449` (형식만 reuse, `selector.py` import X). §2.1.A Input pipeline row sync. frontmatter version 3.1→3.2 | [DONE] eed3c6e |
 | c3.3 | docs | **v3.3 spec patch — Dataset / IO 상세.** §2.1 에 새 sub-section C Dataset/IO 추가: train/test CSV path (`data/train|test/{sample_id}.csv` shape `(11, 3)`), labels (`data/train_labels.csv` columns id/x/y/z), timestep grid (`[-400..0]` ms step 40), T_TARGET_MS=80, end_idx=10, IO utility = `src/io.py` (plan-001, import OK). frontmatter version 3.2→3.3 | [DONE] b1645b2 |
 | c3.4 | docs | **v3.4 spec patch — Ablation lever source-of-truth.** §2.1.B 다음에 새 sub-section B.1 추가: 11 ablation lever (E0a/E0b/E0c + E1~E8) 의 plan-012 source line reference + plan-014 baseline 위 적용 방식. anchor 함수 (`ring_classifier.py:39-128`) / F0 산식 (:512-565) / hit-aware hinge (:380-389) / hybrid_combined_loss (:410-454) / LastStepMLPScorer (:342-372) / hybrid_predict r0_prior (:464-490) / boundary mask (`phase3_aux.py:57-61`) 다 grep + 박제. decision-note: K-Means random_state=20260606 carry, plan-014 seed=20260514 와 별개. frontmatter version 3.3→3.4 | [DONE] 6c9fe6f |
+| c3.5 | docs | **v3.5 spec patch — Submission output format.** §2.1.C Dataset/IO 에 submission row 추가: `runs/baseline/<exp_id>/submission.csv` (columns id/x/y/z, id order = `data/sample_submission.csv`, 6 decimals `f"{val:.6f}"`, float64 dtype, NaN/Inf 금지). source = `src/submit.py:204-231` `write_submission` (utility, import OK). frontmatter version 3.4→3.5 | [TODO] |
 | c4 | code+exp | STAGE 0 (G0) — preflight artifact. spec @ §4 | [TODO] |
 | c5 | code | STAGE 1 (G1) — `src/pb_0_6822/plan014_paradigm.py` 새 module + smoke + 재사용 끊김. spec @ §5 | [TODO] |
 | c6 | code+exp | STAGE 2 (G2) — Phase 1 codebook bake-off (E0a/E0b/E0c 3 sub-exp → winner). spec @ §6 | [TODO] |
@@ -265,6 +266,7 @@ decision-note: E0c K-Means 의 `random_state=20260606` 은 plan-012 그대로 ca
 | Target horizon | `T_TARGET_MS = 80` (관측 종료 후 +80ms 의 position) |
 | `end_idx` (for `make_seq_features` / F0) | `N_TIMESTEPS − 1 = 10` (last observation index) |
 | IO utility | `src/io.py` — `load_all_samples(split)` → `(ids, X (N, 11, 3))`, `load_labels()` → `(ids, Y (N, 3))`. plan-001 utility, import OK (= `selector.py` 와 별개 file, plan-004 module 재사용 정책과 무관) |
+| Submission output | `runs/baseline/<exp_id>/submission.csv` — columns `id` / `x` / `y` / `z`, id order = `data/sample_submission.csv` 의 id column (= `pd.read_csv(SAMPLE_SUB)['id']`), precision = `f"{val:.6f}"` (6 decimals), float64 dtype (after read_csv), NaN/Inf 금지, id-set = sample_submission match. source = `src/submit.py:204-231` `write_submission(run_dir, pred, test_ids)` (utility, import OK or 직접 재구현) |
 
 ### §2.2 Out-of-scope
 
