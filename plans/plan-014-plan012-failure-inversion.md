@@ -106,7 +106,7 @@ baseline reference = plan-012 measured 5-fold OOF **0.6350** (GPU rerun, plan-01
 | c1 | docs | `plans/plan-014-plan012-failure-inversion.md` v0 narrative draft (검증 frame, head-to-head A vs B) | [DONE] 4657ff7 + 2a0f755 |
 | c1.1 | docs | v1 narrative re-frame — "재사용 원인 검증" → "재사용 전제 + plan-012 재실험" (★ premise 채택, head-to-head 폐기, baseline reproduce 폐기, target 절대값 기반) | [DONE] c7cf5c8 |
 | c1.2 | docs | v1.1 spot-fix — F4 진단 정확화: "shared encoder bottleneck (두 head 공유)" → "encoder inductive-bias mismatch (plan-004 candidate-attention 모듈을 candidate 없는 task 에 끼움)". §0.5 7-mode 표 / C1 encoder bullet / §1.3 trap chain 동기화 | [DONE] 5e98d6d |
-| c1.3 | docs | v1.2 spot-fix — F4 진단 2차 정확화 (code-grounded): `CandidateAttentionGRUSelector` 가 GRU [task-neutral] + candidate-attention [plan-004 fit] 의 2 부분 구조임을 selector.py:697-726 + ring_classifier.py:309/315 read 로 확인. 폐기 범위 = candidate-attention 부분만, GRU 본체는 reuse 정당. §0.5 7-mode F4 / C1 encoder bullet / §1.3 trap chain 모두 sync | [TODO] |
+| c1.3 | docs | v1.2 spot-fix — F4 진단 2차 정확화 (code-grounded): `CandidateAttentionGRUSelector` 가 GRU [task-neutral] + candidate-attention [plan-004 fit] 의 2 부분 구조임을 selector.py:697-726 + ring_classifier.py:309/315 read 로 확인. 폐기 범위 = candidate-attention 부분만, GRU 본체는 reuse 정당. §0.5 7-mode F4 / C1 encoder bullet / §1.3 trap chain 모두 sync | [DONE] c7fa9c8 |
 
 ---
 
