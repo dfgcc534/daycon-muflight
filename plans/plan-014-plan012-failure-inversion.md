@@ -1,6 +1,6 @@
 ---
 plan_id: 014
-version: 3.3 (spec patch — Dataset / IO 상세 박제. §2.1.C 새 sub-section: train/test/labels CSV path (`data/train|test/{sample_id}.csv` shape `(11, 3)` + `data/train_labels.csv` columns id/x/y/z) / timestep grid `[-400..0]` ms step 40 / T_TARGET_MS=80 / end_idx=10 / IO utility = `src/io.py` (plan-001, import OK).)
+version: 3.4 (spec patch — Ablation lever source-of-truth 박제. §2.1.B.1 새 sub-section: 11 ablation lever (E0a/E0b/E0c + E1~E8) 의 plan-012 source line reference + plan-014 baseline 위 적용 방식. anchor 함수 `ring_classifier.py:39-128`, F0 산식 :512-565, hit-aware hinge :380-389, hybrid_combined_loss :410-454, LastStepMLPScorer :342-372, hybrid_predict r0_prior :464-490, boundary mask `phase3_aux.py:57-61` 다 reference.)
 date: 2026-05-14 (Asia/Seoul)
 status: spec
 based_on:
@@ -115,6 +115,7 @@ G0 preflight  →  G1 module + smoke  →  G2 Phase 1 bake-off  →  G3 Phase 2 
 | c3.1 | docs | **v3.1 spec patch — F0 산식 정정.** v3 박제 3 변수 `(α_par, α_perp_t, α_perp_n)` = plan-006 source-of-truth (`ring_classifier.py:512-565`) 와 mismatch (perp 잘못 t̂/n̂ 분리 + `d1·v_last` baseline 누락) → option A 채택 (사용자 confirm): 3 scalar `(d1, par, perp)` learnable, init (1.98, 1.20, −0.20), 산식 `F0 = p0 + d1·v_scale·v_last + par·acc_scale·acc_par_vec + perp·acc_scale·acc_perp_vec` (d2=0 / jerk=0 fixed, v_scale=acc_scale=1 with horizon=2 / time_scale=1). §0.5 C2 F0 bullet / §2.1.A C2 row / §3.2 F0_pred 산식 / §3.4 G0 (a) / frontmatter version 3→3.1 sync | [DONE] ba9e994 |
 | c3.2 | docs | **v3.2 spec patch — Input feature 상세.** `make_seq_features` 정의 박제: shape `(N, 6, 9)`, 6 step indices `range(max(3, end_idx-5), end_idx+1)` (pad if <6), per-step 9 dim = `turn_model_features_from_context` 8 dim (speed / prev_speed-ratio / acc_norm-ratio / acc_par-ratio / perp_norm-ratio / jerk_norm-ratio / turn_cos / curvature) + direction 1 dim. source = `src/pb_0_6822/selector.py:280-294 + 406-449` (형식만 reuse, `selector.py` import X). §2.1.A Input pipeline row sync. frontmatter version 3.1→3.2 | [DONE] eed3c6e |
 | c3.3 | docs | **v3.3 spec patch — Dataset / IO 상세.** §2.1 에 새 sub-section C Dataset/IO 추가: train/test CSV path (`data/train|test/{sample_id}.csv` shape `(11, 3)`), labels (`data/train_labels.csv` columns id/x/y/z), timestep grid (`[-400..0]` ms step 40), T_TARGET_MS=80, end_idx=10, IO utility = `src/io.py` (plan-001, import OK). frontmatter version 3.2→3.3 | [DONE] b1645b2 |
+| c3.4 | docs | **v3.4 spec patch — Ablation lever source-of-truth.** §2.1.B 다음에 새 sub-section B.1 추가: 11 ablation lever (E0a/E0b/E0c + E1~E8) 의 plan-012 source line reference + plan-014 baseline 위 적용 방식. anchor 함수 (`ring_classifier.py:39-128`) / F0 산식 (:512-565) / hit-aware hinge (:380-389) / hybrid_combined_loss (:410-454) / LastStepMLPScorer (:342-372) / hybrid_predict r0_prior (:464-490) / boundary mask (`phase3_aux.py:57-61`) 다 grep + 박제. decision-note: K-Means random_state=20260606 carry, plan-014 seed=20260514 와 별개. frontmatter version 3.3→3.4 | [TODO] |
 | c4 | code+exp | STAGE 0 (G0) — preflight artifact. spec @ §4 | [TODO] |
 | c5 | code | STAGE 1 (G1) — `src/pb_0_6822/plan014_paradigm.py` 새 module + smoke + 재사용 끊김. spec @ §5 | [TODO] |
 | c6 | code+exp | STAGE 2 (G2) — Phase 1 codebook bake-off (E0a/E0b/E0c 3 sub-exp → winner). spec @ §6 | [TODO] |
@@ -232,6 +233,26 @@ plan-012 results.md = "paradigm reframe 은 F0 raw hit 위 +0.002~0.003 만 추�
 | **G4.Phase 3** | **E8 r=0 logit prior** | 0 / +0.5 / +1.0 | center mode logit bias |
 
 → 총 11 ablation sub-experiment (E0 3-way + E1~E5 5 axis + E6~E8 3 axis). G5 에서 winner + best lever stack 으로 final 5-fold.
+
+#### B.1 Ablation lever source-of-truth + plan-014 baseline 위 적용
+
+각 lever 의 source line (plan-012 ring_classifier.py / phase3_aux.py) + plan-014 baseline 위 적용 방식:
+
+| lever | source-of-truth | plan-014 baseline 위 적용 |
+|---|---|---|
+| E0a Absolute | `ring_classifier.py:39-54` `compute_anchors_absolute(radius_m=0.005)` — (7, 3) world frame ±x/±y/±z + center | `radius_m=0.01` (plan-014 C3) |
+| E0b Frenet | `ring_classifier.py:57-62` `compute_anchors_frenet_orthogonal(radius_m=0.005)`. 좌표 형식 = E0a 동일, basis 회전은 caller (`R_wfn @ anchor_local`) | `radius_m=0.01`, basis = `build_frenet_basis_3d(trajectory_x, end_idx=10)` (`ring_classifier.py:136~`) — 산식 본 module 안 재구현 |
+| E0c K-Means | `ring_classifier.py:65-128` `compute_anchors_kmeans(train_residuals_world, R_world_from_frenet, fold_id, K=7, radius_clip_m=0.020, n_init=10, random_state=20260606)`. fold-aware, K−1 cluster + center | train_residuals = `y_true − F0_pred_init` (init = baseline 의 (1.98, 1.20, −0.20)). `radius_clip_m=0.020` (= plan-012 그대로, plan-014 anchor 0.01 보다 *큰* clip — Frenet residual scale 반영) |
+| E1 frame swap (conditional) | (winner ∈ {E0b, E0c} 만) world vs Frenet | winner 의 anchor 를 world frame 그대로 (basis 회전 안 함). winner=E0a 면 SKIP (= frame_axis_n/a) |
+| E2 K density | `compute_anchors_*(K=5/9/13)` | winner codebook 의 K 변형. E0c 의 경우 K-Means 의 K=K−1 cluster + center 도 자동 |
+| E3 τ scan | inference time `temperature` 변경. variants: argmax (τ≤1e-8) + {0.01, 0.03, 0.1, 0.3, 1.0} | 학습 = baseline τ=0.03, eval 만 변경 (same model checkpoint) |
+| E4 loss swap | `ring_classifier.py:410-454` `hybrid_combined_loss(use_hinge)`. L7 hinge = `ring_classifier.py:380-389` `hit_aware_hinge(corrected_pos, target, R_HIT=0.01, smooth=0.005)` — `softplus(excess/smooth)·smooth)²` where `excess = ‖pred − target‖ − R_HIT` | sub-exp A: baseline (CE soft + Huber). sub-exp B: + L7 hinge (= `0.5·Huber + 0.5·hinge` on hybrid_pred). baseline 의 CE soft 는 plan-014 변경 (= plan-012 hard CE 와 다름) — Gaussian soft label 위에 CE 계산 |
+| E5 reg head on/off | `hybrid_combined_loss(use_reg_head)` flag | off variant: reg_offset 항 무시, `hybrid_pred = F0_pred + anchor_blend` 만 |
+| E6 boundary weight | `phase3_aux.py:57-61`: `boundary_mask = (err_F0 > 0.005) & (err_F0 < 0.015)`, `sw = where(mask, 3.0, 1.0)`. err_F0 = `‖F0_pred_init − y_true‖` | loss batch reduction 에 sample weight 곱셈 (= weighted mean). on/off 2 sub-exp |
+| E7 scorer arch | `ring_classifier.py:342-372` `LastStepMLPScorer(seq_dim=9, cand_dim=11, hidden=64, cand_count=7)` — GRU 우회, last-step seq → 2-layer GELU MLP | plan-014 baseline (BiGRU h=128) vs LastStep MLP variant. cand_feat = anchor coord (B, K, 3) — plan-014 의 K=7 (not 11). seq[:, -1, :] (last step 9 dim) → MLP → logits |
+| E8 r=0 logit prior | `ring_classifier.py:464-490` `hybrid_predict(r0_logit_prior=0.0/0.5/1.0)`. `prior[0] = r0_logit_prior` (center mode k=0 만 bias) | inference 시만 적용 (학습은 baseline 동일). variants: 0 / +0.5 / +1.0 |
+
+decision-note: E0c K-Means 의 `random_state=20260606` 은 plan-012 그대로 carry (= reproducibility). 본 plan 의 seed (= 20260514) 와 별개 — K-Means 의 init 결정에만 영향.
 
 #### C. Dataset / IO
 
