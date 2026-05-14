@@ -91,7 +91,7 @@ anchor radius = 0.005m                                   # ← plan-004/006 era 
 
 | # | type | spec section | status |
 |---|---|---|---|
-| c1 | docs | `plans/plan-014-plan012-failure-inversion.md` v0 narrative draft | [TODO] |
+| c1 | docs | `plans/plan-014-plan012-failure-inversion.md` v0 narrative draft | [DONE] 4657ff7 + 2a0f755 |
 
 ---
 
