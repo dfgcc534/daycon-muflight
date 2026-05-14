@@ -6,6 +6,40 @@
 
 ---
 
+## 📌 2026-05-14 업데이트 — Lévy flight 가정 falsified (plan-014 측정)
+
+**plan-014 G0 (H036_g0_preflight) 측정 결과**:
+
+- F0 단일 결정론적 공식 (plan-006 frenet) **hit@1cm = 0.6320** (sample 의 63%)
+- 동일 공식 **hit@1.5cm = 0.8033** (sample 의 84%)
+- competition 1등 threshold ≈ 0.70 → 단일 공식이 이미 1등 점수의 **90% 도달**
+
+**결론**: 현 데이터셋은 **Lévy flight (heavy-tail, 급선회) 분포 아님**.
+
+- 만약 Lévy 였다면 단일 결정론적 공식 + Gaussian noise 가정 모델로 hit@1cm 63%, hit@1.5cm 84% 불가능 (heavy-tail 은 평균 회귀로 catastrophic miss 야기).
+- 측정 분포 = **uni-modal + light-tail (Gaussian 근사 OK)**. F0 residual 의 80% 가 1.5cm 안에 bounded.
+- **tail 값은 버려도 됨** — 정답률 70% 만 나와도 1등 확정이므로 outlier 회수에 시간 쓸 필요 없음.
+
+**roadmap 영향 (본 문서 전체 후보 평가에 우선)**:
+
+- **tail / Lévy 급선회 대응 motivation 무효화**. 후보 평가의 "급선회 회수" pro/con 모두 *무시*.
+- multi-modal branching 가설 의존 후보 (MDN, Voxel CE multi-modal, Trajectory-CLIP 의 multimodality 회복) → motivation 을 *uni-modal residual 의 정밀 회복* 으로 reframe 필요.
+- Gaussian 가정 위배로 ❌ 였던 후보 (A.1 IMM-KF, B.2 SE(3) angular smoothing) → **risk 완화**, 재평가 가능.
+- hit@1cm 회수율 5.4% (plan-014 results) 의 root cause = multi-modal 아닌 **input feature 9D 의 표현력 부족** → plan-015 feature 확장 (A/B/C/D) 우선순위 유지.
+
+**문서 내 Lévy 언급 위치 (모두 본 update 로 override)**:
+
+| 위치 | 본문 표현 | override 후 |
+|---|---|---|
+| A.1 IMM-KF | "Lévy ≠ Gaussian process noise" ❌ | 무효, 재평가 ★★ → ★★~★★★ 가능 |
+| A.3 Neural ODE | "Lévy 급선회 = discrete event" ❌ | 무효 (단, regular grid / underdetermined 등 다른 fatal 잔존) |
+| B.1 KNN | "Lévy flight 대응" ✅ | 무효, 패턴 매칭 자체 motivation 은 여전히 valid |
+| B.2 SE(3) | "Lévy 급선회 = se(3) noise" ⚠️ | 무효 |
+| C.1 MDN | "Lévy multimodal fit" ✅ | 무효 (C.1' variance-aware 가치는 잔존, motivation 재구성) |
+| D.3 Trajectory-CLIP | "좌/우 분기 미래 (Lévy)" multimodality 한계 ⚠️ | 완화 |
+
+---
+
 ## Batch A — 1차 검토 (IMM / FNO / Neural ODE)
 
 ### A.1 IMM-KF (Interacting Multiple Model Kalman Filter) — ★★ 조건부 가치
