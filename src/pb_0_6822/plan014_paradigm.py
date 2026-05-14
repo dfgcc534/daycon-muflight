@@ -533,8 +533,14 @@ def train_one_fold(
     anchors_local: np.ndarray | None = None,
     R_train: np.ndarray | None = None,
     R_val: np.ndarray | None = None,
+    X_test: np.ndarray | None = None,
 ) -> dict[str, Any]:
-    """Train 1 fold. F0 frozen (f0_function plain class). Returns dict with best_val_hit etc."""
+    """Train 1 fold. F0 frozen (f0_function plain class). Returns dict with best_val_hit etc.
+
+    plan-016 carry: X_test 가 None 이 아니면, best-state restore 후 test prediction
+    `(N_test, 3)` 을 `test_pred` 키로 함께 반환. Test 예측은 best-val model state 로
+    수행 (val→test 일관, plan-014 G5 의 별도 predict_test 와는 다름 — best-state 사용).
+    """
     if isinstance(config, dict):
         cfg = TrainConfig(**{k: v for k, v in config.items() if k in TrainConfig.__dataclass_fields__})
     else:
@@ -685,7 +691,25 @@ def train_one_fold(
         oof_pred = hybrid_pred_val.cpu().numpy()
         final_dcm = float(torch.linalg.norm(hybrid_pred_val - F0_val_t, dim=1).mean().item())
 
-    return {
+        # plan-016: optional test prediction (best-state model)
+        test_pred = None
+        if X_test is not None:
+            seq_test = make_seq_features(X_test, end_idx=cfg.end_idx)
+            F0_test_np = f0_function(X_test)
+            seq_test_t = torch.from_numpy(seq_test).to(device)
+            F0_test_t = torch.from_numpy(F0_test_np.astype(np.float32)).to(device)
+            R_test_t = None
+            if cfg.codebook != "absolute":
+                R_test = build_frenet_basis_3d(X_test, end_idx=cfg.end_idx)
+                R_test_t = torch.from_numpy(R_test.astype(np.float32)).to(device)
+            hybrid_pred_test = model.hybrid_predict(
+                seq_test_t, anchors_t, R_test_t, F0_test_t,
+                temperature=cfg.temperature, use_reg_head=cfg.use_reg_head,
+                r0_logit_prior=cfg.r0_logit_prior,
+            )
+            test_pred = hybrid_pred_test.cpu().numpy()
+
+    result = {
         "fold_id": fold_id,
         "n_train": int(n_train),
         "n_val": int(X_val.shape[0]),
@@ -698,6 +722,9 @@ def train_one_fold(
         "epoch_log": epoch_log,
         "anchors_local": anchors_local.tolist(),
     }
+    if test_pred is not None:
+        result["test_pred"] = test_pred
+    return result
 
 
 def run_kfold_oof(
