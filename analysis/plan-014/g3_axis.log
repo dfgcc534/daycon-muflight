@@ -1,0 +1,43 @@
+[plan-014 G3 v4] loading data ...
+[plan-014 G3] N_train_fold0=8016, N_val_fold0=1984
+[plan-014 G3] G2 winner = E0c (kmeans)
+
+[plan-014 G3] === anchor (winner E0c, fold-0) ===
+  anchor: val_hit=0.6573 dcm=0.0027 epoch=6 elapsed=4.6s
+
+[plan-014 G3] === E1b (world_frame_swap) ===
+  E1b: val_hit=0.6517 (Δ=-0.0055) dcm=0.0016 epoch=5 elapsed=2.3s
+
+[plan-014 G3] === E2a (K_density_K=5) ===
+  E2a: val_hit=0.6477 (Δ=-0.0096) dcm=0.0022 epoch=4 elapsed=1.4s
+
+[plan-014 G3] === E2c (K_density_K=9) ===
+  E2c: val_hit=0.6603 (Δ=+0.0030) dcm=0.0029 epoch=6 elapsed=1.9s
+
+[plan-014 G3] === E2d (K_density_K=13) ===
+  E2d: val_hit=0.6542 (Δ=-0.0030) dcm=0.0029 epoch=9 elapsed=2.3s
+
+[plan-014 G3] === E4b (loss_swap_+L7_hinge) ===
+  E4b: val_hit=0.6522 (Δ=-0.0050) dcm=0.0026 epoch=4 elapsed=2.0s
+
+[plan-014 G3] === E5a (reg_head_off) ===
+  E5a: val_hit=0.6557 (Δ=-0.0015) dcm=0.0025 epoch=6 elapsed=2.1s
+
+[plan-014 G3] === E3 τ scan ===
+  E3a τ=1e-09: val_hit=0.6517 (Δ=-0.0055) dcm=0.0028 epoch=3 elapsed=1.6s dilution_collapse=False
+  E3b τ=0.01: val_hit=0.6568 (Δ=-0.0005) dcm=0.0027 epoch=3 elapsed=1.7s dilution_collapse=False
+  E3d τ=0.1: val_hit=0.6568 (Δ=-0.0005) dcm=0.0025 epoch=4 elapsed=1.6s dilution_collapse=False
+  E3e τ=0.3: val_hit=0.6568 (Δ=-0.0005) dcm=0.0024 epoch=4 elapsed=1.5s dilution_collapse=False
+  E3f τ=1.0: val_hit=0.6442 (Δ=-0.0131) dcm=0.0032 epoch=13 elapsed=2.7s dilution_collapse=False
+
+[plan-014 G3] === axis summary ===
+  E1: n=1, max_delta=-0.0055, best=E1b, positive=False
+  E2: n=3, max_delta=+0.0030, best=E2c, positive=False
+  E3: n=5, max_delta=-0.0005, best=E3b, positive=False
+  E4: n=1, max_delta=-0.0050, best=E4b, positive=False
+  E5: n=1, max_delta=-0.0015, best=E5a, positive=False
+
+[plan-014 G3] === final ===
+  positive_axes=[], G3_passed=False, warn=g3_marginal_only
+  elapsed_total=26.5s (0.44 min)
+[plan-014 G3] artifact -> analysis/plan-014/g3_phase2.json

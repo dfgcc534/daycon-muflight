@@ -1,0 +1,208 @@
+{
+  "exp_id": "H039_g3_phase2_axis5",
+  "winner_id": "E0c",
+  "anchor_oof_fold0": 0.6572580337524414,
+  "anchor_dcm_fold0": 0.002741595497354865,
+  "n_sub_exp": 11,
+  "axis_summary": {
+    "E1": {
+      "n_sub_exp": 1,
+      "deltas": {
+        "E1b": -0.0055443644523620605
+      },
+      "max_delta": -0.0055443644523620605,
+      "best_sub_id": "E1b",
+      "best_val_hit": 0.6517136693000793,
+      "positive_lever": false
+    },
+    "E2": {
+      "n_sub_exp": 3,
+      "deltas": {
+        "E2a": -0.009576618671417236,
+        "E2c": 0.0030242204666137695,
+        "E2d": -0.003024160861968994
+      },
+      "max_delta": 0.0030242204666137695,
+      "best_sub_id": "E2c",
+      "best_val_hit": 0.6602822542190552,
+      "positive_lever": false
+    },
+    "E3": {
+      "n_sub_exp": 5,
+      "deltas": {
+        "E3a": -0.0055443644523620605,
+        "E3b": -0.0005040168762207031,
+        "E3d": -0.0005040168762207031,
+        "E3e": -0.0005040168762207031,
+        "E3f": -0.013104856014251709
+      },
+      "max_delta": -0.0005040168762207031,
+      "best_sub_id": "E3b",
+      "best_val_hit": 0.6567540168762207,
+      "positive_lever": false
+    },
+    "E4": {
+      "n_sub_exp": 1,
+      "deltas": {
+        "E4b": -0.005040287971496582
+      },
+      "max_delta": -0.005040287971496582,
+      "best_sub_id": "E4b",
+      "best_val_hit": 0.6522177457809448,
+      "positive_lever": false
+    },
+    "E5": {
+      "n_sub_exp": 1,
+      "deltas": {
+        "E5a": -0.0015121102333068848
+      },
+      "max_delta": -0.0015121102333068848,
+      "best_sub_id": "E5a",
+      "best_val_hit": 0.6557459235191345,
+      "positive_lever": false
+    }
+  },
+  "positive_axes": [],
+  "G3_passed": false,
+  "G3_warn": "g3_marginal_only",
+  "results_per_sub_exp": [
+    {
+      "sub_exp_id": "E1b",
+      "name": "world_frame_swap",
+      "axis": "E1",
+      "val_hit": 0.6517136693000793,
+      "dcm": 0.0016182580729946494,
+      "delta_oof_vs_anchor": -0.0055443644523620605,
+      "best_epoch": 5,
+      "elapsed_seconds": 2.3245062828063965
+    },
+    {
+      "sub_exp_id": "E2a",
+      "name": "K_density_K=5",
+      "axis": "E2",
+      "val_hit": 0.6476814150810242,
+      "dcm": 0.002203188370913267,
+      "delta_oof_vs_anchor": -0.009576618671417236,
+      "best_epoch": 4,
+      "elapsed_seconds": 1.362976312637329
+    },
+    {
+      "sub_exp_id": "E2c",
+      "name": "K_density_K=9",
+      "axis": "E2",
+      "val_hit": 0.6602822542190552,
+      "dcm": 0.0028974704910069704,
+      "delta_oof_vs_anchor": 0.0030242204666137695,
+      "best_epoch": 6,
+      "elapsed_seconds": 1.88328218460083
+    },
+    {
+      "sub_exp_id": "E2d",
+      "name": "K_density_K=13",
+      "axis": "E2",
+      "val_hit": 0.6542338728904724,
+      "dcm": 0.0029134589713066816,
+      "delta_oof_vs_anchor": -0.003024160861968994,
+      "best_epoch": 9,
+      "elapsed_seconds": 2.310497760772705
+    },
+    {
+      "sub_exp_id": "E4b",
+      "name": "loss_swap_+L7_hinge",
+      "axis": "E4",
+      "val_hit": 0.6522177457809448,
+      "dcm": 0.002631217008456588,
+      "delta_oof_vs_anchor": -0.005040287971496582,
+      "best_epoch": 4,
+      "elapsed_seconds": 1.9935548305511475
+    },
+    {
+      "sub_exp_id": "E5a",
+      "name": "reg_head_off",
+      "axis": "E5",
+      "val_hit": 0.6557459235191345,
+      "dcm": 0.0024723135866224766,
+      "delta_oof_vs_anchor": -0.0015121102333068848,
+      "best_epoch": 6,
+      "elapsed_seconds": 2.060678482055664
+    },
+    {
+      "sub_exp_id": "E3a",
+      "name": "tau_scan_1e-09",
+      "axis": "E3",
+      "tau": 1e-09,
+      "val_hit": 0.6517136693000793,
+      "dcm": 0.002767361933365464,
+      "delta_oof_vs_anchor": -0.0055443644523620605,
+      "best_epoch": 3,
+      "dilution_collapse_warn": false,
+      "excluded_from_max_delta": false,
+      "elapsed_seconds": 1.55106520652771
+    },
+    {
+      "sub_exp_id": "E3b",
+      "name": "tau_scan_0.01",
+      "axis": "E3",
+      "tau": 0.01,
+      "val_hit": 0.6567540168762207,
+      "dcm": 0.002650331938639283,
+      "delta_oof_vs_anchor": -0.0005040168762207031,
+      "best_epoch": 3,
+      "dilution_collapse_warn": false,
+      "excluded_from_max_delta": false,
+      "elapsed_seconds": 1.7281734943389893
+    },
+    {
+      "sub_exp_id": "E3d",
+      "name": "tau_scan_0.1",
+      "axis": "E3",
+      "tau": 0.1,
+      "val_hit": 0.6567540168762207,
+      "dcm": 0.0024629358667880297,
+      "delta_oof_vs_anchor": -0.0005040168762207031,
+      "best_epoch": 4,
+      "dilution_collapse_warn": false,
+      "excluded_from_max_delta": false,
+      "elapsed_seconds": 1.6244561672210693
+    },
+    {
+      "sub_exp_id": "E3e",
+      "name": "tau_scan_0.3",
+      "axis": "E3",
+      "tau": 0.3,
+      "val_hit": 0.6567540168762207,
+      "dcm": 0.002421569311991334,
+      "delta_oof_vs_anchor": -0.0005040168762207031,
+      "best_epoch": 4,
+      "dilution_collapse_warn": false,
+      "excluded_from_max_delta": false,
+      "elapsed_seconds": 1.4921953678131104
+    },
+    {
+      "sub_exp_id": "E3f",
+      "name": "tau_scan_1.0",
+      "axis": "E3",
+      "tau": 1.0,
+      "val_hit": 0.6441531777381897,
+      "dcm": 0.003195279510691762,
+      "delta_oof_vs_anchor": -0.013104856014251709,
+      "best_epoch": 13,
+      "dilution_collapse_warn": false,
+      "excluded_from_max_delta": false,
+      "elapsed_seconds": 2.6922521591186523
+    }
+  ],
+  "elapsed_total_seconds": 26.483629941940308,
+  "plan_version": "v4.5",
+  "f0_frozen_baseline": "plan-006_frenet_par120_perp_neg020",
+  "training_config": {
+    "anchor_codebook": "kmeans",
+    "encoder_name": "bigru",
+    "K": 7,
+    "lr": 0.001,
+    "batch_size": 256,
+    "epochs": 50,
+    "patience": 5,
+    "seed": 20260514
+  }
+}
