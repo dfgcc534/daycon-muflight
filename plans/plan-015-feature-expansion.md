@@ -1,6 +1,6 @@
 ---
 plan_id: 015
-version: 2.2 (spec patch — plan-review-master iter 2 fix 6건. (1) §1 Feature C τ=2 step indices 산출 모순 fix: `range(3, 11, 2)`=[3,5,7,9] 4 step + pad rule indices[0] 반복 prepend → [3,3,3,5,7,9]. (2) §3.2 sub-exp matrix base column anchor inheritance 모순 fix: G2/G3/G4 base = "G_(n-1) cumulative (positive/marginal inherited), negative → G_final 직행" §0.5 v2.1 spec 정합. (3) §0.5 Quick Ref C feature dim 39D → 26D 갱신 (stale). (4) §1 Feature D stat 정의 명료화: cosine + Δspeed 2 stat × 3 pair = 6D (Δangle 은 cosine 의 monotone mapping 으로 제외). (5) §1 Feature B edge case 단일화: world ẑ post-orthogonalize 단일 선택 (acc 0 fallback OR 옵션 제외). (6) B/C/D narrative 가설 motivation 박제 (회수율 sub-failure 매핑 — plan-005 binormal evidence / wingbeat aliasing / long-range pairwise gap). v2.1 → v2.2.)
+version: 2.3 (spec patch — plan-review-master iter 3 fix 7건. (1) §1 Feature B acc_normal/binormal 산식 단일화 (raw acc · n̂ / b̂, sign 보존 — 이전 ‖acc_perp‖ 와 동일해지는 문제 제거). (2) §5.3/§6.3/§7.3/§8.3 marginal anchor inheritance 명기 (G_(n+1) anchor = G_n cumulative). (3) §1 Feature C τ=2 alignment spec 단일화 (alignment 무시, BiGRU 흡수). (4) §3.3 G0(b) Feature C 단독 18D = 9D base (cumulative 26D 의 13D base 와 다름) 명시. (5) §9.1 candidates baseline = plan-015 G0 재현 OOF (plan-014 hard-coded 0.6425 아님) — fair comparison. (6) §5.1 plan015_features.py signature 박제 (`make_seq_features_v2`, feature_flags dict). (7) §7.2 BiGRU input_dim 변경 시 weight 재초기화 (Kaiming, seed=20260514 carry, plan-014 weight transfer 안 함). v2.2 → v2.3.)
 date: 2026-05-14 (Asia/Seoul)
 status: spec
 based_on:
@@ -90,6 +90,7 @@ lb_score: null
 | **c2** | docs | **v2 spec patch — §3 expand: 순차 ablation + Δ+band 합격기준 + exp_id naming + STAGE §4~§9 추가** | [DONE] f195da4 |
 | c2.1 | docs | **v2.1 spec patch — plan-review-master iter 1 fix 6건.** (1) §1 Feature A residual modal switch 단일화 (displacement_F0 sign convention). (2) §1 Feature C dim 모순 제거 (26D cumulative, τ=1,2 2 stream). (3) §3.3 G0 (b) feature dim 도출식 박제. (4) anchor inheritance 단일화 (immediate prior cumulative). (5) §3.1 baseline reduction = 5-fold concat hit. (6) §1 Feature B Frenet basis 산출식 + edge case 박제. v2 → v2.1 | [DONE] 0c53cd9 |
 | c2.2 | docs | **v2.2 spec patch — plan-review-master iter 2 fix 6건.** (1) §1 Feature C τ=2 step indices `range(3,11,2)`=[3,5,7,9] 4 step + pad rule 박제. (2) §3.2 sub-exp matrix base column anchor inheritance 정합화 (G_(n-1) cumulative, negative → G_final). (3) §0.5 Quick Ref C feature 39D → 26D 갱신. (4) §1 Feature D stat 정의 명료화 (cosine + Δspeed 2 stat × 3 pair = 6D, Δangle 제외). (5) §1 Feature B edge case 단일화 (world ẑ post-ortho). (6) B/C/D narrative 가설 motivation 박제. v2.1 → v2.2 | [DONE] 612f92e |
+| c2.3 | docs | **v2.3 spec patch — plan-review-master iter 3 fix 7건.** (1) §1 Feature B acc_normal/binormal = raw acc · n̂/b̂ sign 보존 (정보 손실 해결). (2) §5~§8 marginal anchor inheritance 명기. (3) Feature C τ=2 alignment 단일화. (4) §3.3 G0(b) C 단독 18D base 9D 명시. (5) §9.1 candidates baseline = G0 재현 OOF. (6) §5.1 plan015_features.py signature 박제. (7) §7.2 weight 재초기화 spec. v2.2 → v2.3 | [TODO] |
 | c3 | code+exp | STAGE 0 (G0) — preflight: plan-014 baseline 5-fold reproduce + feature dim sanity | [TODO] |
 | c4 | code+exp | STAGE 1 (G1, E1) — feature A only (F0 residual direct), 5-fold OOF | [TODO] |
 | c5 | exp | STAGE 2 (G2, E2) — A+B (F0 residual + binormal split), 5-fold OOF | [TODO] |
@@ -128,10 +129,11 @@ lb_score: null
   - `n̂_s = acc_perp_vec_s / (‖acc_perp_vec_s‖ + ε)` — normal direction
   - `b̂_s = t̂_s × n̂_s` — binormal direction (오른손 법칙)
   - **edge case** (degenerate motion, v2.2 단일화): `‖v_s‖ < ε_basis = 1e-6` 또는 `‖acc_perp_vec_s‖ < ε_basis` 시 → `n̂_s = world ẑ` post-orthogonalize (`n̂_s ← n̂_s − (n̂_s · t̂_s)·t̂_s`, 재정규화). plan-014 §A.1 carry. (acc_normal/binormal 0 fallback 옵션 제외 — basis 구성 후 정상 산출.)
-- **feature split 산출**:
-  - `acc_normal = acc_perp_vec_s · n̂_s` (= `‖acc_perp_vec_s‖` 자체, scalar 부호 + magnitude. n̂ 정의상 양수.)
-  - `acc_binormal = acc_s · b̂_s` (raw acc 의 b̂_s 성분 scalar. 부호 sign 보존)
-  - normalize: `acc_normal/speed`, `|acc_binormal|/speed` (binormal 은 abs 만, sign 무시; magnitude scale 만 input)
+- **feature split 산출** (v2.3 명료화, sign 보존 단일화):
+  - `acc_normal = acc_s · n̂_s` (raw acc 의 n̂_s 성분 scalar projection, sign 보존 — `acc_perp · n̂` 가 아닌 raw acc · n̂)
+  - `acc_binormal = acc_s · b̂_s` (raw acc 의 b̂_s 성분 scalar, sign 보존)
+  - normalize: `acc_normal/speed`, `acc_binormal/speed` (둘 다 sign 보존 — abs() 적용 X)
+  - 두 channel 이 모두 sign 정보 가짐 → "방향 + magnitude" 정보 분리 의미 보존 (이전 `‖acc_perp‖/speed` 1D 는 abs magnitude 만, split 후 sign-aware 2D 로 정보량 ↑).
 - **구현**: `_turn_features_per_step` 의 기존 `perp_norm/speed` 1D 자리에 `(acc_normal/speed, |acc_binormal|/speed)` 2D 로 swap. 단독 = 10D, A+B = 13D.
 
 ### 2순위 — 표현력 보강
@@ -145,7 +147,7 @@ lb_score: null
   - **τ=1 (기존)**: `list(range(max(3, end_idx-5), end_idx+1, 1))` → end_idx=10 시 `[5, 6, 7, 8, 9, 10]` (6 step, gap 1)
   - **τ=2**: `list(range(max(3, end_idx-10), end_idx+1, 2))` → end_idx=10 시 `max(3, 0)=3` → `range(3, 11, 2)` = `[3, 5, 7, 9]` (4 step). **pad rule**: 6 step 보다 부족 시 `indices = [indices[0]] * (6 − len(indices)) + indices` (plan-014 §A.1 carry) → `[3, 3, 3, 5, 7, 9]` (6 step).
   - 각 τ stream 의 per-step 13D feature (A+B 적용) 산출 후 *동일 position* (6개 step slot) 끼리 axis=-1 concat → per-step 26D.
-  - 시간 alignment: τ=1 의 step `s` 와 τ=2 의 동일 position step (다른 시간) 가 같은 BiGRU input vector 의 절반씩 — BiGRU 가 시간축 학습으로 흡수.
+  - **alignment spec (v2.3 단일화)**: τ=1 position `p` 의 시각 vs τ=2 position `p` 의 시각은 *다름* (e.g., position 0 = τ=1 의 step 5 vs τ=2 의 step 3 pad). **alignment 무시, BiGRU 의 sequential 학습이 흡수** 채택 (= dual-scale feature 가 position 별 시간 misalignment 와 함께 input). controlled comparison 관점: τ=1 + τ=2 concat 이 단순 stream concat 이지 strict time-align stream 아님. plan-016 후보 = strict alignment 도입 (예: τ=2 의 step 5 와 τ=1 의 step 5 정렬).
 
 #### D. Pairwise cross-step interaction
 
@@ -222,7 +224,7 @@ lb_score: null
 - **(b) feature dim sanity**: 4 feature (A/B/C/D) 각각 *단독 적용* 시 shape verify. 단독 dim 도출식:
   - A 단독: 9D base + 3D (displacement_F0) = **12D**
   - B 단독: 9D base 의 `(5) perp_norm/speed` 1D 를 `(5a) normal_norm/speed + (5b) binormal_norm/speed` 2D 로 split → 9D − 1D + 2D = **10D**
-  - C 단독: 9D base × 2 stream (τ=1, τ=2) = **18D** (※ v1 단락의 "27D" 오기 → 단독 적용 시 18D 가 정확)
+  - C 단독: **9D base (A/B 미적용 raw plan-014 feature)** × 2 stream (τ=1, τ=2) = **18D** (cumulative A+B+C 의 26D 와 다름 — cumulative 는 13D base × 2 stream. 단독 sanity check 시 base 가 plan-014 의 9D feature 임을 명시)
   - D 단독: 9D base + 6D pairwise (3 pair × 2 stat) = **15D**
   cumulative 적용 시 dim: A=12D, A+B=13D, A+B+C=26D, A+B+C+D=32D (§3.2 표 carry).
 - fail trigger: (a)/(b) 중 1+ 누락 → `preflight_artifact_missing` severe (plan-014 baseline 재현 불가 = 측정 base 부재).
@@ -310,7 +312,7 @@ plan-014 module (`src/pb_0_6822/plan014_paradigm.py`) reuse OK — corrector arc
 
 ### §5.1 산출물
 
-- `src/pb_0_6822/plan015_features.py` — A/B/C/D feature 함수 정의 (plan-014 `make_seq_features` 의 확장 wrapper)
+- `src/pb_0_6822/plan015_features.py` — A/B/C/D feature 함수 정의 (plan-014 `make_seq_features` 의 확장 wrapper). **signature**: `make_seq_features_v2(X: np.ndarray, end_idx: int = 10, direction: float = 1.0, *, feature_flags: dict[str, bool]) -> np.ndarray` where `feature_flags = {"A": bool, "B": bool, "C": bool, "D": bool}`. plan-014 module *import* (monkey-patch 아님), 별도 함수로 wrap. cumulative E_n 시 `feature_flags = {f: f in {"A", ..., n-th}}` 활성. shape `(N, 6, target_dim)` 반환, target_dim 은 §3.3 G0(b) carry table.
 - `analysis/plan-015/g1_e1_feature_A.py` — E1 config × 5-fold OOF
 - `analysis/plan-015/g1_e1.json` — schema = §3.3
 - registry row: `H043_g1_e1_feature_A`
@@ -323,9 +325,9 @@ plan-014 module (`src/pb_0_6822/plan014_paradigm.py`) reuse OK — corrector arc
 
 ### §5.3 G1 합격
 
-- ΔOOF(E1 vs G0 baseline) ≥ +0.005 → `positive`, G2 진행
-- 0 ≤ Δ < +0.005 → `marginal`, G2 진행 + warn flag
-- Δ < 0 → `e1_negative` warn, G2~G4 skip → G_final 직행 (best = baseline)
+- ΔOOF(E1 vs G0 baseline) ≥ +0.005 → `positive`, G2 진행 (G2 의 anchor = **G1 cumulative OOF**)
+- 0 ≤ Δ < +0.005 → `marginal`, G2 진행 + warn flag (**G2 의 anchor = G1 cumulative OOF**, positive 와 동일 inheritance, §0.5/§3.2 carry)
+- Δ < 0 → `e1_negative` warn, G2~G4 skip → G_final 직행 (best = baseline G0)
 
 ---
 
@@ -344,8 +346,9 @@ plan-014 module (`src/pb_0_6822/plan014_paradigm.py`) reuse OK — corrector arc
 
 ### §6.3 G2 합격
 
-- ΔOOF(E2 vs G1) ≥ +0.005 → positive, G3 진행
-- < 0 → drop B, G3 skip → G_final
+- ΔOOF(E2 vs G1 cumulative) ≥ +0.005 → positive, G3 진행 (G3 anchor = G2 cumulative)
+- 0 ≤ Δ < +0.005 → marginal + warn flag, G3 진행 (G3 anchor = G2 cumulative, positive 동일 inheritance)
+- Δ < 0 → drop B, G3~G4 skip → G_final (best = G1 cumulative)
 
 ---
 
@@ -359,14 +362,15 @@ plan-014 module (`src/pb_0_6822/plan014_paradigm.py`) reuse OK — corrector arc
 
 ### §7.2 spec
 
-- input dim ≈ 26D (13D × 2 stream τ=1,2)
-- BiGRU input_dim 26 으로 변경 (encoder 첫 layer 만 다름, 나머지 carry)
+- input dim = **26D** (13D × 2 stream τ=1,2, A+B+C cumulative)
+- BiGRU input_dim = 26 (G2 의 13 에서 변경). **encoder 첫 layer (input_proj of GRU) 만 input_dim 다름, 나머지 hyperparam carry** (hidden=128, num_layers=2, bidirectional=True, dropout=0.1). **weight 재초기화 (v2.3 결정)**: input_dim 변경 시 전체 model state 재초기화 (PyTorch default Kaiming init, seed=20260514 carry). plan-014 의 학습된 weight transfer 안 함 — fair comparison 위해 모든 G_n 이 동일 init + 동일 데이터로부터 학습.
 - 5-fold OOF
 
 ### §7.3 G3 합격
 
-- ΔOOF(E3 vs G2) ≥ +0.005 → positive, G4 진행
-- < 0 → drop C, G4 skip → G_final
+- ΔOOF(E3 vs G2 cumulative) ≥ +0.005 → positive, G4 진행 (G4 anchor = G3 cumulative)
+- 0 ≤ Δ < +0.005 → marginal + warn flag, G4 진행 (G4 anchor = G3 cumulative)
+- Δ < 0 → drop C, G4 skip → G_final (best = G2 cumulative)
 
 ---
 
@@ -383,10 +387,11 @@ plan-014 module (`src/pb_0_6822/plan014_paradigm.py`) reuse OK — corrector arc
 - input dim ≈ 32D (26D + 6D pairwise)
 - 5-fold OOF
 
-### §8.3 G4 합격
+### §8.3 G4 합격 (마지막 stage)
 
-- ΔOOF(E4 vs G3) ≥ +0.005 → positive, all features 채택
-- < 0 → drop D, best = G3 (A+B+C)
+- ΔOOF(E4 vs G3 cumulative) ≥ +0.005 → positive, **all 4 features (A+B+C+D) 채택** → best_stack = G4 cumulative
+- 0 ≤ Δ < +0.005 → marginal + warn flag, all 4 features 채택 → best_stack = G4 cumulative (Δ 만 박제)
+- Δ < 0 → drop D, best_stack = G3 cumulative (A+B+C)
 
 ---
 
@@ -397,7 +402,7 @@ plan-014 module (`src/pb_0_6822/plan014_paradigm.py`) reuse OK — corrector arc
 cumulative ΔOOF 추적:
 ```
 candidates = {
-    "baseline": 0.6425,  # G0
+    "baseline": G0_reproduce_oof,  # plan-015 G0 재현 값 (= 0.6425 ± 0.005)
     "E1 (A)": G1_oof,
     "E2 (A+B)": G2_oof,
     "E3 (A+B+C)": G3_oof,
@@ -406,6 +411,8 @@ candidates = {
 best_name = argmax(candidates)
 best_oof = candidates[best_name]
 ```
+
+**baseline 값 결정 (v2.3 단일화)**: candidates 의 "baseline" = **plan-015 G0 재현 OOF** (= 0.6425 ± 0.005 reproduce 결과). plan-014 의 hard-coded 0.6425 가 아닌 plan-015 자체 재현값 사용 — fair comparison (G0~G4 모두 동일 5-fold scheme + 동일 seed + 동일 코드 path 산출).
 
 drop rule (§3.2): negative stage 이후 stages 는 candidates 에서 제외.
 
