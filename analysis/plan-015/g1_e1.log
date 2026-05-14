@@ -1,0 +1,16 @@
+[plan-015 G1] loading data ...
+[plan-015 G1] E1 config: feature_flags={'A': True, 'B': False, 'C': False, 'D': False}, input_dim=12
+  fold 0: val_hit=0.6638 dcm=0.0025 epoch=8
+  fold 1: val_hit=0.6412 dcm=0.0032 epoch=16
+  fold 2: val_hit=0.6482 dcm=0.0024 epoch=7
+  fold 3: val_hit=0.6313 dcm=0.0022 epoch=5
+  fold 4: val_hit=0.6230 dcm=0.0024 epoch=4
+
+[plan-015 G1] === E1 (A) result ===
+  baseline_oof = 0.6425
+  e1_oof       = 0.6415
+  delta_oof    = -0.0010 (threshold +0.005)
+  status       = **negative**
+  g1_passed    = False, G2 anchor = 0.6425
+  elapsed      = 14.4s (0.24 min)
+[plan-015 G1] artifact -> analysis/plan-015/g1_e1.json
