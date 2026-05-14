@@ -15,11 +15,13 @@ exp_ids:
   - H039_g3_phase2_axis5
   - H040_g4_phase3_aux3
   - H041_g5_phase4_final
-lb_score: null
+lb_score: 0.6628
+lb_band: positive
 band: negative
 best_stack_5fold_oof: 0.6425
 anchor_5fold_oof: 0.6359
 delta_oof: 0.0066
+oof_lb_gap: 0.0203
 ---
 
 # plan-014 v4 — Results (band=negative, plan-013 join row 4 활성)

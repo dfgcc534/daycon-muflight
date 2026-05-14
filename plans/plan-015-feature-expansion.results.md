@@ -13,10 +13,12 @@ exp_ids:
   - H043_g1_e1_feature_A
   - H047_g5_best_stack_5fold
   - H048_g_final_synthesis
-lb_score: null
+lb_score: 0.6628
+lb_band: positive
 band: negative
 best_5fold_oof: 0.6425
 delta_oof: 0.0000
+oof_lb_gap: 0.0203
 ---
 
 # plan-015 v2.4 — Results (band=negative, drop rule 발동)
@@ -68,16 +70,21 @@ G1 negative → G2 (A+B) / G3 (A+B+C) / G4 (A+B+C+D) 모두 skip. best = G0 base
 - **band = negative** (< 0.65)
 - submission = plan-014 best_stack carry (deterministic same config, plan-014/plan-015 의 best config 동일).
 
-## §2. plan-013/plan-014 join interpretation
+## §2. plan-013/plan-014 join interpretation — **재해석 with LB measured**
 
 plan-014 §1.4 carry table:
 - plan-013 LB 0.6381 (fallback, < 0.68)
-- plan-014 best_stack 0.6425 (< 0.65 negative)
-- **plan-015 best_stack 0.6425** (= plan-014 carry, < 0.65 negative)
+- plan-014/plan-015 best_stack: **OOF 0.6425 (negative band) vs LB 0.6628 (positive band, ≥ 0.66)**
+- **OOF–LB gap = +0.0203** (5-fold OOF underestimate measured)
 
-→ **row 4 활성** (plan-014 G_final 박제와 동일): "둘 다 실패 — 더 deep path-pivot (`notes/new-ideas.md` KNN/GP/Diffusion)"
+→ **plan-013 LB < 0.68 + plan-014/015 LB ≥ 0.66 (positive band)** 매핑:
+  - row 1 (plan-014/015 LB ≥ 0.68 + OOF positive band) 의 변종 — LB 는 positive 진입했으나 0.68 threshold 미달.
+  - row 3 (둘 다 positive) 부분 매핑: plan-014/015 가 corrector paradigm 으로서 LB band 정복 → ensemble with plan-013 path 가능성 (positive-2 candidate 활성).
+  - **row 4 (둘 다 실패) 활성 *해제***: LB measured 가 OOF 예상보다 +0.02 위 → deep path-pivot 필요성 약화.
 
-plan-015 의 input feature 확장 시도가 *추가 회수 0* 으로 confirmed → **DACON 236716 muflight 의 현 framework family (F0 prior + corrector classifier+regression hybrid) 의 measured ceiling 이 F0 raw + ~0.01 (= 0.6425)**.
+**plan-014/015 가 plan-013 LB (0.6381) 위 +0.025 LB 회수** = corrector paradigm 의 *실제 ceiling 이 OOF 보다 높음* measured.
+
+DACON 236716 muflight 의 framework family ceiling 재해석: **OOF 5-fold 가 LB 보다 conservative** (test set 분포 vs 5-fold OOF 분포 차이로 ~0.02 systematic underestimate). 모든 향후 plan 의 OOF 측정은 LB 보정 +0.02 를 가설로 박제 가능.
 
 ## §3. Premise verdict — plan-015 narrative 부분 falsified
 
@@ -94,25 +101,35 @@ plan-015 의 input feature 확장 시도가 *추가 회수 0* 으로 confirmed �
 
 → **plan-015 의 measured 결론**: input feature 차원 확장 만으로는 corrector paradigm ceiling break 불가. plan-016 = **task-level paradigm shift** 필요.
 
-## §4. plan-016 후보 (negative branch — deep path-pivot)
+## §4. plan-016 후보 — **LB positive band 재해석으로 priority 재정렬**
 
-### 공통 (모든 band)
+LB 0.6628 (positive band) measured → plan-014/015 corrector paradigm 이 *실제로 작동*. plan-016 = negative branch (deep path-pivot) 보다 **positive band polish + 추가 회수** 우선.
 
-- **(공통-1) Feature B/C/D 단독 측정** — A 부재 시 B (binormal split, 10D), C (multi-scale stride, 18D), D (pairwise, 15D) 각 단독의 ΔOOF measured. A 가 redundant 여서 B/C/D 가 cumulative chain 에서 부당하게 차단된 가능성.
-- **(공통-2) Multi-seed 분산** — plan-015 best 0.6425 의 5-seed × 5-fold std (현재 single seed=20260514).
+### 공통 (모든 band, 유지)
 
-### Band negative 분기 (활성, ≥ 3 후보)
+- **(공통-1) Feature B/C/D 단독 측정** — A 부재 시 단독 ΔOOF. A 가 redundant 였을 가능성 검증.
+- **(공통-2) Multi-seed 분산** — plan-015 best 0.6425 OOF 의 std + LB-OOF gap 의 stability 측정.
 
-- **(negative-1) KNN-based corrector** — plan-014 §10.2 negative-1 carry. F0 frozen + Frenet local residual KNN-vote. parametric corrector 의 한계 회피.
-- **(negative-2) Task framing 변경** — 11-step → direct seq2seq transformer (positional embedding + cross-attention 으로 long-range pattern 직접 학습). plan-015 D feature (pairwise) 의 motivation 을 architecture level 로 격상.
-- **(negative-3) DACON 236716 ceiling 정량 박제 + 작업 중단 판단** — plan-013 / plan-014 / plan-015 모두 F0 raw + ~0.01 ceiling confirm. 더 이상 ROI 낮음. 다른 dataset / problem 으로 path-pivot.
+### **Band positive 분기 활성** (LB 재해석)
 
-### 가설 검증 우선순위 (cost-ascending)
+- **(positive-1) plan-013 + plan-015 ensemble** ★ — plan-013 fallback (LB 0.6381) + plan-015 best (LB 0.6628) submission 좌표 mean ensemble. plan-013 framework path + plan-014/015 corrector path 의 *measured 결합 회수 가능성*. low-cost, dacon-submit 1회.
+- **(positive-2) plan-015 의 lever stack 재시도** — plan-014 G3 g3_marginal_only 였으나 OOF↔LB gap 고려 시 marginal lever (E2c K=9 +0.003, E6b boundary +0.0015) 의 LB-scale 효과 더 클 수도. lever combination grid (예: K=9 × boundary on/off × τ=0.01/0.03/0.1 등 small grid) 의 LB head-to-head 비교.
+- **(positive-3) Multi-seed ensemble** — single seed (20260514) 한계. 5-seed × 5-fold = 25 model coord mean ensemble → variance reduction 으로 +0.005~0.01 LB 추가 회수 가능.
 
-1. **공통-1 (B/C/D 단독)** — low cost (각 5-fold OOF ~15s × 3 sub-exp). plan-014/015 의 *feature space 가 진짜 redundant 인지* 1차 확인.
-2. **negative-1 (KNN corrector)** — medium cost, F0 frozen + non-parametric. simple baseline.
-3. **negative-2 (transformer)** — high cost, paradigm shift.
-4. **negative-3 (작업 중단)** — 위 모두 fail 시.
+### Band ≥ 0.68 진입 시도 (high-value path)
+
+- **(high-1) Feature B/C/D 단독 LB 측정** — 공통-1 의 LB 보정 — OOF 가 underestimate 였으므로 marginal OOF lever 도 LB 에서 positive 가능. low-cost dacon-submit 3회 (B/C/D 단독).
+
+### Band negative 분기 (deactivated)
+
+- ~~deep path-pivot (KNN/transformer/작업 중단)~~ — LB 0.6628 positive 진입으로 *deactivated*. corrector paradigm 자체는 작동. paradigm shift 불필요.
+
+### 가설 검증 우선순위 (LB-aware, cost-ascending)
+
+1. **공통-1 + high-1** (B/C/D 단독 OOF + LB 측정) — 4 dacon-submit 필요 (B/C/D 단독 + 합 가능 best). low cost (5-fold OOF 산출 ~15s each).
+2. **positive-1 (plan-013 + plan-015 ensemble)** — 1 dacon-submit, no training.
+3. **positive-3 (multi-seed ensemble)** — 5 train run × 5 fold = 25 models, 1 dacon-submit.
+4. **positive-2 (lever grid)** — medium cost grid search.
 
 ## §5. measured 값 박제 (외부 reference)
 

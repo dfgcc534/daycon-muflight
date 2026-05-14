@@ -15,9 +15,11 @@ exp_ids:
   - H039_g3_phase2_axis5
   - H040_g4_phase3_aux3
   - H041_g5_phase4_final
-lb_score: null
+lb_score: 0.6628
+lb_band: positive (≥ 0.66, OOF=negative 와 분리)
 band: negative
 best_stack_5fold_oof: 0.6425
+oof_lb_gap: 0.0203
 ---
 
 # plan-014 v4 — F0 (plan-006) frozen prior + corrector from-scratch 정밀화

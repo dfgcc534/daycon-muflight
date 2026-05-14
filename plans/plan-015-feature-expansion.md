@@ -12,9 +12,11 @@ exp_ids:
   - H043_g1_e1_feature_A
   - H047_g5_best_stack_5fold
   - H048_g_final_synthesis
-lb_score: null
+lb_score: 0.6628
+lb_band: positive (≥ 0.66)
 band: negative
 best_5fold_oof: 0.6425
+oof_lb_gap: 0.0203
 delta_oof_vs_baseline: 0.0000
 scope: corrector input feature 확장 — 현 9D kinematic 의 표현력 부족이 plan-014 G3 5축 negative 의 root cause 신호. 4 feature (A F0 residual / B binormal split / C multi-scale stride / D pairwise) 순차 ablation 으로 attribution + best stack 결정. plan-014 best_stack (E0c K-Means K=9 + boundary_weight_on, F0 frozen plan-006) 위 input feature 만 swap (corrector arch / loss / lever 모두 plan-014 carry).
 exp_ids:
