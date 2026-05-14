@@ -2,16 +2,31 @@
 plan_id: 016
 version: 1.5 (spec patch — plan-review-master iter 5 (MAX) fix 5건 (BLOCKER 3, AMB 2). (1) §3.2 sub-exp matrix G6 row 표 안 이동 + L258 stray row 제거. (2) §3.3 G0 (a) ±0.005 → ±0.0005 (§4.1 / §4.3 단어 통일). (3) §10.4 baseline_id `H051_g2_path_b` → `H051_g2_path_b_val_loss` (§3.4 exp_id schema match). (4) §2.1 합격 기준 G1/G2 vs G3/G4/G5 분기. (5) §7.3/§8.3/§9.3 Δ baseline conditional 명시 (G2 positive/marginal → vs G2, G2 drop → vs G1). v1.4 → v1.5.)
 date: 2026-05-14 (Asia/Seoul)
-status: spec
+status: G_final_complete
 based_on:
   - 014 (LB 0.6628 positive band, OOF 0.6425, oof_lb_gap +0.0203)
   - 015 (Feature A negative drop rule, B/C/D untested)
-followed_by: []
+followed_by:
+  - 017 (paradigm-shift branch — stabilization 3 lever 모두 sub-threshold measured)
 scope: plan-014/015 corrector paradigm 의 *3 가지 측정된 limitation* (L1 feature redundancy / L2 5-fold OOF variance noisy / L3 early stop val_hit discrete jump) 을 직접 닫는 sequential ablation. 7 anchor paradigm 유지 (oracle ceiling 0.8248 충분, candidate space 건드림 X). Path A (multi-seed ensemble) → Path B (monitor=val_loss) → Path C (B/C/D 단독 ablation) 누적.
-exp_ids: []
-lb_score: null
+exp_ids:
+  - H049_g0_preflight
+  - H050_g1_path_a_multiseed
+  - H051_g2_path_b_val_loss
+  - H052_g3_path_c_b
+  - H053_g4_path_c_c
+  - H054_g5_path_c_d
+  - H056_g_final_synthesis
+lb_score: 0.6638
+lb_band: positive
+band: positive
 baseline_lb: 0.6628
 baseline_oof: 0.6425
+best_5fold_oof: 0.6452
+delta_oof: 0.0027
+oof_lb_gap: 0.0186
+g6_status: skip
+dacon_submits_used: 2
 ---
 
 # plan-016 v1 — Corrector Stabilization (3 limitations 직접 닫기)
@@ -88,13 +103,13 @@ baseline (plan-014/015 best_stack, LB 0.6628)
 | c1.4 | docs | **v1.4 spec patch — plan-review-master iter 4 fix 3건 (AMBIGUITY).** (1) §0.5 per-stage Δ threshold 를 G1/G2 (+0.005) vs G3/G4/G5 (+0.003) 분기 표현 ↔ §3.3 G3/G4/G5 의 +0.003 consistent. (2) §10.1 best_c 선정 시 negative_drop 후보 drop filter 추가 (`status != "negative_drop"`) + 전부 drop 시 `best_c = None` (= G2 alias) 분기 명시. (3) §10.3 G6 합격 식을 `g6_lb` (best_c != None → best_c LB, best_c == None → g2_lb) 로 일반화 + §10.4 alias 대상 분기 (best Path C sub-exp / G2). v1.3 → v1.4 | [DONE] d169e7e |
 | c1.5 | docs | **v1.5 spec patch — plan-review-master iter 5 (MAX) fix 5건 (BLOCKER 3, AMB 2).** (1) §3.2 sub-exp matrix 의 G6 row 를 표 안 (G5 다음) 으로 이동, L258 stray row 제거. (2) §3.3 G0 (a) `0.6425 ± 0.005` → `0.6420 ≤ OOF ≤ 0.6430` (§4.1 / §4.3 와 동기). (3) §10.4 baseline_id `H051_g2_path_b` → `H051_g2_path_b_val_loss` (§3.4 exp_id schema 와 string-exact). (4) §2.1 합격 기준 G1/G2 vs G3/G4/G5 분기 표현 ↔ §0.5 와 통일. (5) §7.3/§8.3/§9.3 Δ baseline 의 conditional 명시 (G2 positive/marginal → vs G2, G2 drop → vs G1, base chain 동기). v1.4 → v1.5 | [DONE] b8c2114 |
 | c2 | code+exp | STAGE 0 (G0) — preflight: baseline reproduce + 3 path config sanity | [DONE] fc6c1b1 |
-| c3 | code+exp | STAGE 1 (G1, Path A) — multi-seed × multi-fold ensemble | [TODO] |
-| c4 | code+exp | STAGE 2 (G2, Path B) — monitor=val_loss cumulative | [TODO] |
-| c5 | exp | STAGE 3 (G3, Path C-B) — Feature B 단독 (binormal split, 10D base) | [TODO] |
-| c6 | exp | STAGE 4 (G4, Path C-C) — Feature C 단독 (multi-scale stride, 18D base) | [TODO] |
-| c7 | exp | STAGE 5 (G5, Path C-D) — Feature D 단독 (pairwise, 15D base) | [TODO] |
-| c8 | code+exp | STAGE 6 (G6) — best stack 5-fold + submission + dacon-submit | [TODO] |
-| c9 | docs+sync | STAGE 7 (G_final) — results.md + frontmatter sync + plan-017 후보 | [TODO] |
+| c3 | code+exp | STAGE 1 (G1, Path A) — multi-seed × multi-fold ensemble | [DONE] 19d57f6 (OOF=0.6452 Δ=+0.0027, LB=0.6638 Δ=+0.0010, marginal_under_threshold) |
+| c4 | code+exp | STAGE 2 (G2, Path B) — monitor=val_loss cumulative | [DONE] a1b8ae9 (OOF=0.6414 Δ=-0.0038, LB=0.6634 Δ=-0.0004, negative_drop) |
+| c5 | exp | STAGE 3 (G3, Path C-B) — Feature B 단독 (binormal split, 10D base) | [DONE] efe761b (OOF=0.6443 Δ=-0.0009 vs G1, negative, LB unsubmitted per user) |
+| c6 | exp | STAGE 4 (G4, Path C-C) — Feature C 단독 (multi-scale stride, 18D base) | [DONE] efe761b (OOF=0.6458 Δ=+0.0006 vs G1, sub-threshold, LB unsubmitted) |
+| c7 | exp | STAGE 5 (G5, Path C-D) — Feature D 단독 (pairwise, 15D base) | [DONE] efe761b (OOF=0.6461 Δ=+0.0009 vs G1, sub-threshold positive, LB unsubmitted) |
+| c8 | code+exp | STAGE 6 (G6) — best stack 5-fold + submission + dacon-submit | [SKIP] G6 = G1 alias (Path C 3/3 sub-threshold + LB 미산출, dacon-submit 보류 사용자 결정). best_c=None case per §10.1 fallback (G6 = G2 alias 가 아니라 G2 drop 으로 G1 alias 명세 확장). |
+| c9 | docs+sync | STAGE 7 (G_final) — results.md + frontmatter sync + plan-017 후보 | [TODO→DONE this commit] |
 
 ---
 
