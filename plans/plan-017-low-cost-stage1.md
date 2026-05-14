@@ -1,6 +1,6 @@
 ---
 plan_id: 017
-version: 1.2 (plan-review-master iter 2 fix 7건 — 잔재 청소 (±2.5cm 2곳) + voxel_idx_to_offset_torch 함수명 통일 + Target G2 threshold + coverage 3단계 rule + mixed case 4분기 + numeric anchor 박제)
+version: 1.3 (plan-review-master iter 3 fix 4건 — voxel_ce_loss torch-native (device 위 round/clamp) + baseline reproduce value 정확 일치 + id-merge graceful path + skip/abort rule 박제)
 date: 2026-05-15 (Asia/Seoul)
 status: spec
 based_on:
@@ -51,6 +51,7 @@ baseline_oof: 0.6452 # plan-016 G1
 | c1 | docs | v1 draft — plan-017 spec (low-cost stage 1) | [DONE] 0566934 |
 | c1.1 | docs | **v1.1 spec patch — plan-review-master iter 1 fix 10건.** (1) §1.2 voxel window ±2.5cm → ±2cm BLOCKER fix. (2) §2.1 G2 변경/보존 명세 정합 (anchor codebook 무력화 명시 + confound caveat). (3) §0.5 G1 pass criterion Δ>0 → Δ≥0 통일. (4) §4.1 (d) 2cm coverage measure 추가. (5) §6.1 voxel_idx_to_offset numpy/torch 양 variant 명시. (6) §6.1 sample_weight dtype/device 명시 (torch.Tensor, requires_grad=False, dtype=float32). (7) §5.2 submission save schema inline. (8) §4.1 (c) smoke input dim (B=16, seq_len=6, feature_dim=9) inline. (9) §7.2 LB band threshold inline (plan-016 외부 의존 제거). (10) §4.3 재사용 module signature inline + cascade 위험 박제. v1 → v1.1 | [DONE] cf874e0 |
 | c1.2 | docs | **v1.2 spec patch — plan-review-master iter 2 fix 7건 (5 AMBIGUITY + 2 recurring 잔재).** (1) §6.2.A 주석 "±2.5cm" → "±2cm" 잔재 청소. (2) §2.2 "±2.5cm" 잔재 → "±2cm". (3) §6.2.D `voxel_idx_to_offset_tensor` → `voxel_idx_to_offset_torch` (§6.1 박제 이름과 통일) + device 인자. (4) §0.5 Target G2 OOF Δ > 0 → Δ ≥ +0.003 (§3.1 / §6.3 일치). (5) §4.1 (d) coverage threshold 3 단계 rule (≥0.95 OK / 0.90-0.95 caveat / <0.90 fail). (6) §3.1 mixed case 4 분기 (G1+G2 pass / G1-only / G2-only / both-fail) paradigm-shift anchor 박제. (7) §1.1 ε~+0.005 variance reduction lemma origin + §1.2 +0.003~0.005 quantitative anchor (plan-006 oracle 회수율 + plan-016 G3-G5 lever multiplier). v1.1 → v1.2 | [DONE] 2198583 |
+| c1.3 | docs | **v1.3 spec patch — plan-review-master iter 3 fix 4건 (3 AMBIGUITY + skip rule).** (1) A1 §6.2.C voxel_ce_loss torch-native (device 위 round/clamp, CPU↔GPU round-trip 제거) + rounding-mode caveat. (2) A2 §4.2 (b) baseline reproduce check 의 value 정확 일치 (tolerance 0). (3) A3 §5.2 id 정렬 invariant fall-back (id-merge graceful path). (4) §3.1 skip / abort rule 박제 (G0 a/b/c/d 분기 + G1 fail 시 G2 단독). v1.2 → v1.3 | [TODO] |
 | c2 | code+exp | STAGE 0 (G0) — preflight + Voxel CE module smoke | [TODO] |
 | c3 | exp | STAGE 1 (G1) — 3-plan ensemble + dacon-submit | [TODO] |
 | c4 | code+exp | STAGE 2 (G2) — Voxel CE head 5-seed × 5-fold + dacon-submit | [TODO] |
@@ -139,6 +140,13 @@ plan-016 G2 (Path B monitor=val_loss) 의 measured 결론: train objective (hybr
   - **G1 fail + G2 pass** → voxel CE path 유망, ensemble 무효 — paradigm-shift #2+#3 (CLIP+regime bias) 권장 (loss-metric alignment 유지하면서 input space 확장).
   - 둘 다 fail → paradigm-shift (#1 / #2+#3) 필수성 강화 — 사용자 직접 선택.
 
+**Skip / abort rule** (G0/G1 fail 분기):
+- G0 (a) 3 file 누락 → 본 plan abort, plan-016 artifact 복구 필요.
+- G0 (b) plan-016 OOF/LB mismatch → 본 plan abort, baseline anchor 검증 필요.
+- G0 (c) Voxel CE smoke fail → 본 plan abort, plan017_voxel_ce.py 재설계 필요.
+- G0 (d) coverage < 0.90 → §4.1 (d) per voxel grid 재설계 필요 (window 확장 e.g. 7×7×7), G1 진행, G2 spec 보류.
+- G1 fail (LB Δ < 0) → G2 단독 진행 (head reformation 검증 가치 보존). G_final 결정 anchor 의 mixed case (G1fail+G2pass / G2fail) 적용.
+
 ### §3.2 OOF aggregation (G2)
 
 plan-016 §5.2 carry: 5 seed × 5 fold → per-fold seed-mean → 5-fold concat → hit@1cm.
@@ -177,7 +185,7 @@ plan-016 §5.2 carry: 5 seed × 5 fold → per-fold seed-mean → 5-fold concat 
 ### §4.2 G0 합격
 
 - (a) 3 file 존재 (10000 row + header = 10001 line), row count 일치
-- (b) plan-016 G1 artifact 로드 OK (`analysis/plan-016/g1_path_a.json` 의 OOF=0.6452, LB=0.6638 carry)
+- (b) plan-016 G1 artifact 로드 + **field 값 정확 일치** (tolerance 0): `json["overall_oof_hit_1cm"] == 0.6452` AND `json["lb_score"] == 0.6638`. 둘 중 하나 mismatch 시 G0 FAIL (plan-016 artifact 변형 의심, 본 plan 의 baseline anchor 깨짐).
 - (c) Voxel CE smoke: forward (B=16, seq_len=6, feature_dim=9) → logits shape (16, 125), voxel_idx shape (16,) ∈ [0, 125), loss.item() finite, backward.step() no error
 - (d) Voxel coverage measure: `frac(||y - F0||₂ ≤ 0.02m) ≥ 0.90` (90% G0 pass minimum, ≥ 0.95 caveat-free). §4.1 (d) 의 3 단계 threshold rule 동일.
 
@@ -218,9 +226,18 @@ sub_a = pd.read_csv("analysis/plan-013/submission.csv")
 sub_b = pd.read_csv("runs/baseline/plan014_g5_phase4/submission_best.csv")
 sub_c = pd.read_csv("runs/baseline/plan016_g1_path_a/submission.csv")
 
-# id 정렬 invariant: sample_submission.csv 위 sort 동일 (각 plan 이미 그 순서)
-for s in (sub_b, sub_c):
-    assert (s["id"].values == sub_a["id"].values).all(), "id mismatch"
+# id 정렬 invariant: sample_submission.csv 위 sort 동일 (각 plan 이미 그 순서).
+# Fall-back: 순서가 어긋난 경우 id 기준 merge → 재정렬 (graceful path).
+def align_to(s_ref, s):
+    if (s["id"].values == s_ref["id"].values).all():
+        return s
+    # 순서 mismatch → id-merge
+    merged = s_ref[["id"]].merge(s, on="id", how="left", validate="one_to_one")
+    assert not merged[["x","y","z"]].isnull().any().any(), "id set mismatch (not just order)"
+    return merged
+
+sub_b = align_to(sub_a, sub_b)
+sub_c = align_to(sub_a, sub_c)
 
 # 좌표 mean
 mean_xyz = (sub_a[["x","y","z"]].values
@@ -304,14 +321,22 @@ def y_to_voxel_idx(y, f0_pred):
 import torch.nn.functional as F
 
 def voxel_ce_loss(logits, y, f0_pred, sample_weight=None):
-    """logits (B, 125), y (B, 3), f0_pred (B, 3). Returns scalar."""
-    voxel_idx = y_to_voxel_idx(y.cpu().numpy(), f0_pred.cpu().numpy())   # (B,) int
-    voxel_idx_t = torch.from_numpy(voxel_idx).to(logits.device)
-    ce_per_sample = F.cross_entropy(logits, voxel_idx_t, reduction="none")  # (B,)
+    """logits (B, 125), y (B, 3), f0_pred (B, 3). Returns scalar.
+
+    Torch-native (no CPU↔GPU round-trip): voxel_idx 산출을 device 위에서 직접.
+    """
+    offset = y - f0_pred                                          # (B, 3) torch on logits.device
+    voxel_ijk = torch.round(offset / 0.01).clamp(-2, 2).long()    # (B, 3) torch.int64
+    voxel_idx = ((voxel_ijk[:, 0] + 2) * 25
+               + (voxel_ijk[:, 1] + 2) * 5
+               + (voxel_ijk[:, 2] + 2))                            # (B,) torch.int64 on device
+    ce_per_sample = F.cross_entropy(logits, voxel_idx, reduction="none")  # (B,)
     if sample_weight is not None:
         ce_per_sample = ce_per_sample * sample_weight
     return ce_per_sample.mean()
 ```
+
+> torch.round = banker's rounding (round-half-to-even, numpy 와 동일 default). 경계 sample (offset = exactly 0.005 = half cm) 의 ±1 voxel-idx 결정성 numpy/torch 일관.
 
 > boundary_weight (plan-014 E6 carry) 사용 가능 — `sample_weight = _boundary_weight(F0_train, Y_train)` (plan-016 G1 spec 동일).
 
