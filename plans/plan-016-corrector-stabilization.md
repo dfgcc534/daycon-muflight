@@ -1,6 +1,6 @@
 ---
 plan_id: 016
-version: 1.2 (spec patch — plan-review-master iter 2 fix 8건. (1) §5.2 OOF aggregation 단일 정의 (fold f coord mean → 10000 sample concat → single hit@1cm). (2) §3.2 Feature B/C/D 산식 inline 풀어쓰기 (§3.2.B/C/D sub-section: Frenet basis 산식 + degenerate fallback + pad rule + cosine ε + Δspeed sign). (3) §4.1 reproduce criterion deterministic vs ±0.005 충돌 해소 (same seed + same config = hit@1cm 4자리 일치). (4) §10.4 H055 alias row 12 column registry schema 명시 (run_dir = best sub-exp 직접 path, notes alias 표기). (5) §10.1 best_c tie-break = LB primary + OOF 2차 + insertion order. (6) §1.4 stretch goal 0.68 vs threshold 산술 상한 0.6758 gap 박제. (7) §11.1 L1/L2/L3 closure measurement criterion 박제 (fold spread ≤ 0.02 / best_epoch std ≤ 3 / Path C best 1+ positive). (8) §1.3 Mechanism mapping (multi-seed → L2 variance closure, monitor=val_loss → L3 noise closure, Feature B/C/D → L1 redundancy closure) narrative 추가. v1.1 → v1.2.)
+version: 1.3 (spec patch — plan-review-master iter 3 fix 6건. (1) §3.2 footnote conditional fallback rule pass 정의 단일화 (pass = positive OR marginal, negative 만 G1 fallback). (2) §5.2 OOF aggregation 표현 §3.3 와 단어 통일 (sample-level concat hit). (3) §4.1 reproduce ±0.005 산수 정정 → ±0.0005 (실제 ≤ 0.6430 범위). (4) §3.2.B Feature B degenerate fallback `t̂_s = world x̂` 명시. (5) §7.2 / §9.2 BiGRU weight 재초기화 §8.2 와 동일 명시. (6) §1.4 stretch goal narrative 와 §10.4 alias 의미 단어 통일 (G6 LB = cumulative best Path C). v1.2 → v1.3.)
 date: 2026-05-14 (Asia/Seoul)
 status: spec
 based_on:
@@ -84,6 +84,7 @@ baseline (plan-014/015 best_stack, LB 0.6628)
 | c1 | docs | v1 draft — 3 limitation 진단 + 3-path sequential ablation spec | [DONE] a3d5269 |
 | c1.1 | docs | **v1.1 spec patch — plan-review-master iter 1 fix 7건.** (1) §3.2 Feature B/C/D 산식 inline. (2) §3.1 9D base feature 전체 list inline. (3) Path C base fallback conditional rule 단일화. (4) G0 seed=20260514 + 5 seed list 명시. (5) OOF aggregation = 좌표 mean 단일화. (6) G6 alias 명시. (7) stretch goal LB 0.68 + self-label 사후 승격 룰. v1 → v1.1 | [DONE] 40765af |
 | c1.2 | docs | **v1.2 spec patch — plan-review-master iter 2 fix 8건.** (1) §5.2 OOF aggregation 단일 정의 (concat 10000 sample single hit). (2) §3.2.B/C/D 산식 sub-section inline (Frenet basis + degenerate fallback / stride pad / cosine ε). (3) §4.1 reproduce criterion 해소 (same seed = 4자리 일치). (4) §10.4 H055 alias row 12 column registry schema. (5) §10.1 best_c tie-break (LB primary + OOF 2차). (6) §1.4 stretch goal vs threshold 산술 상한 0.6758 gap 박제. (7) §11.1 closure measurement criterion (fold spread / best_epoch std / Path C positive). (8) §1.3 Mechanism mapping (Path A/B/C → L1/L2/L3 closure) narrative. v1.1 → v1.2 | [DONE] 3ea7b2a |
+| c1.3 | docs | **v1.3 spec patch — plan-review-master iter 3 fix 6건.** (1) §3.2 footnote pass 정의 = positive OR marginal (negative 만 fallback). (2) §5.2 OOF aggregation 표현 §3.3 와 단어 통일. (3) §4.1 ±0.005 → ±0.0005 산수 정정. (4) §3.2.B `t̂_s = world x̂` fallback 명시. (5) §7.2/§9.2 BiGRU weight 재초기화 §8.2 와 동일. (6) §1.4 stretch goal vs G6 alias 단어 통일. v1.2 → v1.3 | [TODO] |
 | c2 | code+exp | STAGE 0 (G0) — preflight: baseline reproduce + 3 path config sanity | [TODO] |
 | c3 | code+exp | STAGE 1 (G1, Path A) — multi-seed × multi-fold ensemble | [TODO] |
 | c4 | code+exp | STAGE 2 (G2, Path B) — monitor=val_loss cumulative | [TODO] |
@@ -149,7 +150,7 @@ baseline (plan-014/015 best_stack, LB 0.6628)
 | plan-013 fallback | 0.6381 | plan-004 framework + In/IC (deferred lever) | minimal patch |
 | **plan-014/015** | **0.6628** | corrector from-scratch + F0 frozen | "재사용 끊기" |
 | **plan-016 target** | **≥ 0.6678** (≥ baseline + 0.005) | 위 paradigm + variance/stability fix | direct limitation 해소 |
-| **plan-016 ambition** | **≥ 0.68** (= plan-004 정조준) | 7 anchor paradigm 만으로 plan-004 LB 정복 | **stretch — 합격 threshold 산술 상한 = baseline + (G1: +0.005) + (G2: +0.005) + (G3-5 best: +0.003) = +0.013 → 0.6628 + 0.013 = 0.6758**. 따라서 0.68 도달은 *최소 1 lever 가 super-threshold (≫ +0.005)* 작동 필요. high-value path |
+| **plan-016 ambition** | **≥ 0.68** (= plan-004 정조준) | 7 anchor paradigm 만으로 plan-004 LB 정복 | **stretch — 합격 threshold 산술 상한 = baseline + (G1: +0.005) + (G2: +0.005) + (G3-5 best: +0.003) = +0.013 → 0.6628 + 0.013 = 0.6758**. 단 G6 = best Path C alias 이므로 G6 LB 자체가 *Path A + Path B + best Path C 의 cumulative 결과* (G5 의 학습 시 G2 carry, G2 가 Path A+B cumulative carry). 따라서 G6 LB 산술 상한도 0.6758. 0.68 도달은 *최소 1 lever super-threshold (≫ +0.005)* 작동 필요. high-value path |
 | plan-004 (original) | 0.6806 | 27 candidate + 2-stage selector+corrector | full notebook |
 
 → plan-016 = corrector paradigm 의 *true potential* 검증. 사용자 narrative ("candidate 안 건드림") 따라 7 anchor 만으로 plan-004 LB 0.6806 까지 회수 가능한지 measured.
@@ -226,7 +227,10 @@ step `s` 의 step-local Frenet basis:
 - `acc_perp_vec_s = acc_s − (acc_s · t̂_s) · t̂_s`
 - `n̂_s = acc_perp_vec_s / (‖acc_perp_vec_s‖ + ε)`
 - `b̂_s = t̂_s × n̂_s` (오른손 법칙)
-- degenerate case (`‖v_s‖ < 1e-6` 또는 `‖acc_perp_vec_s‖ < 1e-6`): `n̂_s = world ẑ` post-orthogonalize (`n̂_s ← n̂_s − (n̂_s · t̂_s)·t̂_s`, 재정규화)
+- degenerate case (v1.3 단일화):
+  - `‖v_s‖ < 1e-6` (stationary) 시 → `t̂_s = world x̂ = (1, 0, 0)` (fallback)
+  - 그 위 `n̂_s = world ẑ = (0, 0, 1)` post-orthogonalize (`n̂_s ← n̂_s − (n̂_s · t̂_s)·t̂_s`, 재정규화 — 위 fallback `t̂_s = x̂` 시 `n̂_s = ẑ` 그대로 유지)
+  - `‖v_s‖ ≥ 1e-6` 이지만 `‖acc_perp_vec_s‖ < 1e-6` 인 경우 (등속 직선) 도 동일 `n̂_s = world ẑ` post-orthogonalize
 
 feature 산출 (sign-aware, raw acc projection):
 - `acc_normal = acc_s · n̂_s` (raw acc 의 n̂ 성분 scalar, sign 보존)
@@ -254,7 +258,7 @@ per-step `s` 의 velocity `v[s] = X[:, s] − X[:, s−1]`:
 
 **중요**: Path C 는 **B/C/D 의 *단독* 비교** (cumulative 아님). 이전 plan-015 cumulative A→A+B→A+B+C→A+B+C+D 가 A redundancy 로 막힌 교훈. plan-016 C 는 각 single feature 의 LB head-to-head 만, best 1개만 G6 best_stack 채택.
 
-**Path B fail 시 fallback rule (v1 단일화)**: G2 가 negative (둘 다 fail) 시 *drop Path B* — G3/G4/G5 의 base = **G1 cumulative** (Path A only, monitor=val_hit). G6 best_c 도 G2 가 아닌 G1 위 best feature. 즉 §7.2 / §8.2 / §9.2 의 "G2 carry" 는 실제로 **"G2 if G2 pass else G1" 의 conditional carry**. §3.2 표의 *or* 분기는 모두 본 conditional 의 표기.
+**Path B fail 시 fallback rule (v1.3 단일화)**: G2 가 **negative (OOF Δ < 0 AND LB Δ < 0, 둘 다 fail)** 시 *drop Path B* — G3/G4/G5 의 base = **G1 cumulative** (Path A only, monitor=val_hit). marginal (한 쪽만 pass) 또는 positive 시 → G2 carry (G3/4/5 base = G2 cumulative). 즉 **"G2 carry" pass 정의 = positive OR marginal (negative 아님)**. §7.2 / §8.2 / §9.2 의 "G2 carry" 는 본 conditional 의 단축 표기. §3.2 표의 "G2 (if pass) else G1" 의 *pass* = positive OR marginal.
 
 ### §3.3 G-gate quantitative criteria
 
@@ -344,7 +348,7 @@ per-step `s` 의 velocity `v[s] = X[:, s] − X[:, s−1]`:
 ### §4.1 산출물
 
 - `analysis/plan-016/preflight.py` — 2 task:
-  - (a) plan-014/015 baseline (**seed=20260514** fixed, single-seed, monitor=val_hit) 5-fold OOF reproduce → 0.6425 ± 0.005 (= §4.3 의 4자리 절대 합격 기준 0.6420~0.6430). plan-015 G0 (H042) 와 deterministic same seed + same config → *동일 hyperparam* 의미 (bit-exact match 아니라 hit@1cm 4자리 일치).
+  - (a) plan-014/015 baseline (**seed=20260514** fixed, single-seed, monitor=val_hit) 5-fold OOF reproduce → **0.6425 ± 0.0005** (= §4.3 의 4자리 절대 합격 기준 0.6420 ≤ OOF ≤ 0.6430). plan-015 G0 (H042) 와 deterministic same seed + same config → *동일 hyperparam* 의미 (bit-exact match 아니라 hit@1cm 4자리 일치).
   - (b) 3 path config sanity: 5 seed list = `[20260514, 20260515, 20260516, 20260517, 20260518]` (plan-014 base seed + 4 sequential) verify / monitor=val_loss option (plan-014 v3.10 carry, patience=5 동일) verify / Feature B/C/D 단독 dim (10D / 18D / 15D) sanity
 - `analysis/plan-016/preflight.json`
 - registry row: `H049_g0_preflight`
@@ -375,7 +379,7 @@ python analysis/plan-016/preflight.py
 
 - seeds = [20260514, 20260515, 20260516, 20260517, 20260518]
 - 각 seed × 5 fold = 25 models
-- val OOF: 같은 fold 의 5 seed prediction → coord mean → 그 fold 의 OOF
+- val OOF: §3.3 G1 spec carry — fold f 의 5 seed prediction 좌표 mean → 5 fold concat (sample-id 기준) → **5-fold concat hit@1cm = single scalar** (10000 train samples, plan-014 stable_hash carry). fold-level mean 아님.
 - test: 25 model 의 test prediction → coord mean
 - baseline config 외 일체 변경 X (monitor=val_hit 유지, Feature flag 모두 False)
 - dacon-submit 1회
@@ -428,6 +432,7 @@ python analysis/plan-016/preflight.py
 - G2 carry (5-seed ensemble + monitor=val_loss)
 - feature_flags = {"A": False, "B": True, "C": False, "D": False}
 - input_dim = 10D (단독 B = 9D − 1D + 2D, perp split)
+- **weight 재초기화** (plan-015 §7.2 carry): BiGRU input_dim 10 변경, 전체 model state Kaiming default + seed 5개 carry, plan-014/015 weight transfer 안 함. §8.2 와 동일.
 - dacon-submit 1회
 
 ### §7.3 G3 합격
@@ -472,9 +477,10 @@ python analysis/plan-016/preflight.py
 
 ### §9.2 spec
 
-- G2 carry
+- G2 carry (5-seed ensemble + monitor=val_loss)
 - feature_flags = {"A": False, "B": False, "C": False, "D": True}
 - input_dim = 15D (단독 D = 9D + 6D pairwise)
+- **weight 재초기화** (plan-015 §7.2 carry): BiGRU input_dim 15 변경, 전체 model state Kaiming default + seed 5개 carry. §8.2 와 동일.
 - dacon-submit 1회
 
 ### §9.3 G5 합격
