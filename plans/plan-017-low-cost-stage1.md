@@ -1,6 +1,6 @@
 ---
 plan_id: 017
-version: 1.3 (plan-review-master iter 3 fix 4건 — voxel_ce_loss torch-native (device 위 round/clamp) + baseline reproduce value 정확 일치 + id-merge graceful path + skip/abort rule 박제)
+version: 1.4 (G0 (d) coverage FAIL 후 voxel window 5×5×5 → 7×7×7 expansion. ±2cm 85.4% → ±3cm 90.24% caveat zone)
 date: 2026-05-15 (Asia/Seoul)
 status: spec
 based_on:
@@ -52,7 +52,8 @@ baseline_oof: 0.6452 # plan-016 G1
 | c1.1 | docs | **v1.1 spec patch — plan-review-master iter 1 fix 10건.** (1) §1.2 voxel window ±2.5cm → ±2cm BLOCKER fix. (2) §2.1 G2 변경/보존 명세 정합 (anchor codebook 무력화 명시 + confound caveat). (3) §0.5 G1 pass criterion Δ>0 → Δ≥0 통일. (4) §4.1 (d) 2cm coverage measure 추가. (5) §6.1 voxel_idx_to_offset numpy/torch 양 variant 명시. (6) §6.1 sample_weight dtype/device 명시 (torch.Tensor, requires_grad=False, dtype=float32). (7) §5.2 submission save schema inline. (8) §4.1 (c) smoke input dim (B=16, seq_len=6, feature_dim=9) inline. (9) §7.2 LB band threshold inline (plan-016 외부 의존 제거). (10) §4.3 재사용 module signature inline + cascade 위험 박제. v1 → v1.1 | [DONE] cf874e0 |
 | c1.2 | docs | **v1.2 spec patch — plan-review-master iter 2 fix 7건 (5 AMBIGUITY + 2 recurring 잔재).** (1) §6.2.A 주석 "±2.5cm" → "±2cm" 잔재 청소. (2) §2.2 "±2.5cm" 잔재 → "±2cm". (3) §6.2.D `voxel_idx_to_offset_tensor` → `voxel_idx_to_offset_torch` (§6.1 박제 이름과 통일) + device 인자. (4) §0.5 Target G2 OOF Δ > 0 → Δ ≥ +0.003 (§3.1 / §6.3 일치). (5) §4.1 (d) coverage threshold 3 단계 rule (≥0.95 OK / 0.90-0.95 caveat / <0.90 fail). (6) §3.1 mixed case 4 분기 (G1+G2 pass / G1-only / G2-only / both-fail) paradigm-shift anchor 박제. (7) §1.1 ε~+0.005 variance reduction lemma origin + §1.2 +0.003~0.005 quantitative anchor (plan-006 oracle 회수율 + plan-016 G3-G5 lever multiplier). v1.1 → v1.2 | [DONE] 2198583 |
 | c1.3 | docs | **v1.3 spec patch — plan-review-master iter 3 fix 4건 (3 AMBIGUITY + skip rule).** (1) A1 §6.2.C voxel_ce_loss torch-native (device 위 round/clamp, CPU↔GPU round-trip 제거) + rounding-mode caveat. (2) A2 §4.2 (b) baseline reproduce check 의 value 정확 일치 (tolerance 0). (3) A3 §5.2 id 정렬 invariant fall-back (id-merge graceful path). (4) §3.1 skip / abort rule 박제 (G0 a/b/c/d 분기 + G1 fail 시 G2 단독). v1.2 → v1.3 | [DONE] 32087af |
-| c2 | code+exp | STAGE 0 (G0) — preflight + Voxel CE module smoke | [TODO] |
+| c1.4 | docs | **v1.4 spec patch — G0 (d) measured FAIL 후 voxel window expansion.** G0 측정 결과 ±2cm coverage = 85.4% < 90% threshold (FAIL). ±3cm coverage = 90.24% (caveat zone). 5×5×5 (125 voxel, ±2cm) → 7×7×7 (343 voxel, ±3cm). 1cm voxel width 보존 (hit threshold 정합). §1.2 / §2.1 / §6.2.A 본문 expansion. v1.3 → v1.4 | [TODO] |
+| c2 | code+exp | STAGE 0 (G0) — preflight + Voxel CE module smoke | [DONE] (preflight 4/4 pass, coverage 90.24% caveat zone, window 7×7×7 v1.4 carry) |
 | c3 | exp | STAGE 1 (G1) — 3-plan ensemble + dacon-submit | [TODO] |
 | c4 | code+exp | STAGE 2 (G2) — Voxel CE head 5-seed × 5-fold + dacon-submit | [TODO] |
 | c5 | docs+sync | STAGE 3 (G_final) — results.md + frontmatter sync + paradigm-shift 결정점 | [TODO] |
@@ -96,7 +97,7 @@ plan-014/015/016 의 corrector paradigm (F0=plan-006 frenet_par120_perp_neg020 +
 plan-016 G2 (Path B monitor=val_loss) 의 measured 결론: train objective (hybrid_combined_loss) ↔ eval metric (hit@1cm) misalignment → val_loss 감소해도 hit 안 늘어남.
 
 해결: **discrete classification** 위 hit metric 직접 정렬.
-- Voxel grid: F0_pred 중심 **±2cm 범위 (= ±2 voxels × 1cm width)**, 5×5×5 = 125 voxel, voxel width = 0.01m (1cm). axis 별 5 levels = `[-0.02, -0.01, 0, 0.01, 0.02]` m (§6.2.A 와 일치).
+- Voxel grid: F0_pred 중심 **±3cm 범위 (= ±3 voxels × 1cm width, v1.4 expansion)**, 7×7×7 = 343 voxel, voxel width = 0.01m (1cm). axis 별 7 levels = `[-0.03, -0.02, -0.01, 0, 0.01, 0.02, 0.03]` m. 사유: G0 (d) measured coverage at ±2cm = 85.4% (FAIL <90%); ±3cm = 90.2% (caveat zone, ≥90%) → 1cm voxel width + 90%+ coverage 만족하는 최소 확장.
 - Voxel index = argmin || voxel_center - y_true ||₂ 위 cross-entropy 학습.
 - Forward predict: argmax 위 voxel_center → 3D offset → F0_pred + offset.
 - 1cm voxel width = hit@1cm threshold 의 *natural alignment* (1cm 안 prediction = correct voxel argmax).
@@ -113,7 +114,7 @@ plan-016 G2 (Path B monitor=val_loss) 의 measured 결론: train objective (hybr
 |---|---|
 | Baseline | plan-016 G1 (5-seed × 5-fold = 25 models, F0 frozen, BiGRU h=128, 7 anchor K=9, boundary_weight_on, monitor=val_hit) |
 | G1 변경 | 3 submission 좌표 mean (training 없음, no head/loss change) |
-| G2 변경 | corrector head **교체 (cls_head[K] + reg_head[K*3*tanh*REG_SCALE] → voxel_cls_head[125] softmax)** + 새 loss CE(voxel_idx). **anchor codebook (K=9) 도 forward path 에서 무력화** — voxel paradigm 은 F0 + voxel offset 만 사용, anchor 호출 없음. 단일 변경 아니나 voxel CE paradigm 의 *분리 불가능한 cohesive change* 로 spec 박제. confound caveat 는 G_final 결과 해석 시 명시. |
+| G2 변경 | corrector head **교체 (cls_head[K] + reg_head[K*3*tanh*REG_SCALE] → voxel_cls_head[343] softmax, 7×7×7 voxel grid v1.4)** + 새 loss CE(voxel_idx). **anchor codebook (K=9) 도 forward path 에서 무력화** — voxel paradigm 은 F0 + voxel offset 만 사용, anchor 호출 없음. 단일 변경 아니나 voxel CE paradigm 의 *분리 불가능한 cohesive change* 로 spec 박제. confound caveat 는 G_final 결과 해석 시 명시. |
 | G2 보존 | F0, BiGRU encoder, 5-fold scheme, multi-seed list, monitor=val_hit |
 | 평가 | OOF (5-fold concat) + LB (사용자 confirm 후 dacon-submit) |
 

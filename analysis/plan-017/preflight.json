@@ -1,0 +1,71 @@
+{
+  "exp_id": "H057_g0_preflight",
+  "plan_version": "v1.3",
+  "task_a_files": {
+    "plan_013": {
+      "path": "analysis/plan-013/submission.csv",
+      "exists": true,
+      "shape": [
+        10000,
+        4
+      ],
+      "schema_ok": true
+    },
+    "plan_014": {
+      "path": "runs/baseline/plan014_g5_phase4/submission_best.csv",
+      "exists": true,
+      "shape": [
+        10000,
+        4
+      ],
+      "schema_ok": true
+    },
+    "plan_016_g1": {
+      "path": "runs/baseline/plan016_g1_path_a/submission.csv",
+      "exists": true,
+      "shape": [
+        10000,
+        4
+      ],
+      "schema_ok": true
+    },
+    "all_ok": true
+  },
+  "task_b_baseline": {
+    "path": "/workspace/daycon-muflight/analysis/plan-016/g1_path_a.json",
+    "oof": 0.6452,
+    "lb": 0.6638,
+    "target_oof": 0.6452,
+    "target_lb": 0.6638,
+    "oof_match": true,
+    "lb_match": true,
+    "ok": true
+  },
+  "task_c_smoke": {
+    "ok": true,
+    "logits_shape": [
+      16,
+      343
+    ],
+    "loss": 5.853631973266602,
+    "pred_shape": [
+      16,
+      3
+    ],
+    "device": "cuda"
+  },
+  "task_d_coverage": {
+    "ok": true,
+    "verdict": "caveat",
+    "voxel_half_m": 0.03,
+    "voxel_depth": 7,
+    "voxel_total": 343,
+    "coverage_frac": 0.9024,
+    "p50_dist_m": 0.007495279392116449,
+    "p95_dist_m": 0.05163753810164604,
+    "p99_dist_m": 0.0984563284211391,
+    "n_samples": 10000
+  },
+  "g0_passed": true,
+  "elapsed_seconds": 1.464446783065796
+}
