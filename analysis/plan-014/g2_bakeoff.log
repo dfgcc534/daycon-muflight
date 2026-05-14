@@ -1,0 +1,37 @@
+[plan-014 G2 v4] loading train data ...
+[plan-014 G2] N_train=10000. F0=Plan014F0Function (frozen, plan-006 constants)
+
+[plan-014 G2] === E0a (absolute) ===
+  [E0a] fold 0: val_hit=0.6517 (init 0.5852, Δ=+0.0665) epoch=5/50 dcm=0.0016
+  [E0a] fold 1: val_hit=0.6249 (init 0.5711, Δ=+0.0538) epoch=2/50 dcm=0.0014
+  [E0a] fold 2: val_hit=0.6372 (init 0.5717, Δ=+0.0655) epoch=3/50 dcm=0.0013
+  [E0a] fold 3: val_hit=0.6249 (init 0.5610, Δ=+0.0639) epoch=3/50 dcm=0.0012
+  [E0a] fold 4: val_hit=0.6077 (init 0.5621, Δ=+0.0455) epoch=4/50 dcm=0.0015
+  [E0a] OOF=0.6293, mean DCM=0.0014, elapsed=8.3s
+
+[plan-014 G2] === E0b (frenet_orthogonal) ===
+  [E0b] fold 0: val_hit=0.6356 (init 0.5958, Δ=+0.0398) epoch=5/50 dcm=0.0026
+  [E0b] fold 1: val_hit=0.6234 (init 0.5642, Δ=+0.0592) epoch=2/50 dcm=0.0025
+  [E0b] fold 2: val_hit=0.6442 (init 0.5822, Δ=+0.0620) epoch=15/50 dcm=0.0025
+  [E0b] fold 3: val_hit=0.6195 (init 0.5870, Δ=+0.0324) epoch=8/50 dcm=0.0027
+  [E0b] fold 4: val_hit=0.5964 (init 0.5678, Δ=+0.0286) epoch=3/50 dcm=0.0029
+  [E0b] OOF=0.6239, mean DCM=0.0026, elapsed=8.2s
+
+[plan-014 G2] === E0c (kmeans) ===
+  [E0c] fold 0: val_hit=0.6573 (init 0.0590, Δ=+0.5983) epoch=6/50 dcm=0.0027
+  [E0c] fold 1: val_hit=0.6283 (init 0.1836, Δ=+0.4447) epoch=2/50 dcm=0.0026
+  [E0c] fold 2: val_hit=0.6452 (init 0.0950, Δ=+0.5502) epoch=11/50 dcm=0.0025
+  [E0c] fold 3: val_hit=0.6239 (init 0.3918, Δ=+0.2321) epoch=12/50 dcm=0.0029
+  [E0c] fold 4: val_hit=0.6251 (init 0.2399, Δ=+0.3852) epoch=2/50 dcm=0.0023
+  [E0c] OOF=0.6359, mean DCM=0.0026, elapsed=16.7s
+
+[plan-014 G2] === winner decision ===
+
+[plan-014 G2] === summary ===
+  E0a: OOF=0.6293, DCM=0.0014
+  E0b: OOF=0.6239, DCM=0.0026
+  E0c: OOF=0.6359, DCM=0.0026 ★
+  winner=E0c (kmeans/frenet), gap=0.0066, tie_break=False
+  G2_passed=True (winner_oof>=0.6: True; winner_dcm>=0.002: True), warn=None
+  elapsed_total=33.9s (0.57 min)
+[plan-014 G2] artifact -> analysis/plan-014/g2_phase1.json
