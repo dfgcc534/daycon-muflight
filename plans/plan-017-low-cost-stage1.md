@@ -2,22 +2,30 @@
 plan_id: 017
 version: 1.4 (G0 (d) coverage FAIL 후 voxel window 5×5×5 → 7×7×7 expansion. ±2cm 85.4% → ±3cm 90.24% caveat zone)
 date: 2026-05-15 (Asia/Seoul)
-status: spec
+status: G_final_complete
 based_on:
   - 013 (LB 미산출, OOF 0.6381, submission analysis/plan-013/submission.csv)
   - 014 (LB 0.6628, OOF 0.6425, submission runs/baseline/plan014_g5_phase4/submission_best.csv)
   - 015 (= 014 deterministic same, drop rule per)
   - 016 (LB 0.6638 G1, OOF 0.6452, submission runs/baseline/plan016_g1_path_a/submission.csv)
-followed_by: []
-scope: paradigm-shift 결정점 도달 전 *low-cost stage 1 batch* — 두 액션 (#5 ensemble / #4 hit-aware voxel CE head). ablation 없이 *최대한 단순한 버전*. 각 stage 의 OOF/LB measured 후 사용자에게 paradigm-shift (#1 plan-004 2-stage / #2+#3 Trajectory-CLIP+Regime bias) 결정 위임.
+followed_by:
+  - 018 (parallel work — arch ablation single-model, samdasuu b2e1f8c)
+  - paradigm-shift 결정점 사용자 confirm 후 추가 plan
+scope: paradigm-shift 결정점 도달 전 *low-cost stage 1 batch*. G1 ensemble marginal positive (+0.0002 LB), G2 voxel CE negative_drop (-0.0121 OOF). §3.1 mixed case → paradigm-shift #1 (plan-004 2-stage) 권장.
 exp_ids:
   - H057_g0_preflight
   - H058_g1_ensemble
   - H059_g2_voxel_ce
   - H060_g_final_synthesis
-lb_score: null
+lb_score: 0.6640
+lb_band: positive
+band: positive
 baseline_lb: 0.6638  # plan-016 G1
 baseline_oof: 0.6452 # plan-016 G1
+best_5fold_oof: 0.6452
+delta_oof: 0.0000
+oof_lb_gap: 0.0188
+dacon_submits_used: 3
 ---
 
 # plan-017 v1 — Low-Cost Stage 1 Batch (Ensemble + Voxel CE Head)
@@ -54,9 +62,9 @@ baseline_oof: 0.6452 # plan-016 G1
 | c1.3 | docs | **v1.3 spec patch — plan-review-master iter 3 fix 4건 (3 AMBIGUITY + skip rule).** (1) A1 §6.2.C voxel_ce_loss torch-native (device 위 round/clamp, CPU↔GPU round-trip 제거) + rounding-mode caveat. (2) A2 §4.2 (b) baseline reproduce check 의 value 정확 일치 (tolerance 0). (3) A3 §5.2 id 정렬 invariant fall-back (id-merge graceful path). (4) §3.1 skip / abort rule 박제 (G0 a/b/c/d 분기 + G1 fail 시 G2 단독). v1.2 → v1.3 | [DONE] 32087af |
 | c1.4 | docs | **v1.4 spec patch — G0 (d) measured FAIL 후 voxel window expansion.** G0 측정 결과 ±2cm coverage = 85.4% < 90% threshold (FAIL). ±3cm coverage = 90.24% (caveat zone). 5×5×5 (125 voxel, ±2cm) → 7×7×7 (343 voxel, ±3cm). 1cm voxel width 보존 (hit threshold 정합). §1.2 / §2.1 / §6.2.A 본문 expansion. v1.3 → v1.4 | [DONE] e747d69 |
 | c2 | code+exp | STAGE 0 (G0) — preflight + Voxel CE module smoke | [DONE] (preflight 4/4 pass, coverage 90.24% caveat zone, window 7×7×7 v1.4 carry) |
-| c3 | exp | STAGE 1 (G1) — 3-plan ensemble + dacon-submit | [TODO] |
-| c4 | code+exp | STAGE 2 (G2) — Voxel CE head 5-seed × 5-fold + dacon-submit | [TODO] |
-| c5 | docs+sync | STAGE 3 (G_final) — results.md + frontmatter sync + paradigm-shift 결정점 | [TODO] |
+| c3 | exp | STAGE 1 (G1) — 3-plan ensemble + dacon-submit | [DONE] d7c0413 (LB=0.6640, Δ=+0.0002 marginal positive) |
+| c4 | code+exp | STAGE 2 (G2) — Voxel CE head 5-seed × 5-fold + dacon-submit | [DONE] d7c0413 (OOF=0.6331, Δ=-0.0121 negative_drop, LB skip per user) |
+| c5 | docs+sync | STAGE 3 (G_final) — results.md + frontmatter sync + paradigm-shift 결정점 | [TODO→DONE this commit] |
 
 ### plan-specific severe
 
