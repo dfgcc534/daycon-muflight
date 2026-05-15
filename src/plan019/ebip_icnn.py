@@ -60,13 +60,19 @@ class ICNNEnergy(nn.Module):
     def __init__(self, *, p_dim: int = 3, c_dim: int = 77,
                  hidden: int = 32, n_layers: int = 2):
         super().__init__()
+        # W_p / W_out_p zero-init: 학습 0 step 시 g_θ(p, c) 의 p-gradient = 0
+        # → unrolled GD 가 anchor 에서 움직이지 않음 (= A0 baseline 동작 reproduce).
+        # 학습 진행하며 ICNN 이 자율 발현.
         self.W_p = nn.ModuleList([nn.Linear(p_dim, hidden, bias=False) for _ in range(n_layers + 1)])
+        for layer in self.W_p:
+            nn.init.zeros_(layer.weight)
         self._W_z_raw = nn.ParameterList([
             nn.Parameter(torch.randn(hidden, hidden) * 0.01) for _ in range(n_layers)
         ])
         self.W_c = nn.ModuleList([nn.Linear(c_dim, hidden) for _ in range(n_layers + 1)])
         self.b = nn.ParameterList([nn.Parameter(torch.zeros(hidden)) for _ in range(n_layers + 1)])
         self.W_out_p = nn.Linear(p_dim, 1, bias=False)
+        nn.init.zeros_(self.W_out_p.weight)
         self._W_out_z_raw = nn.Parameter(torch.randn(hidden) * 0.01)
         self.W_out_c = nn.Linear(c_dim, 1)
 
