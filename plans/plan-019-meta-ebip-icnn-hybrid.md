@@ -127,6 +127,12 @@ LB 제출 = **총 1회** (best variant 만, plan-018 spirit carry — DACON dail
 - `decision-note: exception-plan — plan-007 §2.2 의 end-to-end 통합 out-of-scope 의 예외 (plan-018 §2.3 답습).`
 - `decision-note: brainstorm-carry — 5-iter /loop brainstorm 의 ranking #1 paradigm 채택. #2/#3/#4 는 plan-020 carry.`
 
+### ⚠️ Spec amendments (user feedback 검토 후 박제, c2~c12 구현 시 본문 spec 보다 *우선* 적용)
+
+- `decision-note: spec-amendment — S3 의 basis_terms_prev 는 반드시 horizon=1 (window[-2] → window[-1], +40ms) 로 계산. 최종 basis_terms 는 horizon=2 (+80ms) — 두 basis 의 시간 스케일이 다름. basis term 이 t² (가속도), t³ (jerk) 비선형이므로 horizon mismatch 시 trajectory 가 물리적으로 깨짐. §7.3 collate_fn 의 dataset pre-compute 시 두 horizon 의 basis_terms 분리 저장 필수.`
+- `decision-note: spec-amendment — S2 ICNN 의 §6.1 의 1-step Newton with diagonal Hessian (H_inv = 1/(2+λ)·I) 은 사실상 constant-LR GD — ICNN convex advantage 실종. unrolled GD T=3~5 step 으로 변경 (ICNN convex 보장으로 발산 X). 또는 Amos 2017 의 OptNet 기반 implicit differentiation (선택, complexity 증가). 본 plan default = unrolled GD T=3.`
+- `decision-note: spec-amendment — c_dim=13 (handcrafted stats) 는 plan-011 결과 (P1.ID TrajectoryCNNEncoder 64-dim 이 유일한 +0.0050 gain) 위반의 information bottleneck. coeff_mlp 와 icnn 의 conditioning feature 를 13d → 77d (13 handcrafted + 64 CNN encoded) 로 확장. plan-011 의 TrajectoryCNNEncoder 코드는 import X (§10 정책) — 신규 작성 (src/plan019/cnn_encoder.py, plan-011 §P1.ID spec 만 carry). ICNN convexity 는 p (3-d output) 에 대해서만, c (77-d conditioning) 는 non-convex 허용.`
+
 ---
 
 ## §1. 배경
@@ -232,6 +238,10 @@ Window slicing rule: `trajectory_window = train_x[:, end_idx - 5 : end_idx + 1, 
 ---
 
 ## §5. STAGE 1 — EBIP Base (c5~c6, F014)
+
+> ⚠️ **§5 구현 시 §0.5 의 spec-amendment 박제 우선 적용**:
+> - c_dim=13 → 77 (13 handcrafted + 64 CNN encoded, plan-011 P1.ID TrajectoryCNNEncoder 신규 작성).
+> - §5.2 의 `feat_dim: int = 13` 은 *handcrafted only* 의미. 실제 forward 의 conditioning 은 `torch.cat([traj_features_13d, cnn_encoded_64d], dim=1)` = 77d.
 
 ### §5.1 Energy formulation
 
@@ -340,6 +350,10 @@ class EBIPBase(nn.Module):
 ---
 
 ## §6. STAGE 2 — EBIP + ICNN Convex Energy (c7~c8, F015)
+
+> ⚠️ **§6 구현 시 §0.5 의 spec-amendment 박제 우선 적용**:
+> - **§6.1 의 EBIPICNN.forward 의 1-step Newton with diagonal Hessian → unrolled GD T=3 로 변경** (ICNN convex 보장이라 발산 X, 진짜 minimum 도달 가능). 1-step diagonal Newton 은 사실상 constant-LR GD — ICNN advantage 실종.
+> - c_dim 도 §5 동일하게 77d (handcrafted 13 + CNN 64). ICNN convexity 는 *p (3-d)* 에만 적용, c 는 non-convex 허용.
 
 ### §6.1 ICNN spec (Amos et al. 2017, Input Convex Neural Network)
 
@@ -450,6 +464,12 @@ class EBIPICNN(nn.Module):
 
 ## §7. STAGE 3 — Meta-EBIP + ICNN (FOMAML inner loop) (c9~c10, F016)
 
+> ⚠️ **§7 구현 시 §0.5 의 spec-amendment 박제 우선 적용 — Temporal Horizon Mismatch (Critical)**:
+> - `basis_terms_prev` = `compute_basis_terms(window[:, :5], horizon=1)` — +40ms 예측용 basis (inner loop 의 self-supervised pretext 가 window[-2] → window[-1] 이므로 horizon=1 필수).
+> - `basis_terms` (최종 anchor 계산용) = `compute_basis_terms(window, horizon=2)` — +80ms 예측용 basis (target=train_y 의 horizon 과 일치).
+> - **두 basis 가 다른 horizon** — basis term 의 t² (acc), t³ (jerk) 비선형성 때문에 inner loop 에서 학습된 c_τ 를 *그대로* horizon=2 anchor 에 쓰면 trajectory 깨짐. dataset pre-compute 시 두 horizon 의 basis_terms 를 *분리 저장* 필수 (§7.3).
+> - c_dim 도 §5/§6 동일하게 77d (handcrafted 13 + CNN 64).
+
 ### §7.1 FOMAML spec (Finn et al. 2017, first-order MAML)
 
 각 sample 의 coefficient c 를 *task-specific parameter* 로 reframe:
@@ -543,9 +563,15 @@ class MetaEBIPICNN(nn.Module):
 S3 의 입력은 S1/S2 보다 *window + basis_terms_prev* 가 추가. collate_fn 에 다음 field 추가:
 
 - `window:            (B, 6, 3)`
-- `basis_terms_prev:  (B, 8, 3)`  — basis_terms computed on window[:, :5]
+- `basis_terms_prev:  (B, 8, 3)`  — `compute_basis_terms(window[:, :5], horizon=1)` ⚠️ **horizon=1 필수** (§0.5 amendment, §7 박스)
+- `basis_terms:       (B, 8, 3)`  — `compute_basis_terms(window, horizon=2)` (anchor 계산, target=train_y 의 horizon 과 일치)
 
-`basis_terms_prev` 는 dataset init 시 사전 계산 (학습 매 step 재계산 X — plan-018 §5.0 carry).
+두 basis 모두 dataset init 시 *분리 저장* 사전 계산 (plan-018 §5.0 의 dataset pre-compute 정책 carry, 학습 매 step 재계산 X).
+
+`compute_basis_terms(x, horizon)` 의 horizon 분기 spec — plan-007 §6.3.1 의 식 (carry, 재구현) 에 `horizon` argument 추가:
+- horizon=1: end_idx 의 *다음 step* 예측용 — t¹ (속도), t² (가속도/2), t³ (jerk/6) 의 1-step 값.
+- horizon=2: end_idx 의 *2-step 후* 예측용 — t¹×2, t²×4/2, t³×8/6 (즉 horizon 배수에 따른 비선형 scaling).
+- horizon mismatch 시 trajectory 가 *물리적으로 깨짐* — basis term 의 비선형성이 horizon 에 의존.
 
 ### §7.4 산출
 
