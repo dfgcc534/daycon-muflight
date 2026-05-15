@@ -86,8 +86,8 @@ LB 제출 = **총 1회** (best variant 만, plan-018 spirit carry — DACON dail
 | c1.1 | docs | v1.1 spec amendments (user feedback Critical/High/Medium 3건) | [DONE] (015ca9e) |
 | c2 | code | `analysis/plan-019/eda_check.py` — 데이터 sanity (plan-018 §4.1 spec carry). 신규 작성 | [DONE] (b74a350) |
 | c3 | code | `src/plan019/baseline_a0.py` — plan-007 step 4 MLP 재구현 (plan-018 §4.2 spec carry). 신규 작성 | [DONE] (af25d3e) |
-| c4 | exp | A0 5-fold OOF reproduce | [TODO] |
-| G0 | gate | A0 OOF ∈ [0.6479, 0.6485] | [TODO] |
+| c4 | exp | A0 5-fold OOF reproduce | [DONE] (cec06e7) |
+| G0 | gate | A0 OOF ∈ [0.6479, 0.6485] | [DONE] (cec06e7) — OOF=0.6482 PASS |
 | c5 | code | `src/plan019/ebip_base.py` — EBIP base (energy = bilinear + g_θ small MLP, unrolled 5-step Adam). spec @ §5 | [TODO] |
 | c6 | exp | F014: S1 EBIP base 5-fold OOF | [TODO] |
 | G1 | gate | S1 OOF ≥ 0.66 | [TODO] |
