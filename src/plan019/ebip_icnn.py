@@ -66,14 +66,17 @@ class ICNNEnergy(nn.Module):
         self.W_p = nn.ModuleList([nn.Linear(p_dim, hidden, bias=False) for _ in range(n_layers + 1)])
         for layer in self.W_p:
             nn.init.zeros_(layer.weight)
+        # W_z_raw init = -5 + randn*0.01 → softplus(W_z_raw) ≈ 0.007 (tiny).
+        # default randn*0.01 시 softplus ≈ ln(2) ≈ 0.69 — 학습 초기 ICNN residual 폭증의 원인.
+        # near-zero init 으로 ICNN 이 거의 선형 (in p) 으로 시작, 학습 진행하며 자율 발현.
         self._W_z_raw = nn.ParameterList([
-            nn.Parameter(torch.randn(hidden, hidden) * 0.01) for _ in range(n_layers)
+            nn.Parameter(torch.randn(hidden, hidden) * 0.01 - 5.0) for _ in range(n_layers)
         ])
         self.W_c = nn.ModuleList([nn.Linear(c_dim, hidden) for _ in range(n_layers + 1)])
         self.b = nn.ParameterList([nn.Parameter(torch.zeros(hidden)) for _ in range(n_layers + 1)])
         self.W_out_p = nn.Linear(p_dim, 1, bias=False)
         nn.init.zeros_(self.W_out_p.weight)
-        self._W_out_z_raw = nn.Parameter(torch.randn(hidden) * 0.01)
+        self._W_out_z_raw = nn.Parameter(torch.randn(hidden) * 0.01 - 5.0)
         self.W_out_c = nn.Linear(c_dim, 1)
 
     def _W_z(self, idx: int) -> torch.Tensor:
@@ -84,9 +87,11 @@ class ICNNEnergy(nn.Module):
 
     def forward(self, p: torch.Tensor, c: torch.Tensor) -> torch.Tensor:
         """p: (B, 3), c: (B, 77). Returns (B,) scalar energy."""
-        z = F.silu(self.W_p[0](p) + self.W_c[0](c) + self.b[0])
+        # Activation = softplus (convex non-decreasing, ICNN convexity 정확 보장).
+        # SiLU 는 non-convex around x<0 → 학습 중 E(p;c) 의 p-convexity 위반 가능.
+        z = F.softplus(self.W_p[0](p) + self.W_c[0](c) + self.b[0])
         for l in range(len(self._W_z_raw)):
-            z = F.silu(
+            z = F.softplus(
                 z @ self._W_z(l).T + self.W_p[l + 1](p) + self.W_c[l + 1](c) + self.b[l + 1]
             )
         out = (z * self._W_out_z()).sum(dim=1, keepdim=True) \
@@ -108,7 +113,8 @@ class EBIPICNN(nn.Module):
     def __init__(self, *, handcraft_dim: int = 13, cnn_dim: int = 64,
                  n_coeffs: int = 8, global_init: np.ndarray | None = None,
                  icnn_hidden: int = 32, icnn_layers: int = 2,
-                 unroll_T: int = 3, inner_lr: float = 0.1):
+                 unroll_T: int = 3, inner_lr: float = 0.02,
+                 log_lambda_init: float = -2.0):
         super().__init__()
         self.cnn = TrajectoryCNNEncoder(in_channels=3, hidden=cnn_dim)
         cond_dim = handcraft_dim + cnn_dim
@@ -122,7 +128,7 @@ class EBIPICNN(nn.Module):
                 self.coeff_mlp[-1].weight.zero_()
         self.icnn = ICNNEnergy(p_dim=3, c_dim=cond_dim,
                                 hidden=icnn_hidden, n_layers=icnn_layers)
-        self.log_lambda = nn.Parameter(torch.tensor(0.0))
+        self.log_lambda = nn.Parameter(torch.tensor(log_lambda_init))
         self.unroll_T = unroll_T
         self.inner_lr = inner_lr
         self.handcraft_dim = handcraft_dim
@@ -136,7 +142,9 @@ class EBIPICNN(nn.Module):
         cond = self.encode(traj_features, window)                                  # (B, 77)
         coeffs = self.coeff_mlp(cond)                                              # (B, 8)
         anchor = p0 + (coeffs.unsqueeze(-1) * basis_terms).sum(dim=1)              # (B, 3)
-        lam = torch.exp(self.log_lambda)
+        # log_lambda clamp [-3, 0] (λ ∈ [0.05, 1.0]) — training stability.
+        # 학습 중 log_lambda 가 large positive 로 blow-up 시 unrolled GD divergence.
+        lam = torch.exp(self.log_lambda.clamp(-3.0, 0.0))
 
         # E(p; c) = ||p - anchor||² + λ · g_icnn(p, c)   — convex in p (ICNN 보장)
         p = anchor + 0.0
@@ -150,6 +158,10 @@ class EBIPICNN(nn.Module):
                 p = p_in - self.inner_lr * grad_p
             else:
                 p = (p_in - self.inner_lr * grad_p).detach()
+        # NaN/Inf safety: if pred has NaN/Inf, fall back to anchor (= A0 baseline behavior).
+        bad = ~torch.isfinite(p).all(dim=1, keepdim=True)
+        if bad.any():
+            p = torch.where(bad, anchor, p)
         return p
 
 
