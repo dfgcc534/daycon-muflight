@@ -64,7 +64,7 @@ dacon_submits_used: 3
 | c2 | code+exp | STAGE 0 (G0) — preflight + Voxel CE module smoke | [DONE] (preflight 4/4 pass, coverage 90.24% caveat zone, window 7×7×7 v1.4 carry) |
 | c3 | exp | STAGE 1 (G1) — 3-plan ensemble + dacon-submit | [DONE] d7c0413 (LB=0.6640, Δ=+0.0002 marginal positive) |
 | c4 | code+exp | STAGE 2 (G2) — Voxel CE head 5-seed × 5-fold + dacon-submit | [DONE] d7c0413 (OOF=0.6331, Δ=-0.0121 negative_drop, LB skip per user) |
-| c5 | docs+sync | STAGE 3 (G_final) — results.md + frontmatter sync + paradigm-shift 결정점 | [TODO→DONE this commit] |
+| c5 | docs+sync | STAGE 3 (G_final) — results.md + frontmatter sync + paradigm-shift 결정점 | [DONE] 1f00592 |
 
 ### plan-specific severe
 
