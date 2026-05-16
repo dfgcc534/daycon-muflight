@@ -42,6 +42,8 @@ lb_score: 0.6806
 
 **Hit Rate @ 1 cm**: 예측 좌표가 정답의 **1 cm (0.01 m) 반경** 안에 들면 hit (1), 아니면 miss (0). 전체 sample 의 평균이 점수.
 
+> *용어 정리*: **L2 거리** = Euclidean distance (피타고라스 거리, $\|\hat{y}-y\|_2 = \sqrt{(\Delta x)^2+(\Delta y)^2+(\Delta z)^2}$). **MSE** = mean squared error, 회귀 모델이 흔히 최소화하는 평균 제곱 오차. **regression loss** = 예측값과 정답 사이 *연속적 거리* 를 줄이려는 손실 함수 (예: MSE, Huber).
+
 수식으로:
 $$
 \text{score} = \frac{1}{N} \sum_{i=1}^{N} \mathbb{1}\big[\|\hat{y}_i - y_i\|_2 \le 0.01\big]
@@ -164,6 +166,8 @@ Final (x, y, z) at +80 ms
 
 ### 단계 2. 개선 물리 — Frenet local frame (6개)
 
+> *용어 정리*: **Frenet local frame** = 월드 좌표축 (x/y/z) 대신 *진행 방향 (tangent, T)* + *수직 회전 방향 (normal, N)* + *그 외 (binormal, B)* 의 3축. 자세한 정의는 §3.5 참조.
+
 월드 좌표축 (x, y, z) 대신 **진행 방향** 기준 좌표계로 해석. 비행체의 *local 운동* 을 표현.
 
 | candidate | 의미 |
@@ -184,6 +188,8 @@ Final (x, y, z) at +80 ms
 
 **Latency 후보의 의도**: LiDAR 스캔/추적/좌표 변환의 미세 지연을 *Gaussian noise 로 평균 보정* 하는 대신 *time_scale 후보로 enumerate* 한다. 즉 "지연은 체계적 변형이지 무작위 잡음이 아니다" 라는 도메인 가정.
 
+> *Cross-ref*: 설계자 narrative 의 *Physics Ladder* 5 단계 = (단계 1·2·3 = 위 후보 family, 본 §) + (**단계 4** = Attn-GRU Selector, 다음 §3.3) + (**단계 5** = Tiny MLP Corrector, §3.5). 이 문서는 §3.2 ~ §3.5 로 분리 서술.
+
 ![Figure 4. 한 trajectory 에 대한 후보 분포](figures/fig04_27_candidates.png)
 
 - 위 그림: 같은 입력 trajectory 에 대해 8 개 대표 candidate 가 + 80 ms 시점 어디를 가리키는지
@@ -191,6 +197,12 @@ Final (x, y, z) at +80 ms
 - **27 개 후보 중 *어느 하나라도 hit boundary 에 들어가면* selector 의 책임은 "그것을 고르는 것"** — 회귀가 아니라 분류 문제
 
 ## §3.3 Attn-GRU Selector — 27-way ranker
+
+> *용어 정리* (입문자용):
+> - **GRU** (Gated Recurrent Unit) = 시계열을 한 step 씩 읽으며 *hidden state* 를 업데이트하는 신경망 (LSTM 의 경량 버전).
+> - **logit** = softmax 직전의 raw score. 음수/양수 모두 가능. 큰 값일수록 "더 그럴듯한 후보".
+> - **softmax** = N 개 logit 을 *확률 분포 (합 = 1)* 로 변환하는 함수. $\text{softmax}(x_i) = e^{x_i} / \sum_j e^{x_j}$.
+> - **attention** = "시퀀스의 어느 step 이 중요한가" 를 학습된 weight 로 결정하는 layer. 모든 step 을 균등 평균하는 대신 *중요한 step 에 더 큰 weight*.
 
 **구조** (`src/pb_0_6822/selector.py` L697-726 `CandidateAttentionGRUSelector`):
 
@@ -211,13 +223,13 @@ linear → 27 logits
 **Inference 시 logit 조정** (3 항 가산):
 
 $$
-\text{score}_c = \text{logit}_c + \alpha \cdot \text{physics\_bias}_c + \beta \cdot \text{regime\_bias}_{r,c}
+\text{score}_c \;=\; \text{logit}_c \;+\; \alpha \cdot b^{\text{phys}}_c \;+\; \beta \cdot b^{\text{regime}}_{r,c}
 $$
 
 - $\alpha = 0.65$ (physics prior strength)
 - $\beta = 0.45$ (regime prior strength)
-- physics_bias = 후보 family 별 사전 확률 (예: `frenet_best` 가 기본적으로 잘 맞으므로 약간 boost)
-- regime_bias = 다음 §3.4 의 18 × 27 표에서 추출
+- $b^{\text{phys}}_c$ = 후보 family 별 사전 확률 (예: `frenet_best` 가 기본적으로 잘 맞으므로 약간 boost)
+- $b^{\text{regime}}_{r,c}$ = 다음 §3.4 의 18 × 27 표에서 추출
 
 설계 의도 (cell 0 §4): "**GRU 는 최근 상태를 안정적으로 요약**. BiGRU 보다 단방향이 노이즈 흡수 덜 함. **Attention 은 *과거 사건 외우기* 가 아니라 *후보 점수 차이를 부드럽게* 만드는 장치**."
 
@@ -236,7 +248,7 @@ $$
 각 (regime, candidate) cell 에 **train OOF hit rate** 를 empirical Bayes shrinkage 로 안정화 (prior strength = 18 sample, `candidate_regime_bias`, `src/pb_0_6822/selector.py` L380-403):
 
 $$
-\text{shrunken\_hit}_{r,c} = \frac{n_{r,c} \cdot \widehat{\text{hit}}_{r,c} + \pi \cdot \widehat{\text{hit}}_{\text{global}}}{n_{r,c} + \pi}, \quad \pi = 18
+\hat{p}^{\text{EB}}_{r,c} \;=\; \frac{n_{r,c} \cdot \hat{p}_{r,c} \;+\; \pi \cdot \hat{p}_{\text{global}}}{n_{r,c} + \pi}, \qquad \pi = 18
 $$
 
 표 자체 시각화:
@@ -253,6 +265,11 @@ $$
 → Inference 시: 입력 trajectory 의 regime $r$ 을 계산한 뒤, 해당 행의 27 개 hit-rate 를 logit 에 0.45 가산. 즉 **"이 regime 에서 잘 맞는 candidate 에 사전 우대"**.
 
 ## §3.5 Tiny MLP Corrector — boundary 회수기
+
+> *용어 정리* (입문자용):
+> - **MLP** (Multi-Layer Perceptron) = 가장 기본적인 fully-connected 신경망 (입력 → 은닉층 → 출력 의 단순 layer stack).
+> - **LayerNorm** = 입력 feature 의 평균/분산을 정규화해 학습을 안정화하는 layer.
+> - **residual block** = `output = f(x) + x` 형태로 *입력 신호를 보존하며* 변환을 더하는 구조. 깊은 신경망 학습의 핵심 trick.
 
 **구조** (`src/pb_0_6822/boundary.py` L166-196 `TinyCorrectionNet`):
 
@@ -349,7 +366,7 @@ Figure 5 의 표 관찰:
 **Why empirical Bayes shrinkage?** — regime 별 sample 수가 다르다 (min 274 ~ max 916). cell 별 hit-rate raw 추정은 sample 적은 cell 에서 noisy. **shrinkage = noisy cell 을 global mean 쪽으로 끌어당김**.
 
 $$
-\text{shrunken}_{r,c} = \frac{n_{r,c} \cdot \widehat{p}_{r,c} + \pi \cdot \widehat{p}_{\text{global}}}{n_{r,c} + \pi}
+\hat{p}^{\text{EB}}_{r,c} \;=\; \frac{n_{r,c} \cdot \hat{p}_{r,c} \;+\; \pi \cdot \hat{p}_{\text{global}}}{n_{r,c} + \pi}
 $$
 
 - $n_{r,c}$ 가 크면 → raw 추정 신뢰 → shrunken ≈ raw.
@@ -379,6 +396,8 @@ $$
 - `corrector_no_convergence` severe trigger 미발생 (0.6718 > 0.6624 보장)
 
 ## §4.5 Latency family — hypothesis enumeration, *not* noise filtering
+
+> *맥락*: **Kalman filter** = 센서 노이즈를 *Gaussian (정규분포) 로 가정* 하고 매 step 추정값을 *통계적 평균* 으로 보정하는 고전 시계열 추정 기법. "지연 = 평균을 추정해야 할 무작위 잡음" 이라는 가정에 서 있다. 이 모델은 **그 가정 자체를 뒤집는다.**
 
 설계자 인용 (cell 0 부록 §B):
 
