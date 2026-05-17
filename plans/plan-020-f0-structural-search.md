@@ -77,8 +77,8 @@ band: null
 | c4 | code | `analysis/plan-020/formula_nn.py` (3 NN module + smooth-hit loss + train_nn_fold loop, smoke 3/3 forward + mini-train ✓) | [DONE] |
 | c5 | code | `analysis/plan-020/run_oof.py` 5-fold OOF runner + dispatch (deterministic + NN multi-seed best-on-train + N5 expert_preds pre-compute) | [DONE] |
 | c6 | code | `analysis/plan-020/cma_es_fit.py` (CMA-ES 6 후보 + annealed τ schedule + per-regime + KNN, smoke C08/C10/C14 OK) | [DONE] |
-| c7 | test | `tests/test_plan020_smoke.py` 18 모듈 import + F0 reproduce | [TODO] |
-| G0 | gate | smoke + tests green | [TODO] |
+| c7 | test | `tests/test_plan020_smoke.py` 6 pytest (import + parity + 14 deterministic shape + 3 NN forward + dispatch + G1 preflight) | [DONE] |
+| G0 | gate | smoke + tests green — 6/6 pytest 통과 ✓ | [DONE] |
 | c8 | exp G1 | F0 baseline 5-fold OOF reproduce → `analysis/plan-020/baseline_oof.{json,md}` | [TODO] |
 | G1 | gate | F0 hit@1cm ∈ [0.6315, 0.6325] AND hit@1.5cm ∈ [0.8028, 0.8038] | [TODO] |
 | c9 | exp G2.D | 14 deterministic 후보 측정 → `analysis/plan-020/results_deterministic.{json,md}` | [TODO] |
