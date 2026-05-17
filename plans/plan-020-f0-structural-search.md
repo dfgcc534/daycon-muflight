@@ -76,7 +76,7 @@ band: null
 | c3 | code | `analysis/plan-020/formula_deterministic.py` (14 후보 산식 + helpers, smoke 14/14 shape+finite ✓. C9 KF forward filter only — RTS smoother v1.4 carry) | [DONE] |
 | c4 | code | `analysis/plan-020/formula_nn.py` (3 NN module + smooth-hit loss + train_nn_fold loop, smoke 3/3 forward + mini-train ✓) | [DONE] |
 | c5 | code | `analysis/plan-020/run_oof.py` 5-fold OOF runner + dispatch (deterministic + NN multi-seed best-on-train + N5 expert_preds pre-compute) | [DONE] |
-| c6 | code | `analysis/plan-020/cma_es_fit.py` (annealed hit-direct objective + multi-seed) | [TODO] |
+| c6 | code | `analysis/plan-020/cma_es_fit.py` (CMA-ES 6 후보 + annealed τ schedule + per-regime + KNN, smoke C08/C10/C14 OK) | [DONE] |
 | c7 | test | `tests/test_plan020_smoke.py` 18 모듈 import + F0 reproduce | [TODO] |
 | G0 | gate | smoke + tests green | [TODO] |
 | c8 | exp G1 | F0 baseline 5-fold OOF reproduce → `analysis/plan-020/baseline_oof.{json,md}` | [TODO] |
