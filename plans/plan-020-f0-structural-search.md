@@ -369,8 +369,8 @@ def f0_form_torch(seq_feats: torch.Tensor, coef: torch.Tensor) -> torch.Tensor:
     v_prev  = seq_feats[:, 1, 3:6]               # v_{T-1}
     acc     = v_last - v_prev                    # finite-diff accel (Δt 같은 scaling)
     
-    speed       = v_last.norm(dim=1, keepdim=True).clamp_min(1e-9)
-    tangent     = v_last / speed
+    speed       = v_last.norm(dim=1, keepdim=True)
+    tangent     = v_last / (speed + 1e-9)            # baseline_f0 numpy 와 bit-identical 보장
     acc_par_s   = (acc * tangent).sum(dim=1, keepdim=True)
     acc_par_vec = acc_par_s * tangent
     acc_perp_vec = acc - acc_par_vec
