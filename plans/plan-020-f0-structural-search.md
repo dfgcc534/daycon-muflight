@@ -83,8 +83,8 @@ band: null
 | G1 | gate | F0 hit@1cm = **0.6320** ∈ [0.6315, 0.6325] AND hit@1.5cm = **0.8033** ∈ [0.8028, 0.8038] ✓ | [DONE] |
 | c9 | exp G2.D | 14 deterministic 5-fold OOF — **C05 per-regime F0 PASS** (Δ +0.0183 / +0.0053 둘 다). 나머지 13 fail. reduced CMA spec (popsize=10/maxiter=50/seeds=3, ~10min). | [DONE] |
 | G2.D | gate | 14 후보 metric finite ✓ + ≥1 후보 paired Δ ≥ +0.005 둘 다 (C05) ✓ | [DONE] |
-| c10 | exp G2.N | 3 NN 후보 학습 + 측정 → `analysis/plan-020/results_nn.{json,md}` | [TODO] |
-| G2.N | gate | 3 NN metric finite + val_hit > 0.10 | [TODO] |
+| c10 | exp G2.N | 3 NN OOF (cuda:1, seeds=3, epochs=30). N1 +0.0069/-0.0010, N2 +0.0052/+0.0003, N5 +0.0007/+0.0032 — *둘 다* 통과 0. N1 drift 0.0093 < ±0.02. | [DONE] |
+| G2.N | gate | 3 NN metric finite ✓ + val_hit > 0.10 ✓ + overfit guard ✓ + n1_drift ±0.02 ✓ | [DONE] |
 | c11 | analysis | family-level winner + paired Δ table → `analysis/plan-020/family_analysis.{json,md}` | [TODO] |
 | G3 | gate | 17 × 2 × 5-fold table + family winner 박제 | [TODO] |
 | c12 | docs | `plans/plan-020-f0-structural-search.results.md` + `analysis/plan-020/results.md` + frontmatter sync | [TODO] |
