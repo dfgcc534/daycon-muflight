@@ -85,8 +85,8 @@ band: null
 | G2.D | gate | 14 후보 metric finite ✓ + ≥1 후보 paired Δ ≥ +0.005 둘 다 (C05) ✓ | [DONE] |
 | c10 | exp G2.N | 3 NN OOF (cuda:1, seeds=3, epochs=30). N1 +0.0069/-0.0010, N2 +0.0052/+0.0003, N5 +0.0007/+0.0032 — *둘 다* 통과 0. N1 drift 0.0093 < ±0.02. | [DONE] |
 | G2.N | gate | 3 NN metric finite ✓ + val_hit > 0.10 ✓ + overfit guard ✓ + n1_drift ±0.02 ✓ | [DONE] |
-| c11 | analysis | family-level winner + paired Δ table → `analysis/plan-020/family_analysis.{json,md}` | [TODO] |
-| G3 | gate | 17 × 2 × 5-fold table + family winner 박제 | [TODO] |
+| c11 | analysis | 17 × 2 table + 7 family winner + overall best. **C05_per_regime_f0 단독 PASS, band positive** (Δ +0.0183 / +0.0053). | [DONE] |
+| G3 | gate | table 박제 ✓ + family winner 박제 ✓ + ≥1 paired Δ ≥ +0.005 둘 다 (C05) ✓ | [DONE] |
 | c12 | docs | `plans/plan-020-f0-structural-search.results.md` + `analysis/plan-020/results.md` + frontmatter sync | [TODO] |
 | G_final | gate | results 3-file sync + §0.5 [TODO]→[DONE] sync + follow-up 후보 박제 | [TODO] |
 
