@@ -1,0 +1,134 @@
+inline selector loaded: 27 candidates
+[plan-020 run_oof] loading train data ...
+[plan-020 run_oof] N=10000, shape=(10000, 11, 3)
+[plan-020 run_oof] fold sizes: [2020, 2047, 1921, 2020, 1992]
+[plan-020 run_oof] F0 baseline: hit@1cm=0.6320 hit@1.5cm=0.8033
+
+[plan-020 run_oof] === C01_helix ===
+/workspace/daycon-muflight/analysis/plan-020/cma_es_fit.py:89: RuntimeWarning: overflow encountered in exp
+  sh_main = 1.0 / (1.0 + np.exp(-(R_HIT_MAIN - d) / tau))
+/workspace/daycon-muflight/analysis/plan-020/cma_es_fit.py:90: RuntimeWarning: overflow encountered in exp
+  sh_loose = 1.0 / (1.0 + np.exp(-(R_HIT_LOOSE - d) / tau))
+  [C01_helix] fold 0: val_hit@1cm=0.5946
+  [C01_helix] fold 1: val_hit@1cm=0.5911
+  [C01_helix] fold 2: val_hit@1cm=0.5903
+  [C01_helix] fold 3: val_hit@1cm=0.5936
+  [C01_helix] fold 4: val_hit@1cm=0.5673
+  [C01_helix] elapsed 18.9s
+
+[plan-020 run_oof] === C02_ctra ===
+  [C02_ctra] fold 0: val_hit@1cm=0.5223
+  [C02_ctra] fold 1: val_hit@1cm=0.5110
+  [C02_ctra] fold 2: val_hit@1cm=0.5044
+  [C02_ctra] fold 3: val_hit@1cm=0.5005
+  [C02_ctra] fold 4: val_hit@1cm=0.4965
+  [C02_ctra] elapsed 0.0s
+
+[plan-020 run_oof] === C03_ctrv ===
+  [C03_ctrv] fold 0: val_hit@1cm=0.5371
+  [C03_ctrv] fold 1: val_hit@1cm=0.5291
+  [C03_ctrv] fold 2: val_hit@1cm=0.5206
+  [C03_ctrv] fold 3: val_hit@1cm=0.5139
+  [C03_ctrv] fold 4: val_hit@1cm=0.5025
+  [C03_ctrv] elapsed 0.0s
+
+[plan-020 run_oof] === C04_imm ===
+  [C04_imm] fold 0: val_hit@1cm=0.6035
+  [C04_imm] fold 1: val_hit@1cm=0.5940
+  [C04_imm] fold 2: val_hit@1cm=0.6096
+  [C04_imm] fold 3: val_hit@1cm=0.6035
+  [C04_imm] fold 4: val_hit@1cm=0.5798
+  [C04_imm] elapsed 3.1s
+
+[plan-020 run_oof] === C05_per_regime_f0 ===
+  [C05_per_regime_f0] fold 0: val_hit@1cm=0.6584
+  [C05_per_regime_f0] fold 1: val_hit@1cm=0.6502
+  [C05_per_regime_f0] fold 2: val_hit@1cm=0.6533
+  [C05_per_regime_f0] fold 3: val_hit@1cm=0.6480
+  [C05_per_regime_f0] fold 4: val_hit@1cm=0.6416
+  [C05_per_regime_f0] elapsed 5.3s
+
+[plan-020 run_oof] === C06_quintic_hermite ===
+  [C06_quintic_hermite] fold 0: val_hit@1cm=0.0104
+  [C06_quintic_hermite] fold 1: val_hit@1cm=0.0093
+  [C06_quintic_hermite] fold 2: val_hit@1cm=0.0104
+  [C06_quintic_hermite] fold 3: val_hit@1cm=0.0099
+  [C06_quintic_hermite] fold 4: val_hit@1cm=0.0080
+  [C06_quintic_hermite] elapsed 0.0s
+
+[plan-020 run_oof] === C07_jerk_quartic ===
+  [C07_jerk_quartic] fold 0: val_hit@1cm=0.4040
+  [C07_jerk_quartic] fold 1: val_hit@1cm=0.3942
+  [C07_jerk_quartic] fold 2: val_hit@1cm=0.3982
+  [C07_jerk_quartic] fold 3: val_hit@1cm=0.3861
+  [C07_jerk_quartic] fold 4: val_hit@1cm=0.3820
+  [C07_jerk_quartic] elapsed 0.0s
+
+[plan-020 run_oof] === C08_singer ===
+  [C08_singer] fold 0: val_hit@1cm=0.6020
+  [C08_singer] fold 1: val_hit@1cm=0.5940
+  [C08_singer] fold 2: val_hit@1cm=0.6065
+  [C08_singer] fold 3: val_hit@1cm=0.5931
+  [C08_singer] fold 4: val_hit@1cm=0.5803
+  [C08_singer] elapsed 4.6s
+
+[plan-020 run_oof] === C09_kalman_smoother ===
+  [C09_kalman_smoother] fold 0: val_hit@1cm=0.2356
+  [C09_kalman_smoother] fold 1: val_hit@1cm=0.2408
+  [C09_kalman_smoother] fold 2: val_hit@1cm=0.2421
+  [C09_kalman_smoother] fold 3: val_hit@1cm=0.2366
+  [C09_kalman_smoother] fold 4: val_hit@1cm=0.2319
+  [C09_kalman_smoother] elapsed 551.5s
+
+[plan-020 run_oof] === C10_bishop_frame ===
+  [C10_bishop_frame] fold 0: CMA-ES fit failed (ValueError), fallback to default.
+  [C10_bishop_frame] fold 0: val_hit@1cm=0.6401
+  [C10_bishop_frame] fold 1: CMA-ES fit failed (ValueError), fallback to default.
+  [C10_bishop_frame] fold 1: val_hit@1cm=0.6292
+  [C10_bishop_frame] fold 2: CMA-ES fit failed (ValueError), fallback to default.
+  [C10_bishop_frame] fold 2: val_hit@1cm=0.6304
+  [C10_bishop_frame] fold 3: CMA-ES fit failed (ValueError), fallback to default.
+  [C10_bishop_frame] fold 3: val_hit@1cm=0.6351
+  [C10_bishop_frame] fold 4: CMA-ES fit failed (ValueError), fallback to default.
+  [C10_bishop_frame] fold 4: val_hit@1cm=0.6250
+  [C10_bishop_frame] elapsed 2.0s
+
+[plan-020 run_oof] === C11_se3_twist ===
+  [C11_se3_twist] fold 0: val_hit@1cm=0.3515
+  [C11_se3_twist] fold 1: val_hit@1cm=0.3478
+  [C11_se3_twist] fold 2: val_hit@1cm=0.3503
+  [C11_se3_twist] fold 3: val_hit@1cm=0.3431
+  [C11_se3_twist] fold 4: val_hit@1cm=0.3323
+  [C11_se3_twist] elapsed 0.0s
+
+[plan-020 run_oof] === C12_wingbeat_corrected ===
+  [C12_wingbeat_corrected] fold 0: CMA-ES fit failed (ValueError), fallback to default.
+  [C12_wingbeat_corrected] fold 0: val_hit@1cm=0.0005
+  [C12_wingbeat_corrected] fold 1: CMA-ES fit failed (ValueError), fallback to default.
+  [C12_wingbeat_corrected] fold 1: val_hit@1cm=0.0010
+  [C12_wingbeat_corrected] fold 2: CMA-ES fit failed (ValueError), fallback to default.
+  [C12_wingbeat_corrected] fold 2: val_hit@1cm=0.0010
+  [C12_wingbeat_corrected] fold 3: CMA-ES fit failed (ValueError), fallback to default.
+  [C12_wingbeat_corrected] fold 3: val_hit@1cm=0.0010
+  [C12_wingbeat_corrected] fold 4: CMA-ES fit failed (ValueError), fallback to default.
+  [C12_wingbeat_corrected] fold 4: val_hit@1cm=0.0005
+  [C12_wingbeat_corrected] elapsed 6.4s
+
+[plan-020 run_oof] === C13_levy_prior ===
+  [C13_levy_prior] fold 0: val_hit@1cm=0.6401
+  [C13_levy_prior] fold 1: val_hit@1cm=0.6292
+  [C13_levy_prior] fold 2: val_hit@1cm=0.6304
+  [C13_levy_prior] fold 3: val_hit@1cm=0.6351
+  [C13_levy_prior] fold 4: val_hit@1cm=0.6250
+  [C13_levy_prior] elapsed 0.0s
+
+[plan-020 run_oof] === C14_trajectory_knn ===
+  [C14_trajectory_knn] fold 0: val_hit@1cm=0.3465
+  [C14_trajectory_knn] fold 1: val_hit@1cm=0.3410
+  [C14_trajectory_knn] fold 2: val_hit@1cm=0.3467
+  [C14_trajectory_knn] fold 3: val_hit@1cm=0.3450
+  [C14_trajectory_knn] fold 4: val_hit@1cm=0.3228
+  [C14_trajectory_knn] elapsed 1.9s
+
+[plan-020 run_oof] total 594.5s
+[plan-020 run_oof] wrote analysis/plan-020/results_deterministic.json
