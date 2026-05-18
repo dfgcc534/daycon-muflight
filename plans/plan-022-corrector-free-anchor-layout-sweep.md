@@ -110,8 +110,8 @@ band: null
 | G2.A2 | gate | 3 cell metric finite ✓ + max_class_ratio < 0.95 ✓ (max 0.150) | [DONE — ca7efe3] |
 | c9 | exp G2.A3 | A3 cubocta13 — **τ=0.001 PASS_BOTH** (Δ_1cm +0.0196 / Δ_1.5cm +0.0074 = current best). 800s. | [DONE — 2acd407] |
 | G2.A3 | gate | 3 cell metric finite ✓ + max_class_ratio < 0.95 ✓ (max 0.151) | [DONE — 2acd407] |
-| c10 | exp G2.A4 | A4 2shell13 — 3 τ_cls cell 측정 → `results_A4.{json,md}` | [TODO] |
-| G2.A4 | gate | 3 cell metric finite + max-class 비율 < 0.95 | [TODO] |
+| c10 | exp G2.A4 | A4 2shell13 — τ=0.001 PASS_BOTH (Δ_1cm +0.0176 / Δ_1.5cm +0.0061), Δ sum 0.0237 최저. **H4 refuted**. 696s. | [DONE — 46f2f6b] |
+| G2.A4 | gate | 3 cell metric finite ✓ + max_class_ratio < 0.95 ✓ (max 0.116) | [DONE — 46f2f6b] |
 | c11 | exp G2.A5 | A5 cube8 — 3 τ_cls cell 측정 → `results_A5.{json,md}` | [TODO] |
 | G2.A5 | gate | 3 cell metric finite + max-class 비율 < 0.95 | [TODO] |
 | c12 | exp G2.A6 | A6 bcc14 — 3 τ_cls cell 측정 → `results_A6.{json,md}` | [TODO] |
