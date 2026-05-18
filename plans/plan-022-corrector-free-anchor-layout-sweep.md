@@ -118,8 +118,8 @@ band: null
 | G2.A6 | gate | 3 cell metric finite ✓ + max_class_ratio < 0.95 ✓ (max 0.105 — best distributed) | [DONE — d5cf256] |
 | c13 | exp G2.A7 | A7 fib13 — τ=0.001 PASS_BOTH (Δ_1cm +0.0201 / Δ_1.5cm +0.0073, sum 0.0274 = 2위) + τ=0.003 PASS_BOTH. 826s. | [DONE — 96482e4] |
 | G2.A7 | gate | 3 cell metric finite ✓ + max_class_ratio < 0.95 ✓ (max 0.151) | [DONE — 96482e4] |
-| c14 | analysis | 21 cell paired Δ 표 + best cell 식별 + layout-axis marginal + τ_cls-axis marginal + paradigm finding (anchor layout 효과 / τ scale 효과 / mode collapse 완화 여부) → `paradigm_analysis.{json,md}` | [TODO] |
-| G3 | gate | ≥ 1 cell paired Δ ≥ +0.005 둘 다 (0 = `all_negative` warn 후 G_final 직진) | [TODO] |
+| c14 | analysis | 21 cell paired Δ 표 + best cell 식별 + marginals + paradigm finding → `paradigm_analysis.{json,md}`. **best = A6_bcc14_tau001** (Δ_1cm +0.0208 / Δ_1.5cm +0.0071, sum 0.0279). 10/21 cell pass_both. | [DONE — 5559bee] |
+| G3 | gate | 10 cell paired Δ ≥ +0.005 둘 다 (≥ 1 필요) ✓ — band positive | [DONE — 5559bee] |
 | c15 | docs | 3-file frontmatter sync (status all_complete, band positive/null, best_sub_exp = `<best_layout>_tau<val>`) + `results.md` (필수 항목 11건) + follow-up plan-023/024 박제 | [TODO] |
 | G_final | gate | 3-file sync + §0.5 c1~c15 모두 [DONE] + follow-up 2건 박제 | [TODO] |
 
