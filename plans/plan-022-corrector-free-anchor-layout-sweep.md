@@ -2,12 +2,12 @@
 plan_id: 022
 version: 1.0
 date: 2026-05-19 (Asia/Seoul)
-status: TODO
-best_sub_exp: null
-best_hit_1cm: null
-best_hit_1.5cm: null
-best_delta_1cm: null
-best_delta_1.5cm: null
+status: all_complete
+best_sub_exp: A6_bcc14_tau001
+best_hit_1cm: 0.6528
+best_hit_1.5cm: 0.8104
+best_delta_1cm: +0.0208
+best_delta_1.5cm: +0.0071
 based_on:
   - 021 (selector-only ablation finding: LGBM reg_offset = bound 의 0.5% (~0.01mm) — dead. selector-only ≈ full. anchor argmax mode collapse: GRU anchor 1/5/6 dead (합 1.75 %), LGBM anchor 0 over-pick +6 pp. proxy target=t=10 train↔test 분포 동일 (TV 0.017) — covariate shift 없음, mode collapse = inductive bias)
   - 020 (F0 baseline 0.6320 / 0.8033 + 5-fold stable_fold_id MD5)
@@ -42,7 +42,7 @@ exp_ids:
   - Z022_A6_bcc14
   - Z022_A7_fib13
 lb_score: null
-band: null
+band: positive
 ---
 
 # plan-022 v1 — Corrector-free Anchor Layout Sweep (selector-only LGBM, 7 layout × 3 τ_cls)
@@ -120,8 +120,8 @@ band: null
 | G2.A7 | gate | 3 cell metric finite ✓ + max_class_ratio < 0.95 ✓ (max 0.151) | [DONE — 96482e4] |
 | c14 | analysis | 21 cell paired Δ 표 + best cell 식별 + marginals + paradigm finding → `paradigm_analysis.{json,md}`. **best = A6_bcc14_tau001** (Δ_1cm +0.0208 / Δ_1.5cm +0.0071, sum 0.0279). 10/21 cell pass_both. | [DONE — 5559bee] |
 | G3 | gate | 10 cell paired Δ ≥ +0.005 둘 다 (≥ 1 필요) ✓ — band positive | [DONE — 5559bee] |
-| c15 | docs | 3-file frontmatter sync (status all_complete, band positive/null, best_sub_exp = `<best_layout>_tau<val>`) + `results.md` (필수 항목 11건) + follow-up plan-023/024 박제 | [TODO] |
-| G_final | gate | 3-file sync + §0.5 c1~c15 모두 [DONE] + follow-up 2건 박제 | [TODO] |
+| c15 | docs | 3-file frontmatter sync (status=all_complete, band=positive, best_sub_exp=A6_bcc14_tau001) + `analysis/plan-022/results.md` (11 항목) + `plans/plan-022-*.results.md` pair + follow-up plan-023/024/025 박제 | [DONE] |
+| G_final | gate | 3-file sync ✓ + §0.5 c1~c15 모두 [DONE] ✓ + follow-up 3건 박제 ✓ | [DONE] |
 
 ### Plan-specific severe (WORKFLOW.md §12.3 default 위 추가분)
 
