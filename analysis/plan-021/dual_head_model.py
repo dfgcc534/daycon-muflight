@@ -163,13 +163,17 @@ class GRUDualHead(nn.Module):
         seq: torch.Tensor,
         flat: torch.Tensor,
         R_wfn: torch.Tensor,
-        origin: torch.Tensor,
+        pred_F0_world: torch.Tensor,
     ) -> torch.Tensor:
-        """§7.3.0 — Frenet → world final pred (training loop helper)."""
+        """§7.3.0 v1.3 — Frenet anchor mixture → world final pred (training loop helper).
+
+        anchor 의 reference = pred_F0_world (F0 의 80ms 미래 예측). corrector 의 final pred =
+        F0_pred + Frenet anchor mixture (±0.5cm 보정).
+        """
         logits, reg_offset = self.forward(seq, flat)
         probs = torch.softmax(logits, dim=1)                            # (B, 7)
         combined = self.ANCHORS[None, :, :] + reg_offset                # (B, 7, 3) Frenet
-        final_frenet = (probs[:, :, None] * combined).sum(dim=1)        # (B, 3)
-        # R_wfn columns=[t̂,n̂,b̂] → world = R_wfn @ frenet (no transpose)
-        final_world = torch.einsum("nij,nj->ni", R_wfn, final_frenet) + origin
+        final_frenet = (probs[:, :, None] * combined).sum(dim=1)        # (B, 3) Frenet
+        # R_wfn columns=[t̂,n̂,b̂] → world = R_wfn @ frenet (no transpose) + F0_pred
+        final_world = torch.einsum("nij,nj->ni", R_wfn, final_frenet) + pred_F0_world
         return final_world

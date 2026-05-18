@@ -97,11 +97,11 @@ def test_build_input_lgbm_extra(modules, synthetic):
 
 
 def test_build_soft_label(modules, synthetic):
-    bi = modules["bi"]
+    bi, bf = modules["bi"], modules["bf"]
     x, gt = synthetic
     R = bi.build_frenet_basis_3d(x, end_idx=10)
-    origin = x[:, 10].astype(np.float32)
-    q = bi.build_soft_label(gt, R, origin)
+    pred_F0 = bf.f0_baseline(x, end_idx=10).astype(np.float32)
+    q = bi.build_soft_label(gt, R, pred_F0)            # v1.3 — reference = F0 pred
     assert q.shape == (32, 7)
     np.testing.assert_allclose(q.sum(axis=1), 1.0, atol=1e-5)
 
@@ -116,8 +116,8 @@ def test_dual_head_lgbm_forward(modules, synthetic):
         common["L1"].reshape(N, 99), common["L2"].reshape(N, 21),
         common["L4"].reshape(N, 14), extra,
     ], axis=1).astype(np.float32)
-    q = bi.build_soft_label(gt, common["R_wfn"], common["origin"])
-    res_true = bi.to_frenet(gt, common["R_wfn"], common["origin"])
+    q = bi.build_soft_label(gt, common["R_wfn"], common["pred_F0_world"])     # v1.3
+    res_true = bi.to_frenet(gt, common["R_wfn"], common["pred_F0_world"])     # v1.3
     res_tg = res_true[:, None, :] - bi.ANCHORS_FRENET[None, :, :]
 
     model = dh.LgbmDualHead(n_estimators=20, lr=0.1)
@@ -140,12 +140,12 @@ def test_dual_head_gru_forward(modules, synthetic):
         np.concatenate([common["L2"].reshape(N, 21), common["L4"].reshape(N, 14)], axis=1)
     ).float()
     R = torch.from_numpy(common["R_wfn"]).float()
-    o = torch.from_numpy(common["origin"]).float()
+    pf0 = torch.from_numpy(common["pred_F0_world"]).float()       # v1.3
     gru = dh.GRUDualHead()
     logits, reg = gru(seq, flat)
     assert logits.shape == (32, 7)
     assert reg.shape == (32, 7, 3)
-    final = gru.predict_world(seq, flat, R, o)
+    final = gru.predict_world(seq, flat, R, pf0)
     assert final.shape == (32, 3)
     assert torch.isfinite(final).all()
 
@@ -161,11 +161,11 @@ def test_losses_and_backward(modules, synthetic):
         np.concatenate([common["L2"].reshape(N, 21), common["L4"].reshape(N, 14)], axis=1)
     ).float()
     R = torch.from_numpy(common["R_wfn"]).float()
-    o = torch.from_numpy(common["origin"]).float()
+    pf0 = torch.from_numpy(common["pred_F0_world"]).float()       # v1.3
     gru = dh.GRUDualHead()
     logits, _ = gru(seq, flat)
-    final = gru.predict_world(seq, flat, R, o)
-    q = torch.from_numpy(bi.build_soft_label(gt, common["R_wfn"], common["origin"])).float()
+    final = gru.predict_world(seq, flat, R, pf0)
+    q = torch.from_numpy(bi.build_soft_label(gt, common["R_wfn"], common["pred_F0_world"])).float()
     gt_t = torch.from_numpy(gt.astype(np.float32))
 
     tau, ub = dh.tau_for_epoch(35)

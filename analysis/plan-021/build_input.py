@@ -136,14 +136,24 @@ def _sigmoid(z: np.ndarray) -> np.ndarray:
 
 def build_input_common(X: np.ndarray, f0_baseline_fn: Callable) -> dict:
     """§4.2 + §6.1. X (N, 11, 3), f0_baseline_fn injected.
-    returns {"L1": (N,11,9), "L2": (N,7,3), "L4": (N,7,2), "R_wfn": (N,3,3), "origin": (N,3)}.
+    returns {"L1": (N,11,9), "L2": (N,7,3), "L4": (N,7,2),
+             "R_wfn": (N,3,3), "origin": (N,3) [= x[end_idx], for L1 invariance],
+             "pred_F0_world": (N,3) [= F0 산출 80ms 미래 위치, anchor codebook 의 origin]}.
+
+    v1.3 conceptual fix: anchor codebook 은 *F0 prediction* (= 80ms 미래) 주변 ±0.5cm 영역.
+    L1 의 Frenet origin (= last observed) 와 anchor 의 origin (= F0_pred) 는 다른 reference.
     """
     end_idx = X.shape[1] - 1
     R_wfn = build_frenet_basis_3d(X, end_idx=end_idx)
     origin = X[:, end_idx].astype(np.float32)
     L1 = _build_L1(X, R_wfn, origin)
     L2, L4 = _build_L2_L4(X, R_wfn, f0_baseline_fn)
-    return {"L1": L1, "L2": L2, "L4": L4, "R_wfn": R_wfn.astype(np.float32), "origin": origin}
+    pred_F0_world = f0_baseline_fn(X, end_idx=end_idx).astype(np.float32)
+    return {
+        "L1": L1, "L2": L2, "L4": L4,
+        "R_wfn": R_wfn.astype(np.float32), "origin": origin,
+        "pred_F0_world": pred_F0_world,
+    }
 
 
 # ── L5: macro statistic 9D (§6.1.4 self-contained) ────────────────────
@@ -206,12 +216,15 @@ def build_input_lgbm_extra(X: np.ndarray, L1: np.ndarray | None = None) -> np.nd
 # ── build_soft_label (classifier target) ───────────────────────────────
 
 
-def build_soft_label(gt: np.ndarray, R_wfn: np.ndarray, origin: np.ndarray) -> np.ndarray:
-    """§4.2 — gt (N, 3) world → soft prob (N, 7) over ANCHORS_FRENET.
+def build_soft_label(gt: np.ndarray, R_wfn: np.ndarray, pred_F0_world: np.ndarray) -> np.ndarray:
+    """§4.2 v1.3 — gt (N, 3) world → soft prob (N, 7) over ANCHORS_FRENET.
+
+    residual reference = pred_F0_world (= F0 의 80ms 미래 예측 위치). anchor codebook 은
+    F0_pred 주변 Frenet ±0.5cm 영역이라 residual_true = (gt − pred_F0_world) 의 Frenet 분해.
 
     q_k = softmax(-‖ANCHORS_FRENET[k] − residual_true_frenet‖ / TAU_CLS).
     """
-    residual_true_frenet = to_frenet(gt, R_wfn, origin)                # (N, 3)
+    residual_true_frenet = to_frenet(gt, R_wfn, pred_F0_world)         # (N, 3) — Frenet residual
     dist = np.linalg.norm(
         ANCHORS_FRENET[None, :, :] - residual_true_frenet[:, None, :], axis=-1
     )                                                                   # (N, 7)

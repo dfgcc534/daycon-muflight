@@ -101,15 +101,16 @@ def run_oof_lgbm(X: np.ndarray, Y: np.ndarray, folds: np.ndarray, pred_f0: np.nd
         extra,
     ], axis=1).astype(np.float32)
     R_wfn = common["R_wfn"]
-    origin = common["origin"]
+    pred_F0 = common["pred_F0_world"]              # v1.3 — anchor reference
 
     pred_world = np.zeros((N, 3), dtype=np.float32)
     for k in range(N_FOLDS):
         train_idx = np.where(folds != k)[0]
         val_idx = np.where(folds == k)[0]
 
-        q_train = bi.build_soft_label(Y[train_idx], R_wfn[train_idx], origin[train_idx])
-        residual_true_frenet_train = bi.to_frenet(Y[train_idx], R_wfn[train_idx], origin[train_idx])
+        # v1.3 — residual reference = pred_F0_world (F0 의 80ms 미래)
+        q_train = bi.build_soft_label(Y[train_idx], R_wfn[train_idx], pred_F0[train_idx])
+        residual_true_frenet_train = bi.to_frenet(Y[train_idx], R_wfn[train_idx], pred_F0[train_idx])
         residual_targets_train = (
             residual_true_frenet_train[:, None, :] - bi.ANCHORS_FRENET[None, :, :]
         )
@@ -119,8 +120,9 @@ def run_oof_lgbm(X: np.ndarray, Y: np.ndarray, folds: np.ndarray, pred_f0: np.nd
         probs, reg_offset = model.predict(X_lgbm[val_idx])
         combined = bi.ANCHORS_FRENET[None] + reg_offset
         final_frenet = (probs[:, :, None] * combined).sum(axis=1)
+        # v1.3 — final_world = pred_F0_world + R_wfn @ Frenet mixture
         pred_world[val_idx] = (
-            np.einsum("nij,nj->ni", R_wfn[val_idx], final_frenet) + origin[val_idx]
+            np.einsum("nij,nj->ni", R_wfn[val_idx], final_frenet) + pred_F0[val_idx]
         )
         if verbose:
             d = np.linalg.norm(pred_world[val_idx] - Y[val_idx], axis=1)
@@ -164,10 +166,10 @@ def run_oof_gru(
         np.concatenate([common["L2"].reshape(N, 21), common["L4"].reshape(N, 14)], axis=1)
     ).float()                                                                            # (N, 35)
     R_all = torch.from_numpy(common["R_wfn"]).float()                                    # (N, 3, 3)
-    origin_all = torch.from_numpy(common["origin"]).float()                              # (N, 3)
+    pred_F0_all = torch.from_numpy(common["pred_F0_world"]).float()                      # (N, 3) — v1.3
     Y_t = torch.from_numpy(Y.astype(np.float32))                                         # (N, 3)
     q_all = torch.from_numpy(
-        bi.build_soft_label(Y, common["R_wfn"], common["origin"])
+        bi.build_soft_label(Y, common["R_wfn"], common["pred_F0_world"])                 # v1.3
     ).float()                                                                            # (N, 7)
 
     pred_world = np.zeros((N, 3), dtype=np.float32)
@@ -194,7 +196,7 @@ def run_oof_gru(
             seq_tr = seq_all[train_idx].to(dev)
             flat_tr = flat_all[train_idx].to(dev)
             R_tr = R_all[train_idx].to(dev)
-            o_tr = origin_all[train_idx].to(dev)
+            pf0_tr = pred_F0_all[train_idx].to(dev)              # v1.3
             Y_tr = Y_t[train_idx].to(dev)
             q_tr = q_all[train_idx].to(dev)
 
@@ -214,7 +216,7 @@ def run_oof_gru(
                     probs = torch.softmax(logits, dim=1)
                     combined = model.ANCHORS[None] + reg_off
                     final_frenet = (probs[:, :, None] * combined).sum(dim=1)
-                    final_world = torch.einsum("nij,nj->ni", R_tr[idx], final_frenet) + o_tr[idx]
+                    final_world = torch.einsum("nij,nj->ni", R_tr[idx], final_frenet) + pf0_tr[idx]
                     tau, ub = dh.tau_for_epoch(epoch)
                     loss = dh.soft_ce_loss(logits, q_tr[idx]) + dh.smooth_hit_loss(
                         final_world, Y_tr[idx], tau=tau, use_boundary=ub
@@ -229,7 +231,7 @@ def run_oof_gru(
                     train_preds = []
                     for i in range(0, N_tr, batch_size):
                         seg = slice(i, i + batch_size)
-                        final = model.predict_world(seq_tr[seg], flat_tr[seg], R_tr[seg], o_tr[seg])
+                        final = model.predict_world(seq_tr[seg], flat_tr[seg], R_tr[seg], pf0_tr[seg])
                         train_preds.append(final)
                     train_pred = torch.cat(train_preds, dim=0)
                 d_tr = (train_pred - Y_tr).norm(dim=1)
@@ -271,7 +273,7 @@ def run_oof_gru(
                 vi = val_idx[i:i + batch_size]
                 final = model.predict_world(
                     seq_all[vi].to(dev), flat_all[vi].to(dev),
-                    R_all[vi].to(dev), origin_all[vi].to(dev),
+                    R_all[vi].to(dev), pred_F0_all[vi].to(dev),
                 )
                 val_preds.append(final.cpu().numpy())
             pred_world[val_idx] = np.concatenate(val_preds, axis=0)

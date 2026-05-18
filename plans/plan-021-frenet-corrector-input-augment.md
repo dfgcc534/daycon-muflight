@@ -259,9 +259,9 @@ analysis/plan-021/
 |---|---|---|
 | `build_frenet_basis_3d` | build_input | `Callable[[np.ndarray, int], np.ndarray]` ((N,T,3), end_idx → (N,3,3) = stack [t̂, n̂, b̂] columns). 산식 §4.2.1 참조. |
 | `to_frenet` | build_input | `Callable[[np.ndarray, np.ndarray, np.ndarray], np.ndarray]` (vec, R, origin → frenet vec) |
-| `build_input_common` | build_input | `Callable[[np.ndarray, Callable], dict]` (X (N,T,3), `f0_baseline_fn` (= bf.f0_baseline injected) → {"L1": (N,11,9), "L2": (N,7,3), "L4": (N,7,2), **"R_wfn": (N,3,3), "origin": (N,3)**}). F0 산식은 호출자 (run_oof) 가 plan-020 baseline_f0.py 의 `f0_baseline` 함수 인자로 주입. R_wfn / origin 은 §6.4 inference 의 Frenet→world 역변환에 필요. **LGBM 의 L5/L6 (170D 의 macro stat + EWMA) 은 `build_input_lgbm_extra` 가 별도 산출 (35D) — `run_oof_lgbm` 의 `X_lgbm = np.concatenate([common['L1'].reshape(N,99), common['L2'].reshape(N,21), common['L4'].reshape(N,14), lgbm_extra], axis=1)` 으로 sub-exp A entry 에서 concat (총 170D).** |
+| `build_input_common` | build_input | `Callable[[np.ndarray, Callable], dict]` (X (N,T,3), `f0_baseline_fn` injected → {"L1": (N,11,9), "L2": (N,7,3), "L4": (N,7,2), **"R_wfn": (N,3,3), "origin": (N,3), "pred_F0_world": (N,3)**}). origin (= x[end_idx]) 은 L1 의 Frenet trajectory invariance 용, **pred_F0_world (= F0 의 80ms 미래 예측, v1.3 박제) 은 anchor codebook 의 reference 위치**. LGBM extras (L5/L6 36D) 는 `build_input_lgbm_extra` 별도, `run_oof_lgbm` 의 `X_lgbm = concat([L1.reshape(N,99), L2.reshape(N,21), L4.reshape(N,14), lgbm_extra(36)], axis=1)` 총 170D. |
 | `build_input_lgbm_extra` | build_input | `Callable[[np.ndarray], np.ndarray]` (X → (N, 9+27=36) = macro stat 9D + EWMA 27D) |
-| `build_soft_label` | build_input | `Callable[[np.ndarray, np.ndarray, np.ndarray], np.ndarray]` (gt (N,3), R_wfn (N,3,3), origin (N,3) → (N, 7) soft prob). 산식: `residual_true_frenet = einsum('nij,nj->ni', R_wfn.transpose(0,2,1), gt - origin); dist = ‖ANCHORS_FRENET[None] − residual_true_frenet[:,None]‖; q = softmax(−dist / 0.001, axis=1)`. **F0_pred 인자 제거** (v1.1: dead-arg, residual_true_frenet 산식이 F0_pred 미사용). |
+| `build_soft_label` | build_input | `Callable[[np.ndarray, np.ndarray, np.ndarray], np.ndarray]` (gt (N,3), R_wfn (N,3,3), **pred_F0_world (N,3)** → (N, 7) soft prob). **v1.3 박제**: anchor reference = pred_F0_world (= F0 의 80ms 미래 예측). 산식: `residual_true_frenet = einsum('nij,nj->ni', R_wfn.transpose(0,2,1), gt - pred_F0_world); dist = ‖ANCHORS_FRENET[None] − residual_true_frenet[:,None]‖; q = softmax(−dist / 0.001, axis=1)`. |
 | `ANCHORS_FRENET` | build_input | `np.ndarray` shape (7, 3) |
 | `LgbmDualHead` | dual_head_model | sklearn-style class — fit / predict_proba / predict_offset |
 | `GRUDualHead` | dual_head_model | `nn.Module` — forward returns (logits, reg_offset) |
@@ -568,8 +568,9 @@ class LgbmDualHead:
 
 ```python
 # soft label (classifier target) — §4.2 build_soft_label 산식과 동일
-# world → frenet: R_wfn^T @ vec (R_wfn columns = [t̂, n̂, b̂], forward §6.1.1 와 정합)
-residual_true_frenet = np.einsum('nij,nj->ni', R_wfn.transpose(0, 2, 1), gt - origin)  # (N, 3) Frenet
+# v1.3 박제: anchor reference = pred_F0_world (F0 의 80ms 미래), NOT origin (= last point).
+# world → frenet: R_wfn^T @ (gt − pred_F0_world)
+residual_true_frenet = np.einsum('nij,nj->ni', R_wfn.transpose(0, 2, 1), gt - pred_F0_world)  # (N, 3) Frenet
 dist_to_anchors = np.linalg.norm(
     ANCHORS_FRENET[None, :, :] - residual_true_frenet[:, None, :], axis=-1
 )  # (N, 7)
@@ -594,12 +595,13 @@ for k in range(5):
     model.fit(X[train_idx], q[train_idx], residual_targets[train_idx])
     probs_val, reg_offset_val = model.predict(X[val_idx])
 
-    # final pred (Frenet → world)
-    # R_wfn columns = [t̂, n̂, b̂] → world_vec = R_wfn @ frenet_vec (transpose NO).
-    # (forward §6.1.1 의 world→frenet 은 R_wfn^T 사용 — 이는 inverse 방향.)
+    # final pred (Frenet → world, v1.3 conceptual fix)
+    # anchor reference = pred_F0_world (F0 의 80ms 미래), NOT origin.
+    # → final_world = pred_F0_world + R_wfn @ Frenet mixture (±0.5cm anchor 보정).
     combined = ANCHORS_FRENET[None, :, :] + reg_offset_val   # (N_val, 7, 3) Frenet
     final_frenet = (probs_val[:, :, None] * combined).sum(axis=1)  # (N_val, 3) Frenet
-    final_world[val_idx] = einsum('nij,nj->ni', R_wfn[val_idx], final_frenet) + origin[val_idx]
+    final_world = np.zeros((N, 3), dtype=np.float32)         # MINOR: pre-alloc
+    final_world[val_idx] = einsum('nij,nj->ni', R_wfn[val_idx], final_frenet) + pred_F0_world[val_idx]
 ```
 
 ### §6.5 산출 (`results_lgbm.json`)
@@ -695,9 +697,9 @@ probs = torch.softmax(logits, dim=1)                                # (B, 7)
 ANCHORS = torch.from_numpy(ANCHORS_FRENET).to(device)               # (7, 3), buffer
 combined = ANCHORS[None, :, :] + reg_offset                         # (B, 7, 3) — Frenet
 final_frenet = (probs[:, :, None] * combined).sum(dim=1)            # (B, 3) Frenet
-# Frenet → world (per-sample R_wfn, origin = build_input_common 반환 dict carry)
+# Frenet → world (v1.3 conceptual fix — anchor reference = pred_F0_world)
 # R_wfn columns = [t̂, n̂, b̂] → world = R_wfn @ frenet_vec (transpose NO — §6.4 와 정합).
-final_world = torch.einsum('nij,nj->ni', R_wfn, final_frenet) + origin
+final_world = torch.einsum('nij,nj->ni', R_wfn, final_frenet) + pred_F0_world
 # loss
 loss = soft_ce_loss(logits, q)                                       # classifier
      + smooth_hit_loss(final_world, gt, tau=tau_for_epoch(ep)[0], use_boundary=tau_for_epoch(ep)[1])
@@ -884,6 +886,8 @@ lever 별 marginal 가치 ablation = follow-up plan 으로 carry.
 ## §N+3. 변경 이력
 
 - v1 (2026-05-18): 초안 — 4 lever input augment (Frenet + F0 residual + F0 soft hit + soft label) + dual head (7-anchor classifier + 7×3 reg) + 2 sub-exp 독립 (LGBM 170D / GRU 134D). pass criterion paired Δ ≥ +0.005 둘 다.
+- v1.2 (2026-05-18): plan-review-master 5-iter 자동 fix (BLOCKER 0 도달, 37 fix). 산식·시그너처·경계·단위 self-contained 강화.
+- v1.3 (2026-05-18): **conceptual fix** — anchor codebook 의 reference 가 잘못된 origin (= x[end_idx], last observed) 으로 정의되어 있어 c7 G2.A 첫 actual run 시 A LGBM hit@1cm = 0.06 (F0 0.6320 보다 -57pp). 원인 = final pred 식이 `x[end_idx] + Frenet ±0.5cm` 로 F0 의 80ms 외삽 (= ~2cm) 누락. **fix**: anchor reference 를 *pred_F0_world* (= F0 산출 80ms 미래 위치) 로 변경 — final pred = `pred_F0_world + R_wfn @ Σ_k π_k · (anchor_k + reg_offset_k)`. spec §4.2 (build_input_common 반환 dict + build_soft_label signature) / §6.3 (residual_true_frenet 산식) / §6.4 (LGBM final pred) / §7.3.0 (GRU final pred) 일괄 수정 + L1 의 origin (= last point, invariance 용) 와 anchor reference (= pred_F0_world) 분리 명시. 11/11 pytest 통과 후 c7 relaunch.
 
 ---
 
