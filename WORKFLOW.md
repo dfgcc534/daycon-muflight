@@ -108,14 +108,16 @@ runs/{type}/{exp_id}/
 
 - `plan_id`: NNN
 - `date`: 작성일 (timezone 명시)
-- `based_on`: 선행 plan_id 또는 exp_id 목록
+- `inspired_by`: 선행 plan_id 또는 exp_id 목록 (★ **약한 관계** — 동기 / lesson / evidence 출처만. 코드 인계 의미 X).
+  - *기존 plan-NNN 의 `based_on` field 는 backward-compat 으로 동등 의미로 유지. 신규 plan 부터 `inspired_by` 사용.*
+- `code_reuse`: 명시적 코드 carry 목록 — `[]` (default = 빈 list, **from-scratch implementation 권장**). carry 항목마다 `{module: <path>, symbols: [<fn1>, ...], reason: <한 줄>}` 형태로 박제. 명시 없는 코드 import = 자동 carry 금지.
 - `exp_ids`: 이 plan에서 발행될 exp_id 목록
 
 ### 본문 섹션 (모두 필수)
 
 | 섹션 | 내용 |
 |---|---|
-| 배경 | 어떤 결과/관찰을 보고 이 plan을 짰는지 — 인과 |
+| 배경 | 어떤 결과/관찰을 보고 이 plan을 짰는지 — 인과. **선행 plan 의 *부정 evidence / lessons learned* 만 인계** (예: "plan-NNN 의 X 가 실패 → 본 plan 은 Y 시도"). *선행 plan 의 코드 / arch / framework 자동 carry 의무 없음* — 명시적 reuse 가 필요하면 frontmatter `code_reuse` 에 항목별 박제. default = from-scratch implementation 으로 *paradigm 재발명 자유* 확보. |
 | 가설 | 무엇을 검증/반박하려 하는지 — 명제 |
 | 실험 목록 | 각 exp_id마다: type, baseline, 단일 변경 변수, config 경로, 기대 runtime, 성공 기준, 실패 시 분기 |
 | 서버 작업 순서 | enumerated 단계. server는 이 외 작업을 수행하지 않는다 |
