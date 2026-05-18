@@ -66,8 +66,8 @@ band: null
 | c2 | code | `analysis/plan-021/build_input.py` (Frenet basis + L1/L2/L4/L5/L6 + ANCHORS_FRENET + soft label, smoke 8/8 pass — Frenet orthonormality 2.7e-7 / roundtrip 9.1e-9 / F0 sub-window 호환 / 170D concat) | [DONE] |
 | c3 | code | `analysis/plan-021/dual_head_model.py` (LgbmDualHead + GRUDualHead + soft_ce_loss + smooth_hit_loss + tau_for_epoch, smoke LGBM train hit 0.875 / GRU forward+backward OK / schedule 정확) | [DONE] |
 | c4 | code | `analysis/plan-021/run_oof.py` (5-fold OOF runner, sub-exp A/B dispatch + F0 baseline anchor, G1 reproduce sanity ✓) | [DONE] |
-| c5 | test | `tests/test_plan021_smoke.py` (4 module import + Frenet sanity + F0 reproduce) | [TODO] |
-| G0 | gate | smoke + tests green | [TODO] |
+| c5 | test | `tests/test_plan021_smoke.py` (11 pytest: import + Frenet orth + roundtrip + L1/L2/L4/L5/L6 shape+finite + soft_label sum=1 + LGBM/GRU forward + losses+backward + tau schedule + G1 carry) | [DONE] |
+| G0 | gate | smoke + tests green — 11/11 pytest pass ✓ | [DONE] |
 | c6 | exp G1 | F0 baseline 5-fold OOF reproduce → exact 0.6320 / 0.8033 (plan-020 carry 정확 일치, 0.8s CPU). `analysis/plan-021/baseline_carry.json` 박제. | [DONE] |
 | G1 | gate | F0 hit@1cm = **0.6320** ∈ [0.6315, 0.6325] AND hit@1.5cm = **0.8033** ∈ [0.8028, 0.8038] ✓ | [DONE] |
 | c7 | exp G2.A | sub-exp A LGBM 5-fold OOF → `analysis/plan-021/results_lgbm.{json,md}` | [TODO] |
