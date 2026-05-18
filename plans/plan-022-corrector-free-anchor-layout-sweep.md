@@ -106,8 +106,8 @@ band: null
 | G1 | gate | F0 hit@1cm = 0.6320 ∈ [0.6315, 0.6325] ✓ AND hit@1.5cm = 0.8033 ∈ [0.8028, 0.8038] ✓ | [DONE — d3da5df] |
 | c7 | exp G2.A1 | A1 octa7 — 3 τ_cls cell 측정. **best τ=0.001 PASS_BOTH** (Δ_1cm +0.0194 / Δ_1.5cm +0.0068). 342s. | [DONE — 7b18cb1] |
 | G2.A1 | gate | 3 cell metric finite ✓ + max_class_ratio < 0.95 ✓ (max 0.232) | [DONE — 7b18cb1] |
-| c8 | exp G2.A2 | A2 ico13 — 3 τ_cls cell 측정 → `results_A2.{json,md}` | [TODO] |
-| G2.A2 | gate | 3 cell metric finite + max-class 비율 < 0.95 | [TODO] |
+| c8 | exp G2.A2 | A2 ico13 — 3 τ_cls cell. **τ=0.001 PASS_BOTH** (Δ_1cm +0.0199 / Δ_1.5cm +0.0070) + τ=0.003 PASS_BOTH. 749s. | [DONE — ca7efe3] |
+| G2.A2 | gate | 3 cell metric finite ✓ + max_class_ratio < 0.95 ✓ (max 0.150) | [DONE — ca7efe3] |
 | c9 | exp G2.A3 | A3 cubocta13 — 3 τ_cls cell 측정 → `results_A3.{json,md}` | [TODO] |
 | G2.A3 | gate | 3 cell metric finite + max-class 비율 < 0.95 | [TODO] |
 | c10 | exp G2.A4 | A4 2shell13 — 3 τ_cls cell 측정 → `results_A4.{json,md}` | [TODO] |
