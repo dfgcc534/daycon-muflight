@@ -100,8 +100,8 @@ band: null
 | c3 | code | `analysis/plan-023/run_oof_largeN.py` (5-fold OOF runner, plan-022 `run_oof_cell` importlib carry + 4 layout × 3 τ_cls = 12 cell sweep + CLI) | [DONE — 0b69ca7] |
 | c4 | test | `tests/test_plan023_smoke.py` (7 pytest: import + 4 layout invariants + unique vertex + LgbmSelectorOnly K=50 fit/predict + soft label 4×3 sum=1 + F0 carry + samples/class floor) | [DONE — 2abd988] |
 | G0 | gate | smoke + tests green — 7/7 pytest pass (112s, T5 K=50 LGBM ~110s) | [DONE — 2abd988] |
-| c5 | exp G1 | F0 baseline 5-fold OOF reproduce → 0.6320 / 0.8033 (plan-020/021/022 carry exact). `analysis/plan-023/baseline_carry.json` 박제 (dataset_hash carry from plan-022 `baseline_carry.json`) | [TODO] |
-| G1 | gate | F0 hit@1cm ∈ [0.6315, 0.6325] ✓ AND hit@1.5cm ∈ [0.8028, 0.8038] ✓ | [TODO] |
+| c5 | exp G1 | F0 baseline 5-fold OOF reproduce → 0.6320 / 0.8033 (plan-020/021/022 carry exact). `analysis/plan-023/baseline_carry.json` 박제 (dataset_hash=b91502db94fab67d, n_samples=10000) | [DONE — a7198fb] |
+| G1 | gate | F0 hit@1cm=0.6320 ∈ [0.6315, 0.6325] ✓ AND hit@1.5cm=0.8033 ∈ [0.8028, 0.8038] ✓ AND dataset_hash 일치 ✓ | [DONE — a7198fb] |
 | c6 | exp G2.B1 | B1 dodeca20 — 3 τ_cls cell 측정 + `results_B1.{json,md}` 박제 | [TODO] |
 | G2.B1 | gate | 3 cell metric finite ✓ + max_class_ratio < 0.95 ✓ | [TODO] |
 | c7 | exp G2.B2 | B2 trunc_octa24 — 3 τ_cls cell + `results_B2.{json,md}` 박제 | [TODO] |
