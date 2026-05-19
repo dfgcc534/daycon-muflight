@@ -1,0 +1,8 @@
+{
+  "f0_hit_1cm": 0.632,
+  "f0_hit_1.5cm": 0.8033,
+  "dataset_hash": "b91502db94fab67d",
+  "n_samples": 10000,
+  "source_baseline": "analysis/plan-020/baseline_oof.json",
+  "carry_from": "analysis/plan-022/baseline_carry.json"
+}
