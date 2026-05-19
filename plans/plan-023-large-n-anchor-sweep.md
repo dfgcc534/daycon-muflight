@@ -97,7 +97,7 @@ band: null
 |---|---|---|---|
 | c1 | docs | `plans/plan-023-large-n-anchor-sweep.md` v1 작성 (plan-review-master 5-iter 자동 fix — iter 1 BLOCKER 1+AMB 5 fix / iter 2 AMB 3 fix / iter 3 BLOCKER 1+AMB 5 fix / iter 4 BLOCKER 0 sustained+AMB 2 fix / iter 5 BLOCKER 0 sustained+AMB 2 fix → 잔여 MINOR ~8) | [DONE — f87d902] |
 | c2 | code | `analysis/plan-023/anchors_largeN.py` (4 layout numpy 상수 + smoke test: ‖a‖ = 0.005m exact, std ≤ 5e-10, np.unique == K — 모든 invariant 통과) | [DONE — 588e9d2] |
-| c3 | code | `analysis/plan-023/run_oof_largeN.py` (5-fold OOF runner, plan-022 `run_oof_cell` import + 4 layout × 3 τ_cls = 12 cell sweep + paired Δ 12 cell 산출) | [TODO] |
+| c3 | code | `analysis/plan-023/run_oof_largeN.py` (5-fold OOF runner, plan-022 `run_oof_cell` importlib carry + 4 layout × 3 τ_cls = 12 cell sweep + CLI) | [DONE — 0b69ca7] |
 | c4 | test | `tests/test_plan023_smoke.py` (7 pytest: import + 4 layout shape/norm 검증 + LgbmSelectorOnly fit/predict (K=50 max) + soft label sum=1 (K=20/24/30/50) + plan-022 module reuse smoke + G1 reproduce sanity + samples-per-class lower-bound (10000/50=200 floor)) | [TODO] |
 | G0 | gate | smoke + tests green — 7/7 pytest pass | [TODO] |
 | c5 | exp G1 | F0 baseline 5-fold OOF reproduce → 0.6320 / 0.8033 (plan-020/021/022 carry exact). `analysis/plan-023/baseline_carry.json` 박제 (dataset_hash carry from plan-022 `baseline_carry.json`) | [TODO] |
