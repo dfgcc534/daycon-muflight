@@ -108,10 +108,10 @@ band: null
 | G2.B2 | gate | 3 cell metric finite ✓ + max_class_ratio < 0.95 ✓ (max 0.066) | [DONE — b3bc1e3] |
 | c8 | exp G2.B3 | B3 icosidodec30 — 3 τ_cls cell, τ=0.001 PASS_BOTH (Δ_1cm +0.0199, Δ_1.5cm +0.0077) + τ=0.003 PASS. sum 0.0276 < plan-022 0.0279. plateau 확인 (B1/B2/B3 모두 0.027x). 2004s. | [DONE — 63469b5] |
 | G2.B3 | gate | 3 cell metric finite ✓ + max_class_ratio < 0.95 ✓ (max 0.050) | [DONE — 63469b5] |
-| c9 | exp G2.B4 | B4 fib50 — 3 τ_cls cell + `results_B4.{json,md}` 박제 | [TODO] |
-| G2.B4 | gate | 3 cell metric finite ✓ + max_class_ratio < 0.95 ✓ | [TODO] |
-| c10 | analysis | 12 cell paired Δ 표 + best cell 식별 + N-axis marginal + τ-axis marginal + plan-022 best 대비 compare + paradigm finding → `paradigm_analysis.{json,md}` | [TODO] |
-| G3 | gate | ≥ 1 cell paired Δ ≥ +0.005 둘 다 ✓ — band positive (0 통과 시 negative + all_negative warn) | [TODO] |
+| c9 | exp G2.B4 | B4 fib50 — **τ=0.001 NEW BEST 🏆** (Δ_1cm +0.0212 / Δ_1.5cm +0.0075 / sum 0.0287, plan-022 갱신 ✓ +0.0008) + τ=0.003 PASS. 4683s. | [DONE — a8e143e] |
+| G2.B4 | gate | 3 cell metric finite ✓ + max_class_ratio < 0.95 ✓ (max 0.032 — uniform 0.020 의 1.58x, most distributed) | [DONE — a8e143e] |
+| c10 | analysis | 12 cell paired Δ 표 + best=B4_fib50_tau001 + N-axis marginal (K=14→20→24→30 plateau → K=50 revival) + τ-axis marginal + plan-022 갱신 1/12 + mode collapse table + H3 PASS → `paradigm_analysis.{json,md}`. 8/12 pass_both. | [DONE — bffe9bf] |
+| G3 | gate | 1/12 cell beats plan-022 sum (B4_fib50_tau001) + 8/12 paired Δ ≥ +0.005 둘 다 ✓ — band positive | [DONE — bffe9bf] |
 | c11 | docs | 3-file frontmatter sync (status=all_complete, band=positive|negative, best_sub_exp=B{n}_<name>_tau<val>) + `analysis/plan-023/results.md` (11 항목) + `plans/plan-023-*.results.md` pair + follow-up plan-024/025 박제 | [TODO] |
 | G_final | gate | 3-file sync ✓ + §0.5 c1~c11 모두 [DONE] ✓ + follow-up 2건 박제 ✓ | [TODO] |
 
