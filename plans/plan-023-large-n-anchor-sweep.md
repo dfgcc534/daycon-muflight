@@ -2,12 +2,12 @@
 plan_id: 023
 version: 1.0
 date: 2026-05-19 (Asia/Seoul)
-status: in_progress
-best_sub_exp: null
-best_hit_1cm: null
-best_hit_1.5cm: null
-best_delta_1cm: null
-best_delta_1.5cm: null
+status: all_complete
+best_sub_exp: B4_fib50_tau001
+best_hit_1cm: 0.6532
+best_hit_1.5cm: 0.8108
+best_delta_1cm: +0.0212
+best_delta_1.5cm: +0.0075
 based_on:
   - 022 (best A6_bcc14_tau001 Δ_1cm +0.0208 / Δ_1.5cm +0.0071 둘 다 PASS. 10/21 cell pass_both. trend: K=7→14 anchor 에서 Δ sum 향상, sharp τ=0.001 winner. paradigm 박제: anchor + sharp τ 조합 lever 유효. Δ_1.5cm 가 +0.005 ceiling 근접 (+0.0071) — N>14 추가 lever 측정 필요)
   - 021 (selector-only ablation evidence carry: LGBM reg_offset = bound 의 0.5% (~0.01mm) dead → corrector-free spec carry. 170D input pipeline carry)
@@ -37,8 +37,9 @@ code_reuse:
     symbols: [stable_fold_id]
     reason: 5-fold stable split (plan-020/021/022 carry).
 followed_by:
-  - plan-024 (가칭): best large-N layout (plan-023 결과) 위 corrector reg head 재투입 → 1.5cm metric ceiling 돌파 ablation (plan-022 followed_by 의 corrector 슬롯을 본 plan best 위로 carry)
-  - plan-025 (가칭): N × radius shell 2D sweep — 본 plan 의 단일 shell 한계 박제 후 radius diversity lever 측정
+  - plan-024 (가칭): B4_fib50_tau001 winner 위 corrector reg head 재투입 → 1.5cm metric ceiling 돌파 ablation (plan-022 followed_by 의 corrector 슬롯을 본 plan best 위로 carry)
+  - plan-025 (가칭): N × radius shell 2D sweep — 본 plan 의 단일 shell 0.005m 한계 박제 후 radial lever 측정
+  - plan-026 (가칭, lower priority): N > 50 progression (geodesic icosahedron 2-freq N=72 / fib N=100). samples/class < 200 risk zone, mode_collapse + runtime budget 박제 필요
 scope: large-N (>14) vertex-transitive anchor layout sweep. 4 layout (N ∈ {20, 24, 30, 50}) × 3 τ_cls = 12 cell. baseline = F0 (plan-022 G3 criterion 동일). 추가 informational compare = plan-022 best (A6_bcc14_tau001, Δ_1cm +0.0208 / Δ_1.5cm +0.0071). 모든 input + LGBM hparam + fold split = plan-022 §6.1 / §6.2 그대로. 단일 변수 = anchor 좌표 (4 layout) + τ_cls (3 값). corrector reg head 재투입 / GRU / DACON LB / ensemble / N≥60 / radius ≠ 0.005m 단일 shell = out-of-scope.
 exp_ids:
   - Z023_B1_dodeca20
@@ -47,7 +48,7 @@ exp_ids:
   - Z023_B4_fib50
 # exp_id ↔ cell_key 매핑 룰: frontmatter `Z023_B{n}_<name>` (sub-exp 단위, 3 τ cell 묶음) ↔ 본문 cell_key `B{n}_<name>_tau{NNN}` (cell 단위, NNN ∈ {001, 003, 005}). `best_sub_exp` frontmatter 박제 시 cell_key 포맷 사용 (e.g. `B3_icosidodec30_tau001`) — Z023_ prefix 는 `exp_ids` 카탈로그 식별자, cell_key 는 measurement 단위 식별자.
 lb_score: null
-band: null
+band: positive
 ---
 
 # plan-023 v1 — Large-N Anchor Layout Sweep (vertex-transitive, K>14, selector-only LGBM)
@@ -89,7 +90,7 @@ band: null
 - G2.B3: B3 icosidodec30 3 τ_cls 측정 [TODO]
 - G2.B4: B4 fib50 3 τ_cls 측정 [TODO]
 - G3: STAGE 3 best cell selection + paradigm finding [TODO]
-- G_final: STAGE 4 results + 3-file sync [TODO]
+- G_final: STAGE 4 results + 3-file sync [DONE — 🏆 best=B4_fib50_tau001 sum 0.0287 (plan-022 +0.0008)]
 
 ### Commit chain (next-up)
 
@@ -112,8 +113,8 @@ band: null
 | G2.B4 | gate | 3 cell metric finite ✓ + max_class_ratio < 0.95 ✓ (max 0.032 — uniform 0.020 의 1.58x, most distributed) | [DONE — a8e143e] |
 | c10 | analysis | 12 cell paired Δ 표 + best=B4_fib50_tau001 + N-axis marginal (K=14→20→24→30 plateau → K=50 revival) + τ-axis marginal + plan-022 갱신 1/12 + mode collapse table + H3 PASS → `paradigm_analysis.{json,md}`. 8/12 pass_both. | [DONE — bffe9bf] |
 | G3 | gate | 1/12 cell beats plan-022 sum (B4_fib50_tau001) + 8/12 paired Δ ≥ +0.005 둘 다 ✓ — band positive | [DONE — bffe9bf] |
-| c11 | docs | 3-file frontmatter sync (status=all_complete, band=positive|negative, best_sub_exp=B{n}_<name>_tau<val>) + `analysis/plan-023/results.md` (11 항목) + `plans/plan-023-*.results.md` pair + follow-up plan-024/025 박제 | [TODO] |
-| G_final | gate | 3-file sync ✓ + §0.5 c1~c11 모두 [DONE] ✓ + follow-up 2건 박제 ✓ | [TODO] |
+| c11 | docs | 3-file frontmatter sync (status=all_complete, band=positive, best_sub_exp=B4_fib50_tau001) + `analysis/plan-023/results.md` (11 항목) + `plans/plan-023-*.results.md` pair + follow-up plan-024/025/026 박제 | [DONE] |
+| G_final | gate | 3-file sync ✓ + §0.5 c1~c11 모두 [DONE] ✓ + follow-up 3건 박제 ✓ | [DONE] |
 
 ### Plan-specific severe (WORKFLOW.md §12.3 default 위 추가분)
 
