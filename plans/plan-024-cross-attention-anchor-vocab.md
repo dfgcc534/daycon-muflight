@@ -79,7 +79,7 @@ band: null
 ### 합격 기준 (G-gate sequence)
 
 - **G0**: 5 module (anchor_vocab / seq_builder / cand_builder / model_runner / training) import + smoke + tests green. plan-021 build_input.py + plan-022 anchors / soft_label / PB selector.py import 정상. 위반 시 `infra_drift` severe.
-- **G1**: F0 baseline 5-fold concat OOF + plan-022 winner reproduce — F0 hit@1cm ∈ [0.6315, 0.6325] AND hit@1.5cm ∈ [0.8028, 0.8038] (plan-020/021/022 carry exact) + plan-022 A6_bcc14_tau001 reproduce: OOF hit_1cm ∈ [0.6520, 0.6536] AND hit_1.5cm ∈ [0.8096, 0.8112]. 위반 시 `f0_reproduce_drift` / `plan022_reproduce_drift` severe.
+- **G1**: F0 baseline 5-fold concat OOF + plan-022 winner reproduce — F0 hit@1cm ∈ [0.6315, 0.6325] (carry **F0_hit_1cm = 0.6320**, plan-020 `analysis/plan-020/results.md`, plan-022 baseline_carry.json carry) AND hit@1.5cm ∈ [0.8028, 0.8038] (carry **F0_hit_1.5cm = 0.8033**) + plan-022 A6_bcc14_tau001 reproduce: OOF hit_1cm ∈ [0.6520, 0.6536] (carry **0.6528**) AND hit_1.5cm ∈ [0.8096, 0.8112] (carry **0.8104**). 위반 시 `f0_reproduce_drift` / `plan022_reproduce_drift` severe.
 - **G2**: cross-attention selector 5-fold OOF 완료 — OOF metric finite + `max_class_ratio < 0.95` + **OOF hit_1cm ≥ 0.6528** (plan-022 winner 최소 동등). 미달 시 `xattn_no_improvement` severe (architecture lever 실패 → plan 종료, decision-note 박제 후 G_final 진입 — submission 생성 안 함).
 - **G3 (lift level)**: OOF hit_1cm ≥ **0.6628** (= plan-022 winner +0.01) AND hit_1.5cm ≥ **0.8104** (= plan-022 winner 최소 동등) AND `gap_ranking` ≤ 0.04 (plan-008 base 0.0516 의 절반). 부분 미달 = `xattn_partial_pass` warn (G_final 진입 단 LB 회수만, follow-up plan 강화 axis 박제).
 - **G_final**: dacon-submit skill 자율 호출 + 3-file frontmatter sync (status=all_complete + band + best_metric + lb_score) + LB ≥ plan-022 carry LB (미박제 시 plan-004 LB 0.6806 floor). LB 미달 시 `lb_below_floor` warn (severe 아님, results.md 박제 + follow-up axis 박제).
@@ -104,6 +104,7 @@ band: null
 | c5 | code | `analysis/plan-024/torsion_calc.py` — Frenet torsion τ scalar per step (numerical-safe: collinear mask + sign-flip alignment + ‖v‖ clamp). spec @ §4.5 | [TODO] |
 | c5.5 | code | `analysis/plan-024/quantile_carry.py` — train fold quantile 박제 (saccade ω threshold p90 / Peak jerk threshold p90 / Lévy tail threshold). fold-leakage 차단용. spec @ §4.8 | [TODO] |
 | c5.7 | code | `analysis/plan-024/feature_weighted_dropout.py` — **per-channel learnable scale** (`cand_scale` 162 + `seq_scale` 95, init=1.0) + **channel dropout** (cand ③ ctx broadcast 영역 128D 만, p=0.3; seq 의 redundant 영역 EWMA J 9D + Multi-window broadcast slice, p=0.2). 보호 영역 (①②④ + seq kinematic) drop X. spec @ §4.6 | [TODO] |
+| c5.8 | code | `analysis/plan-024/multiwindow_trim_build.py` — Multi-window stat grid 144→60 trim list 생성 (§4.4.1 deterministic correlation-based greedy column drop). 출력 `multiwindow_trim.json`. spec @ §4.4.1 | [TODO] |
 | c6 | code | `analysis/plan-024/model.py` — `CrossAttentionAnchorSelector` (PB framework `CandidateAttentionGRUSelector` 그대로 import + thin wrapper for K=14, cand_dim=**162**, seq_dim=**95**, hidden=**384**) + FeatureWeightedDropout module 의 forward 맨 처음 호출. spec @ §4.6 | [TODO] |
 | c7 | code | `analysis/plan-024/run_oof.py` — 5-fold OOF runner (stable_fold_id MD5 carry). data load → quantile_carry build → seq/cand build → fit (2 layer GRU dropout **0.10** + AdamW lr **7e-4** weight_decay **0.02** cosine + epochs pre=**12** fine=**10** + batch 256 + Head MLP dropout **0.15**) → predict → metrics. spec @ §6 | [TODO] |
 | c8 | test | `tests/test_plan024_smoke.py` — **10 pytest**: anchor_vocab shape + sign sanity (axis 대칭 invariance) + seq **95D** shape per step + cand **162D** shape per anchor + torsion mask + quantile_carry fold-leakage 차단 + FeatureWeightedDropout weight + channel mask 보호 영역 + model forward smoke (b=4, K=14, T=7) + 1-fold 1-epoch fit finite + G1 reproduce sanity | [TODO] |
@@ -260,6 +261,28 @@ plan-022 가 21-cell sweep 으로 *anchor layout* 변수 ablation 했다면, pla
 
 - τ_cls = **0.001** (plan-022 winner carry, output soft label sharpness — 변경 X)
 - τ_past = **0.003** (default; past F0 residual magnitude 5~20mm 스케일 매칭). G1 통과 후 ablation 후보 (plan-025).
+
+### §3.6 gap_ranking 정의 (self-contained, plan-008 carry)
+
+```python
+# gap_ranking = oracle_1cm - argmax_hit
+# oracle_1cm  = "14 anchor 중 *가장 정답에 가까운* anchor 의 hit@1cm 비율"
+#             = (min_k ‖a_k_world - Y‖ ≤ 0.01).mean()
+#             where a_k_world = R_wfn @ anchor_k_frenet + pred_F0_world (sample 별)
+#             즉 anchor 14개 중 best 를 선택했을 때의 *상한* hit rate
+# argmax_hit  = "selector 가 단일 top-1 anchor 만 선택했을 때의 hit@1cm 비율"
+#             = (‖a_{argmax_k q_pred[i,k]}_world - Y‖ ≤ 0.01).mean()
+
+oracle_dist  = min_k ‖R_wfn @ anchors[k] + pred_F0_world - Y‖   # (N,)
+oracle_1cm   = (oracle_dist <= 0.01).mean()
+argmax_idx   = q_pred.argmax(axis=1)                            # (N,)
+argmax_pos   = R_wfn @ anchors[argmax_idx] + pred_F0_world      # (N, 3)
+argmax_dist  = ‖argmax_pos - Y‖
+argmax_hit   = (argmax_dist <= 0.01).mean()
+gap_ranking  = oracle_1cm - argmax_hit                          # scalar
+```
+
+**reference value** (plan-008 base 27-cand carry): oracle_1cm=0.7562, argmax_hit=0.7046, gap_ranking=**0.0516**. plan-024 의 14-anchor 위 oracle 은 학습 후 직접 측정 (G3 박제).
 
 ---
 
@@ -426,7 +449,7 @@ per anchor k (k=0..13), per sample, **162D** channel:
 | **① par/perp/dist** (sample × anchor) | 3 | `(a_k - residual_last) → Frenet 분해 par/perp + ‖.‖` | — |
 | **② anchor spec** (anchor-static) | **21** | base 9 (Frenet coord 3 + sign 3 + group 2 + idx 1) + **S4 Anchor coord Fourier PE 12** (`[sin(2π·a_t/r), cos(2π·a_t/r), sin(2π·a_n/r), cos, sin(2π·a_b/r), cos, sin(4π·a_t/r), cos, sin(4π·a_n/r), cos, sin(4π·a_b/r), cos]` with `r = 0.005m`) | **+12 (A4 Tancik 2020)** |
 | **③ ctx broadcast** (sample × all anchors 같은 값) | **128** | **모두 Frenet frame, last step 기준** (audit B + §4.0 convention). base 12 (last v Frenet 3 + last acc Frenet 3 + last F0 res Frenet 3 + EWMA(α=0.3) of res Frenet 3) + macro_stat **8** (~~straightness~~ 제거, A2 redundancy R4 — plan-021 `_macro_stat_9d` 중 idx 1 straightness 제외 9→8) + Bz/Tz 2 (`[R_wfn[:, 2, 2], R_wfn[:, 2, 0]]` per §4.0) + regime 18 (one-hot) + **A1 STA/LTA ratio 3** (EWMA α=0.5 / EWMA α=0.1 ratio per Frenet axis t̂/n̂/b̂, of F0 residual) + **A2 Multi-window stat grid 60** (`[전체 11, 뒤 7, 뒤 5, 뒤 3] sub-window × [mean, std, slope, max] × 9 channel` = 4×4×9 = 144D 후보, **trim 60D** — 9 channel = Frenet `[p_t, p_n, p_b, v_t, v_n, v_b, a_t, a_n, a_b]`, **trim 절차** §4.4.1 박제) + **A5 WAP sample-level 5** (last-step Frenet `[‖v‖²·κ, ‖j‖/‖a‖, ½‖v‖², ‖v_perp‖·τ_frenet, dist·‖a_perp‖]`) + **A6 wingbeat-jitter envelope 3** (std of `(p_Frenet - EWMA_{α=0.6}(p_Frenet))` per Frenet axis) + **A8 f0_conf sample-level 2** (polyfit residual norm `‖F0_pred - last_step_world_extrap‖` + `step_spread = std(consecutive_speed)`) + **A10 Pct-rolling+Peak 12** (`[pct_{20,50,80}(rolling_std(‖v_Frenet‖, w∈{3,5,7})) → 3×3=9, count_{t=4..10}(‖j_Frenet[t]‖ > quantile_carry.jerk_p90)  // sample-level scalar 1, count_{t=5..10}(sgn(v_Frenet[t, 0]) · sgn(v_Frenet[t-1, 0]) < 0)  // t̂-axis sign flip scalar 1, count_{t=5..10}(turn_cos[t] < 0.5)  // sharp turn scalar 1]` → 9+1+1+1=12) + **A12 v_autocorr 3** (per lag k∈{1,2,3}: `corr(stack([v_Frenet[t, c] for t in range(7)]), stack([v_Frenet[t-k, c] for t in range(k, 7)]))` 의 *3축 (t̂/n̂/b̂) 평균* — `mean_c(Pearson(v_c[k:], v_c[:-k]))` 단일 scalar per k = 3개) | **+88 (A1+A2+A5+A6+A8+A10+A12), -1 straightness** |
-| **④ interactions** (sample × anchor) | **10** | base **8**: anchor·res / anchor·v / anchor·acc / anchor·EWMA / corner×turn / ~~axis×forward~~ (A1 redundancy 제거) / sign-agreement / physics-extrap·anchor / anchor·Δz_world (= 8 항목, v1 의 axis×forward 제거 후 net 8) + **A3 BCC adjacency neighbor pool 2** (`[mean_{j∈N(k)}<a_j, r_last>, std_{j∈N(k)}<a_j, r_last>]`, N(k) = anchor k 의 BCC 3-4 nearest neighbor, adjacency precompute static) | **+2 (A3 Set Transformer ISAB mimic), -1 axis×forward** |
+| **④ interactions** (sample × anchor) | **10** | base **8** *모두 scalar (1D each)*: (1) anchor·res = `<a_k, r_last_Frenet>` 1, (2) anchor·v = `<a_k, v_last_Frenet>` 1, (3) anchor·acc = `<a_k, acc_last_Frenet>` 1, (4) anchor·EWMA = `<a_k, EWMA(α=0.3)(r_Frenet)>` 1, (5) corner×turn = `is_corner_k · turn_cos_last` 1, (6) sign-agreement = `Σ_c sgn(a_k_c)·sgn(r_last_c)` 1, (7) physics-extrap·anchor = `<a_k, v·Δt + ½·acc·Δt²>` 1 (Δt = 0.080s = 80ms), (8) anchor·Δz_world = `(R_wfn @ a_k)[2]` 1 (= 8 scalar) + **A3 BCC adjacency neighbor pool 2 *모두 scalar* (`[mean_{j∈N(k)}<a_j, r_last>, std_{j∈N(k)}<a_j, r_last>]`, N(k) = anchor k 의 BCC 3-4 nearest neighbor, adjacency precompute static) | **+2 (A3 Set Transformer ISAB mimic), -1 axis×forward** |
 
 **total**: 3 + **21** + **128** + **10** = **162D**. cand_feat shape = (N, 14, 162). (v1: 62D, Δ = +99 추가 − 2 redundancy 제거 + 11 = +100)
 
@@ -897,7 +920,7 @@ LB < plan-022 carry (미박제 시 plan-004 LB 0.6806 floor) → `lb_below_floor
 | G-gate | 5 (G0, G1, G2, G3, G_final) |
 | OOF training | 5-fold × **22 epoch** ≈ **~5~7h GPU** (input dim 3배 + epoch ↑) |
 | LB submission | 1회 (DACON quota 1/5) |
-| code module | **8 new** (anchor_vocab / seq_builder / cand_builder / torsion_calc / **quantile_carry** / **feature_weighted_dropout** / model / run_oof) |
+| code module | **9 new** (anchor_vocab / seq_builder / cand_builder / torsion_calc / **quantile_carry** / **feature_weighted_dropout** / **multiwindow_trim_build** / model / run_oof) |
 | test | **10 pytest** (1 file, v1.1: weight + channel mask 추가) |
 | artifact | results.md + results_xattn.json + baseline_carry.json + per_anchor_dist.json + **quantile_carry.json** + lb_log.md |
 
@@ -909,7 +932,11 @@ LB < plan-022 carry (미박제 시 plan-004 LB 0.6806 floor) → `lb_below_floor
 
 1. **plan-009 ranking_loss fail 패턴 비교**: plan-024 가 plan-009 의 G1 fail (oof_soft_hit 0.6482, gap_ranking 0.108) 을 *avoid* 했는지 직접 비교 표.
 2. **architecture-extractable headroom 측정**: plan-008 gap_ranking 0.0516 의 plan-024 회수율 = (0.0516 - plan-024 gap_ranking) / 0.0516. 100% 회수 시 oracle 도달 (~0.7562 hit).
-3. **LB-OOF gap 측정**: plan-004 패턴 (`runs/baseline/P001_pb-0-6822-fullrun/boundary_tiny_correction_report.json` 의 boundary OOF soft_hit = 0.6624 → DACON LB 0.6806 = +0.018, §14 참조의 plan-004.results.md carry) 와 plan-024 의 LB-OOF gap 비교. positive gap = generalization 양호, negative = overfit 신호.
+3. **LB-OOF gap 측정**: plan-004 carry value (self-contained, 외부 source read 불요):
+   - plan-004 boundary OOF soft_hit = **0.6624** (`analysis/plan-004/results.md` carry)
+   - plan-004 DACON LB = **0.6806** (frontmatter `lb_score` carry)
+   - LB-OOF gap = **+0.0182** (positive → generalization 양호)
+   plan-024 의 LB-OOF gap 비교 → positive 면 양호, negative 면 overfit 신호 (caveat #8 의 metric drift caveat 동반 인용 필요).
 
 ---
 
